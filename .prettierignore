@@ -7,3 +7,5 @@ bun.lock
 spec/
 # Local tool settings
 .claude/
+# CDK synth output
+cdk.out/

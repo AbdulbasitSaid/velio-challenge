@@ -1,0 +1,13 @@
+{
+  "name": "@velio/aws",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "cdk": "cdk"
+  },
+  "devDependencies": {
+    "aws-cdk": "2.1147.0",
+    "aws-cdk-lib": "2.275.0",
+    "constructs": "10.8.1"
+  }
+}

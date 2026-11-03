@@ -1,0 +1,10 @@
+# Docker build context is the repository root; send only what the images copy.
+**/node_modules
+**/.env
+**/.env.*
+.git
+.github
+.claude
+spec
+infra/aws/cdk.out
+*.md

@@ -11,6 +11,8 @@ dist/
 build/
 out/
 coverage/
+# CDK synth output: holds the alarm email and account ID (public repository)
+cdk.out/
 *.tsbuildinfo
 .eslintcache
 

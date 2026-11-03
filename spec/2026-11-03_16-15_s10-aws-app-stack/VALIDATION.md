@@ -59,6 +59,23 @@
 
 ## Part B: Executed checks
 
-Not run. Implementation has not been authorized.
+In progress. All checks below ran on 2026-11-03 on the laptop (macOS arm64, Docker 29.8.1).
 
-**Final validation status:** Not run.
+| Check | Command or procedure | Result | Covers |
+| --- | --- | --- | --- |
+| V-IMG-1 | `docker buildx build --platform linux/arm64` of `apps/api/Dockerfile` and `apps/api/migrate.Dockerfile`; then the V-CMP-1 dry run | Pass. The frozen production install passes under Bun 1.4.4. | FR-010 (partly) |
+| V-CMP-1 | `docker compose config` on the prod file; `otelcol-contrib validate` (0.164.0) with both overlays; a full local run of the prod Compose with an override for host paths: migrate, `api` healthy, `/api/healthz` 200, `/api/readyz` 403 without the header and 200 with it, migrate rerun idempotent | Pass | SEC-002 (app side), SEC-005 (passwords) |
+| V-CMP-1 (logs) | Collector with a debug overlay, fed a Docker json-file line with the API's label and one without | Pass: only the API line is exported, with body, severity, timestamp, `trace_id` and `span_id` set from the pino fields | FR-007 (partly) |
+| V-CDK-1 | `bun test infra/aws` | Pass, 14 tests | FR-003, SEC-001, SEC-002 (template), SEC-003, SEC-004, SEC-006, FR-006 (config), FR-009 (config), AC-005 |
+| V-CDK-1 (synth) | `cdk synth -q -c alertEmail=…` | Pass; `cdk.out/` confirmed git-ignored | FR-001 (partly) |
+| V-SEC-3 | actionlint 1.7.12 (with ShellCheck) over `.github/workflows` | Pass: no findings | SEC-008 (static) |
+| V-PIN-1 | Review of every image, action, AMI, binary and dependency reference | Pass. Images use exact tags (`postgres:18.6`, `otel/opentelemetry-collector-contrib:0.164.0`, `oven/bun:1.4.4-slim`, `amacneil/dbmate:2.37.0`); app images are tagged with the commit SHA. Actions are pinned by commit SHA. The AMI ID is pinned and, with it, the AL2023 package repository. Compose v5.7.0 is checksum-verified. All npm versions are exact. | NFR-001 |
+| V-SEC-4 (part) | `git grep` and `grep -r` (excluding `node_modules`, `cdk.out`, `.git`) for the alarm email | Pass: no match | SEC-009 (partly) |
+| V-DOC-1 (review) | README "Production (AWS)" sections checked against the synthesised template (deletion policies, outputs) and the scripts | Pass on review. Following it from a clean shell needs the deployed stack. | FR-008 (partly) |
+| Static | `bun run format:check`, `bun run lint`, `bun run typecheck`; ShellCheck (stable) on the four scripts | Pass. ShellCheck reports only info-level notes: SC2012 on release-directory names, which are SHAs. | NFR-001 (partly) |
+
+Not yet run: V-AWS-1 to 3, V-SEC-1, V-SEC-2, V-OBS-1, V-CI-1, V-BAK-1, V-ALM-1, V-PUB-1, V-BUD-1 (all need the AWS stack), and V-DOC-1 run from a clean shell. The gitleaks 8.30.1 part of V-SEC-4 was attempted, but Docker Desktop stopped during the run; it must run before the repository goes public.
+
+2026-11-03: deployment deferred at the user's request (see PLANNING change log). The AWS checks above stay not run until it resumes. After the `AWS_DEPLOY_ROLE_ARN` guard was added to `deploy.yml`, `bun run format:check` and `bun run lint` passed. actionlint (V-SEC-3) wasn't rerun because Docker was down; rerun it with gitleaks.
+
+**Final validation status:** Not run (paused; local checks pass, AWS checks deferred).

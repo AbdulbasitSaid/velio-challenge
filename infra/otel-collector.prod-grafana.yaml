@@ -1,0 +1,16 @@
+# Overlay for otel-collector.prod.yaml: export to Grafana Cloud. deploy.sh merges it once the
+# velio/prod/grafana secret is filled in, and sets these two variables from it.
+exporters:
+  otlphttp/grafana:
+    endpoint: ${env:GRAFANA_OTLP_ENDPOINT}
+    headers:
+      Authorization: Basic ${env:GRAFANA_OTLP_AUTH}
+
+service:
+  pipelines:
+    traces:
+      exporters: [otlphttp/grafana]
+    metrics:
+      exporters: [otlphttp/grafana]
+    logs:
+      exporters: [otlphttp/grafana]

@@ -8,7 +8,8 @@
   },
   "workspaces": [
     "apps/api",
-    "packages/*"
+    "packages/*",
+    "infra/aws"
   ],
   "scripts": {
     "dev": "bun run --cwd apps/api dev",
@@ -18,7 +19,11 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit -p apps/api && tsc --noEmit -p packages/contracts"
+    "typecheck": "tsc --noEmit -p apps/api && tsc --noEmit -p packages/contracts && tsc --noEmit -p infra/aws",
+    "aws:synth": "AWS_REGION=eu-west-2 bun run --cwd infra/aws cdk synth",
+    "aws:diff": "AWS_REGION=eu-west-2 bun run --cwd infra/aws cdk diff",
+    "aws:deploy": "AWS_REGION=eu-west-2 bun run --cwd infra/aws cdk deploy",
+    "aws:destroy": "AWS_REGION=eu-west-2 bun run --cwd infra/aws cdk destroy"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

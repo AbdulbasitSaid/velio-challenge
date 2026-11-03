@@ -39,7 +39,7 @@ Group activities on Velio are agreed socially but booked alone. Hosts cannot tru
 - ✅ MVP plan (system design, stack, structure) approved.
 - ✅ UX design spec and prototype approved.
 - ✅ Phase 0 done (2026-11-03): Google Maps locations specified and the PRD amended; Velio design system and all 42 screens designed in Claude Design, responsive rules set, and approved.
-- 🔄 Phase 1 in progress: S1 Foundations implemented (2026-11-03): Bun workspace, full schema with integrity enforced in Postgres, lightweight sessions, contracts with OpenAPI, telemetry to a local collector and a CI workflow. S10 (app stack on AWS) is not yet specified. No cloud infrastructure exists yet.
+- 🔄 Phase 1 in progress: S1 Foundations implemented (2026-11-03): Bun workspace, full schema with integrity enforced in Postgres, lightweight sessions, contracts with OpenAPI, telemetry to a local collector and a CI workflow. S10a (app stack on AWS) is written and checked locally (CDK stack, images, prod Compose, deploy workflow), but deployment is deferred: no cloud infrastructure exists yet.
 
 ## Milestones
 
@@ -83,7 +83,7 @@ Phases group the delivery specs from the [MVP plan](spec/2026-11-03_07-42_group-
 | Phase | Milestone | Delivery specs | Goal | Exit criteria | Status |
 | --- | --- | --- | --- | --- | --- |
 | 0. Decide and design | M0 | PRD, constitution, MVP plan, UX, Google Maps, complete UI design | Agree what to build and how, and design all of it | PRD confirmed with the Google Maps amendments; MVP plan, UX and Google Maps specs approved; Velio design system and every screen and state designed at high fidelity in Claude Design and approved | ✅ Done 2026-11-03 |
-| 1. Foundations | M1 | S1, S10 (app stack) | A tested, deployable, observable empty system | CI green; all migrations apply (including the location columns from the Google Maps spec); append-only grants and triggers enforced; contracts package generates OpenAPI (the Dart client follows in S7); telemetry reaches Grafana Cloud; a health endpoint serves through the `cloudfront.net` hostname | 🔄 S1 implemented (CI green on GitHub pending the first push); S10 app stack not yet specified |
+| 1. Foundations | M1 | S1, S10 (app stack) | A tested, deployable, observable empty system | CI green; all migrations apply (including the location columns from the Google Maps spec); append-only grants and triggers enforced; contracts package generates OpenAPI (the Dart client follows in S7); telemetry reaches Grafana Cloud; a health endpoint serves through the `cloudfront.net` hostname | 🔄 S1 implemented (CI green on GitHub pending the first push); S10 app stack written, deployment deferred (Grafana and `cloudfront.net` exits unmet) |
 | 2. Correctness core | M1 | S2 | Prove overselling is impossible (R1) | Concurrency test passes in CI against real Postgres; k6 `last_spot_race` smoke returns exactly N successes; idempotent retries, removal and capacity edit covered | 📋 |
 | 3. Realtime and invites | M1 | S3, S4 (in parallel) | Live counts and trustworthy attribution | Versioned events with snapshot and poll fallback; commit-to-render latency measured; vouch double-claim race never double-claims; attribution and hash chain are append-only and audit clean; rate limits and pause work | 📋 |
 | 4. Clients | M1 | S5, S6, S7 (in parallel) | Every P0 flow usable on web and mobile | **Gate:** complete UI design approved (Phase 0) ✅. **Exit:** host, booker and guest flows work end to end against the deployed stack; deep links open the app on iOS and Android with the web fallback otherwise | 📋 |
@@ -122,4 +122,4 @@ None blocking. The remaining assumptions are listed in the MVP plan, §10: the a
 | [2026-11-03_09-29_s1-foundations](spec/2026-11-03_09-29_s1-foundations/) | M1 · S1 | Implemented |
 | [2026-11-03_10-34_google-maps-locations](spec/2026-11-03_10-34_google-maps-locations/) | Phase 0 | Approved |
 | [2026-11-03_10-34_complete-ui-design](spec/2026-11-03_10-34_complete-ui-design/) ([design system](https://claude.ai/artifact/HVyi155enP8ug5BVzdg8qz), [screens](https://claude.ai/artifact/9hFK2e2AhKVGMsrwPMei48)) | Phase 0 | Implemented |
-| [2026-11-03_16-15_s10-aws-app-stack](spec/2026-11-03_16-15_s10-aws-app-stack/) | M1 · S10 (app stack) | Draft |
+| [2026-11-03_16-15_s10-aws-app-stack](spec/2026-11-03_16-15_s10-aws-app-stack/) | M1 · S10 (app stack) | Approved for implementation; paused, deployment deferred |

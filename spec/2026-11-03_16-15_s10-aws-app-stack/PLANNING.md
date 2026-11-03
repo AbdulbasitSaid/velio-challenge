@@ -2,7 +2,7 @@
 
 - **Spec ID:** 2026-11-03_16-15_s10-aws-app-stack
 - **Created:** 2026-11-03 16:15 (local)
-- **Status:** Draft
+- **Status:** Approved for implementation (paused: deployment deferred, see change log)
 - **Parent:** `spec/2026-11-03_07-42_group-bookings-mvp-plan/` (approved), delivery step S10, Phase 1 part ("app stack")
 - **Builds on:** `spec/2026-11-03_09-29_s1-foundations/` (implemented)
 - **PRD:** `Velio Group Bookings PRD.md`
@@ -223,3 +223,17 @@ Parent plan §4.11, §4.12, §7 (S10), SEC-009, NFR-010, NFR-011 · S1 spec · R
 
 - 2026-11-03 16:15: created (draft).
 - 2026-11-03: open questions answered. Repository and images public, so GHCR (no ECR); native arm64 runners; fork-safe deploy guard; alarm email from deploy-time context; Grafana in the EU; AWS budget added as the last task.
+- 2026-11-03: implementation authorized; partially done (stopped at a usage limit). Design details changed during implementation:
+  - A sixth secret, `db-readonly-password`, for the collector's `postgresql` receiver. The migrate image (`apps/api/scripts/migrate-prod.sh`) sets it and grants `pg_monitor` to `velio_readonly`.
+  - `deploy.sh` and `backup.sh` ship in each deploy bundle instead of user data, so changing them needs no instance replacement. User data only installs Docker, Compose v5.7.0 (checksum-verified) and jq. The SSM command fetches the bundle's `deploy.sh` and runs it.
+  - If the new API fails its healthcheck, `deploy.sh` starts the previous release again and still exits non-zero. Compose replaces the old container, so it cannot simply "keep running".
+  - The collector exports to `nop` until the Grafana secret is set; then `infra/otel-collector.prod-grafana.yaml` is merged in.
+  - Planned: pin the AMI ID and CloudFront prefix-list ID as constants instead of `cdk.context.json` lookups, which would commit the account ID to a public repository. The deploy role also needs `ssm:GetCommandInvocation` and `cloudformation:DescribeStacks` on `VelioApp`; the workflow reads its role ARN from the repository variable `AWS_DEPLOY_ROLE_ARN`.
+- 2026-11-03 (continued): T1, T2, T3 and T7 written and checked locally. Further details:
+  - AMI `ami-0d623184a69654e22` (al2023-ami-2023.12.20261102.0-kernel-6.18-arm64) and prefix list `pl-93a247fa` are constants in `infra/aws/bin/app.ts`; no `cdk.context.json` is needed.
+  - The account already has GitHub's OIDC provider, so `cdk.json` sets `velio:createGithubOidcProvider: false` and the stack references it.
+  - `cdk.out/` is git-ignored: the synthesised template holds the alarm email.
+  - The collector's log receiver is `file_log/api` (the `filelog` alias is deprecated in 0.164), and the collector starts after Postgres is healthy.
+  - CloudFormation Validate prints warning W9010 (hard-coded AMI ID) on every synth. It is intended (NFR-001) and is not silenced: `Annotations.acknowledgeWarning` doesn't affect this validator.
+- 2026-11-03: **deployment deferred** at the user's request, to save time. T1, T2, T3, T7 and T9 are written and checked locally. T4 (bootstrap and first `cdk deploy`), T5 (first deploy), T6 (Grafana Cloud), T8 (backup restore) and T10 (budget) are not started, and no AWS resources exist. They resume when the user asks. Open items at the pause: the alarm email address, the gitleaks rerun (needs Docker), and whether to deploy as the account root user (the current CLI session) or an IAM role. Until the stack exists, Phase 1's "telemetry reaches Grafana Cloud" and "health through `cloudfront.net`" exits are unmet, and so is Phase 4's "against the deployed stack".
+  - So pushes stay green while the deploy is deferred, the `deploy` job in `deploy.yml` also requires `vars.AWS_DEPLOY_ROLE_ARN != ''`. It is skipped until the repository variable is set after T4.

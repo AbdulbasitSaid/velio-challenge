@@ -1,0 +1,102 @@
+# Production stack on the app instance (S10a). Run by infra/aws/scripts/deploy.sh with
+# --env-file /opt/velio/.env, which holds IMAGE_TAG and the secrets. Not for local use.
+name: velio
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: '3'
+
+services:
+  postgres:
+    image: postgres:18.6
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: velio
+      POSTGRES_PASSWORD: ${DB_SUPERUSER_PASSWORD:?}
+    # Not published: reachable only on the Compose network.
+    volumes:
+      - /opt/velio/data:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d velio']
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    logging: *logging
+
+  # One-off, before the API restarts: `run --rm migrate`. Applies migrations as the superuser and
+  # sets the role passwords (apps/api/scripts/migrate-prod.sh).
+  migrate:
+    image: ghcr.io/abdulbasitsaid/velio-migrate:${IMAGE_TAG:?}
+    profiles: ['deploy']
+    environment:
+      DATABASE_URL: postgres://postgres:${DB_SUPERUSER_PASSWORD:?}@postgres:5432/velio?sslmode=disable
+      DB_API_PASSWORD: ${DB_API_PASSWORD:?}
+      DB_READONLY_PASSWORD: ${DB_READONLY_PASSWORD:?}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    logging: *logging
+
+  api:
+    image: ghcr.io/abdulbasitsaid/velio-api:${IMAGE_TAG:?}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: '3001'
+      DATABASE_URL: postgres://velio_api:${DB_API_PASSWORD:?}@postgres:5432/velio
+      DATABASE_LISTEN_URL: postgres://velio_api:${DB_API_PASSWORD:?}@postgres:5432/velio
+      CONTACT_PEPPER: ${CONTACT_PEPPER:?}
+      ORIGIN_VERIFY_SECRET: ${ORIGIN_VERIFY_SECRET:?}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+    # The security group admits only CloudFront to this port.
+    ports:
+      - '3001:3001'
+    healthcheck:
+      # /api/healthz is exempt from the origin check. The slim image has no curl.
+      test:
+        - CMD
+        - bun
+        - -e
+        - "fetch('http://127.0.0.1:3001/api/healthz').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"
+      interval: 10s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
+    depends_on:
+      postgres:
+        condition: service_healthy
+    labels:
+      com.velio.logs: api
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+        # Adds the label to every log line, so the collector picks out the API's lines.
+        labels: com.velio.logs
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.164.0
+    restart: unless-stopped
+    # Root, to read the Docker log files and the host's /proc.
+    user: '0'
+    command:
+      - --config=/etc/otelcol/config.yaml
+      - --config=${OTEL_COLLECTOR_EXTRA_CONFIG:-/etc/otelcol/empty.yaml}
+    environment:
+      DB_READONLY_PASSWORD: ${DB_READONLY_PASSWORD:?}
+      GRAFANA_OTLP_ENDPOINT: ${GRAFANA_OTLP_ENDPOINT:-}
+      GRAFANA_OTLP_AUTH: ${GRAFANA_OTLP_AUTH:-}
+    volumes:
+      - ./otel-collector.prod.yaml:/etc/otelcol/config.yaml:ro
+      - ./otel-collector.prod-grafana.yaml:/etc/otelcol/grafana.yaml:ro
+      - ./otel-collector.empty.yaml:/etc/otelcol/empty.yaml:ro
+      - /:/hostfs:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /opt/velio/otelcol:/var/lib/otelcol
+    depends_on:
+      postgres:
+        condition: service_healthy
+    logging: *logging

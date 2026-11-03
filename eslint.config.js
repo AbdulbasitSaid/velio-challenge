@@ -3,7 +3,7 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['**/node_modules/', 'apps/api/src/db/types.ts', 'spec/'] },
+  { ignores: ['**/node_modules/', 'apps/api/src/db/types.ts', 'spec/', '**/cdk.out/'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {

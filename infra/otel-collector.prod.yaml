@@ -1,0 +1,113 @@
+# Production collector on the app instance (S10a). Receives the API's OTLP, scrapes host and
+# Postgres metrics and tails the API's container logs. Exports nowhere by default (nop);
+# otel-collector.prod-grafana.yaml, merged by deploy.sh once the Grafana secret is set, adds
+# Grafana Cloud. Adds no labels: the API's own redaction and attributes pass through unchanged.
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+  # Remembers log file offsets across restarts.
+  file_storage:
+    directory: /var/lib/otelcol
+
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+
+  hostmetrics:
+    root_path: /hostfs
+    collection_interval: 60s
+    scrapers:
+      cpu: {}
+      memory: {}
+      disk: {}
+      filesystem: {}
+      network: {}
+
+  postgresql:
+    endpoint: postgres:5432
+    transport: tcp
+    username: velio_readonly
+    password: ${env:DB_READONLY_PASSWORD}
+    databases: [velio]
+    collection_interval: 60s
+    tls:
+      insecure: true
+
+  # Docker's json-file lines: {"log": "<pino JSON>\n", "stream": ..., "time": ..., "attrs": {...}}.
+  # Only lines carrying the API's logging label are kept.
+  file_log/api:
+    include: [/var/lib/docker/containers/*/*-json.log]
+    start_at: end
+    storage: file_storage
+    resource:
+      service.name: velio-api
+    operators:
+      - type: json_parser
+      - type: filter
+        expr: 'attributes.attrs == nil || attributes.attrs["com.velio.logs"] != "api"'
+      - type: json_parser
+        parse_from: attributes.log
+      - type: time_parser
+        parse_from: attributes.time
+        layout_type: gotime
+        layout: '2006-01-02T15:04:05.999Z07:00'
+      - type: severity_parser
+        parse_from: attributes.level
+      - type: trace_parser
+        trace_id:
+          parse_from: attributes.trace_id
+        span_id:
+          parse_from: attributes.span_id
+      - type: move
+        from: attributes.msg
+        to: body
+      - type: remove
+        field: attributes.log
+      - type: remove
+        field: attributes.attrs
+      - type: remove
+        field: attributes.stream
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 300
+    spike_limit_mib: 60
+  batch: {}
+  # MVP plan §4.12: keep every error, everything slower than 1 s, and 10% of the rest.
+  tail_sampling:
+    decision_wait: 10s
+    policies:
+      - name: errors
+        type: status_code
+        status_code:
+          status_codes: [ERROR]
+      - name: slow
+        type: latency
+        latency:
+          threshold_ms: 1000
+      - name: sample
+        type: probabilistic
+        probabilistic:
+          sampling_percentage: 10
+
+exporters:
+  nop: {}
+
+service:
+  extensions: [health_check, file_storage]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, tail_sampling, batch]
+      exporters: [nop]
+    metrics:
+      receivers: [otlp, hostmetrics, postgresql]
+      processors: [memory_limiter, batch]
+      exporters: [nop]
+    logs:
+      receivers: [file_log/api]
+      processors: [memory_limiter, batch]
+      exporters: [nop]

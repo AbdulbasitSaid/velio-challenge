@@ -1,0 +1,129 @@
+name: Deploy
+
+# Deploys master to the AWS app stack (spec/2026-11-03_16-15_s10-aws-app-stack): after CI passes
+# on a push to master, or by hand for any earlier commit on master (rollback).
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [master]
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Commit on master to deploy (default the head of master)
+        required: false
+
+permissions: {}
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # Public repository: only CI runs from a push to master of this repository deploy, never a
+    # pull request from a fork (SEC-008). The role's OIDC trust also admits only master.
+    # Skipped until the stack exists and AWS_DEPLOY_ROLE_ARN is set.
+    if: >-
+      vars.AWS_DEPLOY_ROLE_ARN != '' &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_branch == 'master' &&
+        github.event.workflow_run.head_repository.full_name == github.repository))
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    env:
+      AWS_REGION: eu-west-2
+      REQUESTED_SHA: ${{ github.event.workflow_run.head_sha || inputs.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Resolve the commit
+        run: |
+          sha=$(git rev-parse --verify "${REQUESTED_SHA}^{commit}")
+          git merge-base --is-ancestor "$sha" origin/master || { echo "::error::$sha is not on master"; exit 1; }
+          git checkout --quiet "$sha"
+          echo "SHA=$sha" >> "$GITHUB_ENV"
+
+      - uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: eu-west-2
+
+      - name: Read stack outputs
+        run: |
+          aws cloudformation describe-stacks --stack-name VelioApp --query 'Stacks[0].Outputs' --output json |
+            jq -r '.[] | select(.OutputKey | IN("DistributionDomain", "InstanceId", "DeployBucket")) | "\(.OutputKey)=\(.OutputValue)"' \
+            >> "$GITHUB_ENV"
+
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push the API image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          platforms: linux/arm64
+          push: true
+          tags: ghcr.io/abdulbasitsaid/velio-api:${{ env.SHA }}
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+
+      - name: Build and push the migrate image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: apps/api/migrate.Dockerfile
+          platforms: linux/arm64
+          push: true
+          tags: ghcr.io/abdulbasitsaid/velio-migrate:${{ env.SHA }}
+          cache-from: type=gha,scope=migrate
+          cache-to: type=gha,mode=max,scope=migrate
+
+      - name: Upload the deploy bundle
+        run: |
+          for f in infra/docker-compose.prod.yml infra/otel-collector.prod.yaml infra/otel-collector.prod-grafana.yaml \
+            infra/otel-collector.empty.yaml infra/aws/scripts/deploy.sh infra/aws/scripts/backup.sh; do
+            aws s3 cp --quiet "$f" "s3://${DeployBucket}/${SHA}/$(basename "$f")"
+          done
+
+      - name: Deploy on the instance
+        run: |
+          script="set -euo pipefail
+          aws s3 cp --quiet --region ${AWS_REGION} s3://${DeployBucket}/${SHA}/deploy.sh /opt/velio/deploy.sh
+          bash /opt/velio/deploy.sh ${SHA}"
+          command_id=$(aws ssm send-command --instance-ids "$InstanceId" --document-name AWS-RunShellScript \
+            --comment "deploy ${SHA:0:12}" --timeout-seconds 60 \
+            --parameters "$(jq -n --arg s "$script" '{commands: [$s], executionTimeout: ["900"]}')" \
+            --query Command.CommandId --output text)
+          status=Pending
+          for _ in $(seq 1 180); do
+            sleep 5
+            status=$(aws ssm get-command-invocation --command-id "$command_id" --instance-id "$InstanceId" \
+              --query Status --output text 2>/dev/null || echo Pending)
+            case "$status" in Pending|InProgress|Delayed) ;; *) break ;; esac
+          done
+          aws ssm get-command-invocation --command-id "$command_id" --instance-id "$InstanceId" \
+            --query '[StandardOutputContent, StandardErrorContent]' --output text || true
+          [ "$status" = Success ] || { echo "::error::deploy on the instance ended with $status"; exit 1; }
+
+      - name: Smoke check through CloudFront
+        run: |
+          for path in healthz readyz; do
+            curl --fail --silent --show-error --retry 6 --retry-delay 5 --retry-all-errors \
+              "https://${DistributionDomain}/api/${path}"
+            echo
+          done
