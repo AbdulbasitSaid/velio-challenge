@@ -23,8 +23,9 @@ Group activities on Velio are agreed socially but booked alone. Hosts cannot tru
 ## Core capabilities (PRD P0)
 
 - Activity creation with live spots-left and sold-out state (A1–A3).
+- Google Maps locations: host picker, map with directions, community map, meeting point (A4–A7).
 - Booking with no overselling, idempotent retries and Plan creation (B1–B3).
-- Plans showing members and invite status (L1).
+- Plans showing members and invite status, and a My plans list (L1, L2).
 - Vouch and public invites with codes, deep links and immutable attribution (I1–I6).
 - Host attendance view with removal and attended or no-show marking (H1–H2).
 - Responsive web app with a Host / Booker role toggle (W1).
@@ -37,7 +38,7 @@ Group activities on Velio are agreed socially but booked alone. Hosts cannot tru
 - ✅ Development process established (`CLAUDE.md`, spec workflow, changelog).
 - ✅ MVP plan (system design, stack, structure) approved.
 - ✅ UX design spec and prototype approved.
-- 🔄 Phase 0 reopened (2026-11-03): Google Maps locations and a complete UI design in Claude Design, both in review.
+- 🔄 Phase 0 reopened (2026-11-03): Google Maps locations and a complete UI design in Claude Design. Both specs approved and the PRD amended; the designs are not built yet.
 - No application code, repository (git) or infrastructure exists yet.
 
 ## Milestones
@@ -82,7 +83,7 @@ Phases group the delivery specs from the [MVP plan](spec/2026-11-03_07-42_group-
 | Phase | Milestone | Delivery specs | Goal | Exit criteria | Status |
 | --- | --- | --- | --- | --- | --- |
 | 0. Decide and design | M0 | PRD, constitution, MVP plan, UX, Google Maps, complete UI design | Agree what to build and how, and design all of it | PRD confirmed with the Google Maps amendments; MVP plan, UX and Google Maps specs approved; Velio design system and every screen and state designed at high fidelity in Claude Design and approved | 🔄 Reopened 2026-11-03 |
-| 1. Foundations | M1 | S1, S10 (app stack) | A tested, deployable, observable empty system | CI green; all migrations apply (including the location columns from the Google Maps spec); append-only grants and triggers enforced; contracts package generates the Dart client; telemetry reaches Grafana Cloud; a health endpoint serves through the `cloudfront.net` hostname | 🔄 S1 in review; schema waits on the Google Maps spec |
+| 1. Foundations | M1 | S1, S10 (app stack) | A tested, deployable, observable empty system | CI green; all migrations apply (including the location columns from the Google Maps spec); append-only grants and triggers enforced; contracts package generates the Dart client; telemetry reaches Grafana Cloud; a health endpoint serves through the `cloudfront.net` hostname | 🔄 S1 in review (schema aligned with the Google Maps spec) |
 | 2. Correctness core | M1 | S2 | Prove overselling is impossible (R1) | Concurrency test passes in CI against real Postgres; k6 `last_spot_race` smoke returns exactly N successes; idempotent retries, removal and capacity edit covered | 📋 |
 | 3. Realtime and invites | M1 | S3, S4 (in parallel) | Live counts and trustworthy attribution | Versioned events with snapshot and poll fallback; commit-to-render latency measured; vouch double-claim race never double-claims; attribution and hash chain are append-only and audit clean; rate limits and pause work | 📋 |
 | 4. Clients | M1 | S5, S6, S7 (in parallel) | Every P0 flow usable on web and mobile | **Gate:** complete UI design approved (Phase 0). **Exit:** host, booker and guest flows work end to end against the deployed stack; deep links open the app on iOS and Android with the web fallback otherwise | 📋 |
@@ -119,5 +120,5 @@ None blocking. The remaining assumptions are listed in the MVP plan, §10: the a
 | [2026-11-03_07-42_group-bookings-mvp-plan](spec/2026-11-03_07-42_group-bookings-mvp-plan/) | M0, M1 | Approved |
 | [2026-11-03_09-09_ux-design](spec/2026-11-03_09-09_ux-design/) ([prototype](https://claude.ai/artifact/NirxnmSocq3eaLLrAwxjBe)) | M1 (before S5–S7) | Approved |
 | [2026-11-03_09-29_s1-foundations](spec/2026-11-03_09-29_s1-foundations/) | M1 · S1 | In review |
-| [2026-11-03_10-34_google-maps-locations](spec/2026-11-03_10-34_google-maps-locations/) | Phase 0 | In review |
-| [2026-11-03_10-34_complete-ui-design](spec/2026-11-03_10-34_complete-ui-design/) | Phase 0 | In review |
+| [2026-11-03_10-34_google-maps-locations](spec/2026-11-03_10-34_google-maps-locations/) | Phase 0 | Approved |
+| [2026-11-03_10-34_complete-ui-design](spec/2026-11-03_10-34_complete-ui-design/) | Phase 0 | Approved |

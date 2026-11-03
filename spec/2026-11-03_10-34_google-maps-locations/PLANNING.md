@@ -2,7 +2,7 @@
 
 - **Spec ID:** 2026-11-03_10-34_google-maps-locations
 - **Created:** 2026-11-03 10:34 (local)
-- **Status:** In review
+- **Status:** Approved (2026-11-03). Implementation not yet authorized.
 - **Phase:** 0 (Decide and design), reworked on 2026-11-03
 - **Depends on:** `Velio Group Bookings PRD.md` (A1, Business rules, Q2, Q11), `spec/2026-11-03_07-42_group-bookings-mvp-plan/`
 - **Affects:** `spec/2026-11-03_09-29_s1-foundations/` (schema), `spec/2026-11-03_10-34_complete-ui-design/` (screens)
@@ -182,3 +182,4 @@ Medium: one schema change, one picker, a reusable map block on three clients, on
 
 - 2026-11-03 10:34: created after the owner asked to rework Phase 0 with Google Maps. MAP-D1–D3 decided by the owner in the same session.
 - 2026-11-03: OQ-1 to OQ-3 answered by the owner (MAP-D4 to MAP-D6): host-confirmed location fields, $10 monthly budget alert with overage allowed, owner creates the Google Cloud project at S10.
+- 2026-11-03: **approved by the product owner**, with the PRD amendments (A1 amended, A4–A7, Q13). PRD, MVP plan and S1 spec updated to match. Code lands only in delivery specs under their own authorization.

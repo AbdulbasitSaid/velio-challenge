@@ -27,6 +27,7 @@ The repository, workspace, database schema, identity, contracts, telemetry base 
 | FR-012 | The API fails to start, with a message naming the missing or invalid variable, if the configuration is invalid. | — |
 | FR-013 | Sessions expire after 30 days without use (sliding; renewal at most once per 24 h) and 90 days after creation regardless of use. Both values are config. An expired session gets `401 unauthenticated`. | PLANNING §4.4 |
 | FR-014 | `POST /api/sessions` always issues a fresh token and revokes any session presented with the request. `DELETE /api/sessions/current` revokes the caller's session and clears the cookie. | PLANNING §4.4 |
+| FR-015 | `activities` stores `place_id` (nullable), `venue_name`, `address_text`, `lat`, `lng` and `meeting_point` (nullable, ≤ 140 chars) with range checks. Once an activity has a confirmed booking, a trigger rejects changes to its date, time zone or any location field with `location_locked`. | PRD A1, A4, Q2, Q13; Maps spec FR-005 |
 
 ## Non-functional requirements
 

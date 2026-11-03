@@ -35,6 +35,8 @@
 | FR-032 | U-AVATAR-1 (same seed → same colour and initials in TS and Dart) | S5, S7 |
 | FR-033 | CONC-1 extended: every confirmed booking has a unique `ref`; E2E-1 shows it on success, Plan and attendance | S2, S5–S7 |
 | FR-034 | E2E-1 copy check on the activity, invite and success screens | S5–S7 |
+| FR-035 | Checks in `spec/2026-11-03_10-34_google-maps-locations/VALIDATION.md` | S1, S5–S7, S10 |
+| FR-036 | INT-PL-2 (`GET /me/plans` returns only the caller's Plans, split upcoming and past), E2E-1 extended to My plans, FL-1 extended | S5, S7 |
 | SEC-012 | INT-PRIV-2: contract test that no public endpoint schema contains `displayName`, plus a response scan | S1, S4 |
 | NFR-002 | LOAD-3, LOAD-4 | S9 |
 | NFR-003 | INT-RT-2 | S3 |

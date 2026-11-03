@@ -107,7 +107,7 @@ erDiagram
 | `users` | id, display_name, contact_hash, invite_generation, created_at | generation set at insert, never updated (trigger) |
 | `sessions` | token_hash, user_id, device_id, created_at | |
 | `communities` | id, slug, name, blurb, cover_photo_key | unique `slug`; seeded |
-| `activities` | id, host_id, community_id, title, description, photo_key, starts_at, timezone, location, price_minor, currency, capacity, spots_left, version, bookings_paused | `CHECK (spots_left >= 0 AND spots_left <= capacity)` |
+| `activities` | id, host_id, community_id, title, description, photo_key, starts_at, timezone, place_id, venue_name, address_text, lat, lng, meeting_point, price_minor, currency, capacity, spots_left, version, bookings_paused | `CHECK (spots_left >= 0 AND spots_left <= capacity)`; `CHECK` on lat/lng ranges; `meeting_point` ≤ 140 chars; location fields locked after the first booking (Maps spec §5.1) |
 | `plans` | id, activity_id, owner_id | |
 | `bookings` | id, ref, activity_id, user_id, plan_id, source (direct/vouch/public), invite_id, idempotency_key, status (confirmed/removed), created_at | partial unique `(activity_id, user_id) WHERE status='confirmed'`; unique `(user_id, idempotency_key)`; unique `ref` (`VLO-` + 5 characters from the invite-code alphabet, generated in the booking transaction, retried on collision) |
 | `invites` (AO) | id, code, rail, activity_id, plan_id, inviter_id, invitee_name, invitee_contact_hash, note, expires_at, prev_hash, row_hash | unique `code` |
@@ -152,7 +152,7 @@ COMMIT;
 ```
 
 - Read checks for invite validity (exists, not expired, not paused, rail) run before step 2 for clear errors. The constraints above are the authority.
-- Typed errors: `sold_out`, `already_booked`, `already_claimed`, `invite_expired`, `invite_paused`, `activity_started`, `bookings_paused`, `invalid_code`, `rate_limited`.
+- Typed errors: `sold_out`, `already_booked`, `already_claimed`, `invite_expired`, `invite_paused`, `activity_started`, `bookings_paused`, `invalid_code`, `rate_limited`, `location_locked` (activity edits, Maps spec).
 - **Host removal** runs the same shape in reverse: lock the row, `spots_left + 1`, `version + 1`, set status to `removed`, insert into `booking_removals`, notify.
 - **Capacity change** runs `UPDATE … SET capacity = $n, spots_left = spots_left + ($n - capacity) WHERE capacity - spots_left <= $n`.
 
@@ -186,8 +186,9 @@ COMMIT;
 | Method & path | Purpose | PRD |
 | --- | --- | --- |
 | `POST /sessions` | Continue as (name, email or phone) | Non-goals |
-| `GET /activities/:id` | Snapshot: details, spots_left, version, member preview | A2 |
-| `GET /communities`, `GET /communities/:slug` | Community list; community page with upcoming activities with spots | Business rules (Q11) |
+| `GET /activities/:id` | Snapshot: details, spots_left, version, member preview, `location` (with signed `staticMapUrl` and `directionsUrl`) | A2, A5 |
+| `GET /me/plans` | My plans: the session user's Plans, upcoming and past | L2 |
+| `GET /communities`, `GET /communities/:slug` | Community list; community page with upcoming activities with spots, including coordinates for the map view | Business rules (Q11), A6 |
 | `GET /activities/:id/next-steps` | Host's other dates plus "More in [community]" for the sold-out and expired screens | Edge cases (Q9) |
 | `GET /users/:id/profile` | Public-form name, avatar seed, member since, upcoming hosted activities | Business rules (Q10) |
 | `POST /activities` / `PATCH /activities/:id` | Create, edit within business rules | A1 |
@@ -231,6 +232,7 @@ Goal: first content < 1.5 s on mid-range Android over 3G.
 - Hero photo as responsive WebP/AVIF, at most ~60 kB at mobile width.
 - Fonts subset and `font-display: swap`.
 - Claim-page JS ≤ 100 kB gzipped.
+- Location map as a signed static image with fixed dimensions, lazy-loaded below the fold; no Maps JavaScript on this page (Maps spec §5.3).
 - Verified with Lighthouse under its slow-4G/3G throttling profile and a mid-tier device emulation profile.
 
 ### 4.11 Deployment ✅ decided 2026-11-03: AWS eu-west-2, single EC2 behind CloudFront
@@ -386,6 +388,7 @@ flowchart LR
 | Web | **Next.js** ✅ decided 2026-11-03 (App Router) + Tailwind with Velio tokens; dependencies managed by Bun, but **run on Node**, Next's supported runtime | SSR for 3G first paint and link previews; routes for host, booker, invite and admin | SvelteKit; Vite SPA (no SSR, fails the performance and preview needs) |
 | Mobile | **Flutter 3**, Riverpod, go_router, dio, `app_links`, `web_socket_channel`, `shared_preferences` or Hive for the offline cache, built-in `HapticFeedback` | PRD mandates Flutter; these are the mainstream, well-supported choices | Bloc instead of Riverpod |
 | Photos | **S3** ✅ (MinIO locally), served through CloudFront | Signed uploads keep the API out of the byte path (PRD Q5) | — |
+| Maps | **Google Maps Platform** ✅ decided 2026-11-03: Maps JavaScript API and Places Autocomplete (web), Maps Static API (signed, server-side), `google_maps_flutter` (mobile) | Owner's choice; strongest place search in the target regions (Maps spec) | OpenStreetMap / Mapbox |
 | Hosting | **AWS eu-west-2**, single EC2 with Docker Compose behind CloudFront ✅ decided 2026-11-03 (§4.11) | Lowest cost; free HTTPS hostname; same containers move to Fargate later | ECS Fargate + RDS (the upgrade path) |
 | Fonts | **Satoshi** (free from Fontshare) for body text; a freely licensed display face in place of Nohemi, chosen in S5 ✅ | No Velio font files or licences available | Nohemi, if files and a licence are supplied |
 | Observability | **OpenTelemetry** (SDK + Collector) → **Grafana Cloud free tier** ✅ decided 2026-11-03 (§4.12) | Vendor-neutral instrumentation; one place for metrics, traces, logs and k6 results; free | CloudWatch (billed per custom metric); self-hosted Prometheus/Grafana (uses the instance's RAM) |
@@ -474,13 +477,13 @@ Each step below becomes its own spec, needs authorization, and is ordered by ris
 | S2 | Booking core | Booking transaction, typed errors, idempotency, removal, capacity edit, **concurrency test**, booking metrics, first k6 `last_spot_race` smoke run | B1–B3, I6 (engine), R1 | S1 | M |
 | S3 | Realtime | WS gateway, `NOTIFY` bridge, versioned events, snapshot and poll fallback, latency acks, realtime metrics | A2, A3, R3 | S2 | M |
 | S4 | Invites and attribution | Codes, opens beacon, claims, attribution, trust edges, hash chain, rate limits, pause | I1–I6, D4, R5, R7, R9–R11 | S2 | L |
-| UX | UX design (`spec/2026-11-03_09-09_ux-design/`) | Screen inventory, tokens, components, copy, clickable prototype, wireframes for remaining screens | All UI | — (runs alongside S1–S2) | M |
-| S5 | Web: host and booker | Create activity and photo upload, activity page, book, Plan, invite step, attendance (H1, H2), role toggle | A1, W1, L1, H1, H2 | S3, S4, UX | L |
-| S6 | Web: invite and claim page | SSR `/i/[code]`, OG tags, deep-link files, claim flow, all edge-case states, performance budget | M1 (web fallback), edge cases | S4, UX | M |
-| S7 | Flutter app | Code entry, deep links, invite view, claim, live spots, offline cache, haptics, skeletons | M1–M3 | S3, S4, contracts, UX | L |
+| UX | UX design (`spec/2026-11-03_09-09_ux-design/`), completed by the complete UI design (`spec/2026-11-03_10-34_complete-ui-design/`) and Google Maps (`spec/2026-11-03_10-34_google-maps-locations/`) specs | Screen inventory, tokens, copy, Velio design system and every screen and state at high fidelity in Claude Design | All UI | — (runs alongside S1–S2) | L |
+| S5 | Web: host and booker | Create activity with photo upload and location picker, activity page with map, community page with map view, book, Plan, My plans, invite step, attendance (H1, H2), role toggle | A1, A4–A7, W1, L1, L2, H1, H2 | S3, S4, UX | L |
+| S6 | Web: invite and claim page | SSR `/i/[code]`, OG tags, deep-link files, claim flow, static location map, all edge-case states, performance budget | M1 (web fallback), A5, A7, edge cases | S4, UX | M |
+| S7 | Flutter app | Code entry, deep links, invite view, claim, live spots, native location map, My plans, offline cache, haptics, skeletons | M1–M3, A5, A7, L2 | S3, S4, contracts, UX | L |
 | S8 | Metrics, flags and admin | Events, SQL views, holdout, admin page, oversell job, audit job, purge, web vitals and mobile timings, Grafana dashboards and alerts | Success metrics, holdout | S4 | M |
 | S9 | Hardening | Full k6 suite (§4.13) at 10× the assumed peak (PRD Q4) from the load-runner stack, baseline recorded, Lighthouse, accessibility pass, Playwright and Flutter E2E | NFRs, R2 | S5–S8, S10 | M |
-| S10 | AWS deployment | CDK app stack, CloudFront behaviors, origin lockdown, prod compose with otel-collector, Grafana Cloud export, backups, deploy workflow, deep-link files on the live hostname, CDK load-runner stack | §4.11–§4.13 | S1 (start early, so deep links are testable on devices during S6 and S7) | M |
+| S10 | AWS deployment | CDK app stack, CloudFront behaviors, origin lockdown, prod compose with otel-collector, Grafana Cloud export, backups, deploy workflow, deep-link files on the live hostname, CDK load-runner stack, Google Maps keys and signing secret in the secret store (owner creates the Google Cloud project; $10 budget alert) | §4.11–§4.13 | S1 (start early, so deep links are testable on devices during S6 and S7) | M |
 
 **Critical path:** S1 → S2 → S3/S4 → S5/S6/S7 (in parallel) → S8 → S9. S10 runs alongside from S1 onward.
 
@@ -503,6 +506,7 @@ Each step below becomes its own spec, needs authorization, and is ordered by ris
 | OpenTelemetry SDK misbehaves on Bun | Verified first in S1; fallback is hand-written metrics exported in Prometheus format and scraped by the collector |
 | Telemetry exceeds Grafana Cloud free quotas | Low-cardinality labels, tail sampling, log levels; usage dashboard checked before each full load run |
 | Telemetry overhead distorts the load test | Collector memory limiter; compare a short run with tracing off against one with it on, and record the difference |
+| Google Maps costs or terms (coordinate caching) | Static maps lazy-loaded, k6 never requests map images, $10 budget alert; host-confirmed location fields with a refresh-job fallback (Maps spec) |
 | Load-runner instance left running | Separate CDK stack destroyed at the end of each run; spot instance with a maximum runtime |
 | Bun compatibility gap in a dependency | Hono is runtime-portable: the API can move to Node via `@hono/node-server` without route changes. Keep Bun-only APIs inside `modules/realtime` and `index.ts`. |
 
@@ -574,3 +578,10 @@ Each step below becomes its own spec, needs authorization, and is ordered by ris
 - 2026-11-03: UX decisions confirmed. `bookings.ref` was added (UX-2), and the payment line reads "pay the host on the day" (UX-1).
 - 2026-11-03: **approved by the product owner.** Approval covers the design; each delivery spec (S1–S10, UX) still needs its own authorization before implementation.
 - 2026-11-03: the user owns all git and GitHub work, and Claude never commits or pushes. S1 scope adjusted. Versions are the latest stable, pinned exactly.
+- 2026-11-03: Phase 0 reworked and approved by the owner. Google Maps added (PRD A1 amended, A4–A7, Q13; `spec/2026-11-03_10-34_google-maps-locations/`) and My plans added (PRD L2, Q14). Changes:
+  - **§4.3:** `activities.location` replaced by `place_id`, `venue_name`, `address_text`, `lat`, `lng`, `meeting_point`.
+  - **§4.8:** `GET /me/plans`; the activity snapshot carries a `location` object; community responses carry coordinates.
+  - **§4.10:** static map on the invite page.
+  - **§5:** Maps row.
+  - **§7:** UX row points to the complete UI design spec; S5, S6, S7 and S10 scope extended.
+  - **§8:** Maps risk.

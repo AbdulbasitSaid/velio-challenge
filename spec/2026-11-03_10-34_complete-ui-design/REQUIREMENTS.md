@@ -25,6 +25,10 @@ The design deliverables Phase 0 must produce before any client work (S5–S7). N
 | FR-010 | Artifact links are recorded in PLANNING.md, and a source copy is saved in `prototype/`. |
 | FR-011 (PRD L2, proposed) | My plans (B6) is designed on web and Flutter in every state in PLANNING §5.3. |
 | FR-012 (UI-D4) | The existing canvas is labelled as archived and links to the new artifacts; its content is not changed otherwise. |
+| FR-013 (UI-D5) | Every web screen renders without horizontal overflow at 360, 390, 768, 1024 and 1280px, in every designed state. |
+| FR-014 (UI-D5) | Phone-first web screens (G3–G7, G9, B2, B3, B3b, X4) are fluid and keep their content in a centred column of at most 480px on wide screens, with a desktop frame showing it. |
+| FR-015 (UI-D5) | Flutter screens render without overflow at 360px wide, and at 390px with text scaled to 200%. |
+| FR-016 (UI-D5) | The admin page renders without horizontal overflow from 768px up; its phone layout is not designed. |
 
 ## Non-functional requirements
 

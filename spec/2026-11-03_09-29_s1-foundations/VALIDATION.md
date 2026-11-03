@@ -17,6 +17,7 @@
 | FR-003 | V-DX-2 |
 | FR-004, FR-005 | V-DB-1 |
 | NFR-001, AC-002 | V-DB-2, V-DB-3, V-DB-4, V-DB-5 |
+| FR-015 | V-DB-6 |
 | FR-006 | V-API-1 |
 | FR-010, FR-012 | V-API-2, V-API-3 |
 | FR-007–FR-009, AC-003 | V-ID-1, V-ID-2, V-ID-3, V-ID-4 |
@@ -41,6 +42,7 @@ Automated tests use `bun test`. Integration tests run against Compose Postgres w
 | V-DB-3 | UPDATE `users.invite_generation` and `created_at` | Trigger error |
 | V-DB-4 | Insert an activity with `spots_left` < 0, > capacity, capacity 0, or an invalid time zone | Check or trigger error each time |
 | V-DB-5 | Duplicate confirmed booking per user and activity; duplicate vouch claim; duplicate `ref`; duplicate `attributions.invitee_id` | Unique violation each time; a non-confirmed duplicate booking is allowed |
+| V-DB-6 | Insert an activity with `lat` 91, `lng` -181, empty `venue_name`, a 141-character `meeting_point`; then add a confirmed booking and update `lat`, `meeting_point` and `starts_at`, then `title` | Check error for each bad insert; `location_locked` for each locked field; the title update succeeds |
 | V-API-1 | `healthz` with the DB down; `readyz` with the DB up and down | 200; 200 then 503 |
 | V-API-2 | Throw an unknown error in a test route | `internal` envelope with `requestId`, no stack |
 | V-API-3 | Boot with `CONTACT_PEPPER` unset | Exits non-zero, message names the variable |

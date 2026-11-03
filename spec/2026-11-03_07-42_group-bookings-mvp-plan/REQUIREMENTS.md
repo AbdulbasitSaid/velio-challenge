@@ -13,7 +13,7 @@ The verifiable requirements for the MVP (PRD P0 plus its metrics, flag and rollo
 
 | ID | Requirement | PRD |
 | --- | --- | --- |
-| FR-001 | A signed-in user can create an activity with title, description, one photo, start time, IANA time zone, location, price (minor units and ISO currency) and capacity ≥ 1. | A1 |
+| FR-001 | A signed-in user can create an activity with title, description, one photo, start time, IANA time zone, location (place ID, pin, venue name, address, optional meeting point; amended 2026-11-03), price (minor units and ISO currency) and capacity ≥ 1. | A1 |
 | FR-002 | The activity page shows spots left and updates without refresh on every connected web and mobile client after any booking, removal or capacity change. | A2 |
 | FR-003 | When spots left reaches 0, every connected client shows Sold out and the book or claim action is disabled. | A3 |
 | FR-004 | A booking attempt either confirms a booking and decrements spots left by exactly 1, or returns exactly one typed error (`sold_out`, `already_booked`, `activity_started`, `bookings_paused`, or a generic error) and changes nothing. | B1 |
@@ -33,7 +33,7 @@ The verifiable requirements for the MVP (PRD P0 plus its metrics, flag and rollo
 | FR-018 | The app shows the last viewed activity offline with a "Last updated" time, and disables Claim offline. No claim is queued. | M2 |
 | FR-019 | The app gives haptic feedback on claim success and sold out, and shows loading skeletons. | M3 |
 | FR-020 | An open is recorded once per invite per device, only after a client has rendered the invite page. | Scope challenge 2, R9 |
-| FR-021 | Capacity can be changed only to a value ≥ confirmed bookings. Date, time and location cannot change once a booking exists. | Business rules (Q2) |
+| FR-021 | Capacity can be changed only to a value ≥ confirmed bookings. Date, time and location (every location field, including the meeting point) cannot change once a booking exists. | Business rules (Q2, Q13) |
 | FR-022 | Bookings and claims are rejected after start time. Invites expire at start time. | Edge cases |
 | FR-023 | A host cannot book their own activity. | Business rules |
 | FR-024 | Admins can pause bookings on an activity. Hosts and link creators can pause a public link. A paused link shows a clear state and rejects claims. | Operations, R1, R7 |
@@ -47,6 +47,8 @@ The verifiable requirements for the MVP (PRD P0 plus its metrics, flag and rollo
 | FR-032 | Avatars render initials on a colour picked deterministically from a fixed palette, identically on web and Flutter. | Q8 |
 | FR-033 | Every confirmed booking has a unique reference `VLO-XXXXX`, shown on the guest's success card and Plan and in the host's attendance list. It is never part of a public URL. | UX-2 |
 | FR-034 | Wherever a price is shown it reads "{price} · pay the host on the day". There is no checkout step. | UX-1, Non-goals |
+| FR-035 | Location is set with Google Places search and a draggable pin, shown with a map, address and "Get directions" on activity, invite, "You're in" and Plan screens (interactive native map in Flutter), and on a community map view. Maps never block booking. Detailed in `spec/2026-11-03_10-34_google-maps-locations/`. | A4–A7, Q13 |
+| FR-036 | My plans lists the session user's Plans, upcoming and past, with activity, date, booking reference and members, on web and Flutter (`GET /me/plans`). | L2, Q14 |
 
 ## Non-functional requirements
 
@@ -120,6 +122,7 @@ New schema from scratch. Migrations are forward-only SQL files. No legacy data.
 - A Grafana Cloud free-tier stack (OTLP endpoint and Prometheus remote write).
 - k6.
 - A GitHub repository with Actions and GHCR.
+- A Google Cloud project with billing and Google Maps Platform APIs, created by the owner when S10 starts.
 - PostgreSQL 16+.
 - Apple and Google developer accounts for Universal Links and App Links on device builds, served from the CloudFront hostname.
 

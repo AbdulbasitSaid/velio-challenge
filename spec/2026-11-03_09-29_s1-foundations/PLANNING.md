@@ -92,13 +92,14 @@ infra/
   - `velio_readonly` has `SELECT` only, for metrics views (S8).
 - **Tables:** all tables from the parent plan §4.3, including `communities`, `bookings.ref`, the hash-chain columns (`prev_hash`, `row_hash`; computed in S4) and `rate_limits` (§4.7 of the parent).
 - **Constraints, all in S1:**
-  - checks: `spots_left` between 0 and `capacity`; `capacity` ≥ 1; positive price and `currency` as ISO 4217 text; `timezone` must be a valid IANA zone (check against `pg_timezone_names` via trigger).
+  - checks: `spots_left` between 0 and `capacity`; `capacity` ≥ 1; positive price and `currency` as ISO 4217 text; `timezone` must be a valid IANA zone (check against `pg_timezone_names` via trigger); `lat` between -90 and 90 and `lng` between -180 and 180 (`numeric(9,6)`); `venue_name` and `address_text` non-empty; `meeting_point` at most 140 characters (Google Maps spec §5.1).
   - partial unique indexes: one confirmed booking per user per activity; one claim per vouch.
   - unique `invites.code`, `bookings.ref`, `attributions.invitee_id`, `(user_id, idempotency_key)`.
 - **Integrity triggers:**
   - `forbid_update_delete()` on every insert-only table (`invites`, `invite_claims`, `attributions`, `trust_edges`, `attendance_marks`, `booking_removals`);
   - `users.invite_generation` immutable after insert;
-  - `users.created_at` immutable.
+  - `users.created_at` immutable;
+  - `activities` location lock: an UPDATE that changes `starts_at`, `timezone`, `place_id`, `venue_name`, `address_text`, `lat`, `lng` or `meeting_point` raises `location_locked` when the activity has a confirmed booking (PRD Q2, Q13).
 - **Reference data:** a data migration seeds the three communities (Explore Kenya, The Tanzania Experience, The Medina Collective). Cover photos are placeholders until S5.
 - **Types:** `kysely-codegen` generates `db/types.ts` from the migrated database. CI fails if it is stale.
 
@@ -125,7 +126,7 @@ infra/
 ### 4.5 Contracts
 
 `packages/contracts` exports Zod schemas, and from them TypeScript types:
-- `ErrorEnvelope`, the complete typed error-code union from parent §4.4, so later specs only use codes;
+- `ErrorEnvelope`, the complete typed error-code union from parent §4.4 plus `location_locked` (Google Maps spec), so later specs only use codes;
 - `PublicPerson` and `MemberPerson`;
 - `SessionCreate` and `SessionResponse`;
 - `Health`.
@@ -148,6 +149,7 @@ The API mounts routes with `@hono/zod-openapi`, and `bun run contracts:openapi` 
 - `config.ts` parses `process.env` with Zod at boot and exits with a clear message if anything is missing.
 - Variables: `DATABASE_URL` (velio_api), `DATABASE_LISTEN_URL` (direct connection for S3), `CONTACT_PEPPER`, `ORIGIN_VERIFY_SECRET` (enforced only when `NODE_ENV=production`), `OTEL_EXPORTER_OTLP_ENDPOINT`, `LOG_LEVEL`.
 - `.env.example` documents each one. No secrets are committed.
+- Google Maps keys and the Static Maps signing secret are **not** S1 configuration. They are added by the first spec that uses them (S2 or S5 for the snapshot's signed map URL; S10 for production secrets).
 
 ### 4.8 CI (`.github/workflows/ci.yml`)
 
@@ -227,3 +229,4 @@ Parent plan §4.3–§4.8, §4.12, §5, §6, §7 · UX spec (no S1 dependency).
   - **Git:** all git tasks removed; the user owns git.
   - **Versions:** latest stable, pinned exactly.
   - **Sessions:** OWASP-style lifetimes, rotation and sign-out (`DELETE /api/sessions/current`) added to §4.4 and T9.
+- 2026-11-03: aligned with the approved Google Maps spec (`spec/2026-11-03_10-34_google-maps-locations/`). `activities` gets location columns and their checks, a location-lock trigger, and the `location_locked` error code (§4.3, §4.5 Contracts). Maps configuration stays out of S1 (§4.7). Added FR-015 and V-DB-6.

@@ -154,7 +154,7 @@ The highlighted node is the outcome the 25% target measures; the sold-out branch
 ### Host (Amara), web
 
 1. Switches role to Host and taps **Create activity**.
-2. Enters title, photo, description, date and time, location, price and number of spots. Sees a preview card in Velio's style.
+2. Enters title, photo, description, date and time, location (searched on Google Maps and confirmed with a pin, plus an optional meeting point), price and number of spots. Sees a preview card in Velio's style.
 3. Publishes. The activity gets a page and appears in the relevant community.
 4. Watches the **live attendance** view: spots left, each booking as it lands, and per attendee whether they booked directly, via a vouch (and from whom) or via a public link.
 5. Sees the activity flip to **Sold out** the moment the last spot goes.
@@ -188,13 +188,18 @@ P0 ships in the first release; P1 follows once P0 metrics are readable.
 
 | ID | Area | Requirement | Priority | Persona |
 | --- | --- | --- | --- | --- |
-| A1 | Activities | Host creates an activity with title, description, photo, date and time, location, price and total spots. | P0 | Amara |
+| A1 | Activities | Host creates an activity with title, description, photo, date and time, location, price and total spots. The location is a place chosen with search and a confirmed map pin, plus an editable venue name and address (amended 2026-11-03, Q13). | P0 | Amara |
 | A2 | Activities | Activity page shows spots left, updated live on every open client (web and mobile) without refresh. | P0 | Tunde, Kofi |
 | A3 | Activities | Activity shows a clear Sold out state the moment spots reach zero, on every client. | P0 | All |
+| A4 | Location | Host picks the location with Google Places search and adjusts a draggable pin, and can add an optional meeting-point note (at most 140 characters). | P0 | Amara |
+| A5 | Location | Activity, invite, "You're in" and Plan screens show the location on a map with the address and a one-tap "Get directions". The Flutter app uses an interactive map. | P0 | Tunde, Zainab, Kofi |
+| A6 | Location | Community pages offer a map of upcoming activities with spots left, beside the list. | P0 | Tunde, Kofi |
+| A7 | Location | Maps never block booking: if a map fails to load, the address and directions link still show. | P0 | All |
 | B1 | Booking | Booking a spot either succeeds and decrements spots, or fails with a specific reason (sold out, already booked, error). Never both, never a negative count. | P0 | Amara, Tunde |
 | B2 | Booking | A person can hold at most one booking per activity; repeat taps and retries are idempotent. | P0 | Tunde |
 | B3 | Booking | Booking creates a Plan for that activity, or adds the person to the booker's Plan when they arrive through an invite. | P0 | Tunde, Zainab |
 | L1 | Plans | Plan view lists members, how each joined and invite status (created, opened, claimed). | P0 | Tunde |
+| L2 | Plans | **My plans** lists every Plan the person belongs to, split into upcoming and past, each with the activity, date, booking reference and members. On web and in the Flutter app (Q14). | P0 | Tunde, Zainab |
 | I1 | Invites | Booker creates a **vouch** invite addressed to one named contact, single use. | P0 | Tunde |
 | I2 | Invites | Booker creates a **public share** link, multi use, capped by spots left. | P0 | Tunde |
 | I3 | Invites | Every invite has a short code (6 characters, unambiguous alphabet) and a deep link. | P0 | Zainab, Kofi |
@@ -225,7 +230,8 @@ These rules settle behavior the requirements above imply but do not state. All w
 ### Capacity and activities
 
 - Capacity can be raised at any time. It can be lowered only down to the number of confirmed bookings.
-- Once an activity has a booking, only its title, description, photo and capacity can change. Date, time and location are locked in MVP, because there are no notifications to tell members about a change (Q2).
+- Once an activity has a booking, only its title, description, photo and capacity can change. Date, time and location are locked in MVP, because there are no notifications to tell members about a change (Q2). The location lock covers the pin, place, venue name, address and meeting point (Q13).
+- An activity's exact location is public: anyone who can see the activity sees the pin and address. The host is told this when setting it (Q13).
 - A host cannot cancel an activity that has bookings in MVP (Q1).
 - A host cannot book their own activity.
 - An activity is stored with its IANA time zone and currency. Times are shown in the activity's local time, labelled with the zone ("Sat 14 Dec, 06:00 Nairobi time"), so Tunde in London sees the time he will actually be there. Prices are shown in the activity's currency, with no conversion in MVP.
@@ -346,7 +352,7 @@ Every failure ends with a next step, never a dead end or a raw error.
 - **Live availability.** The booking transaction emits a Postgres `NOTIFY` with the new count, which Postgres delivers only if the transaction commits. Every API instance listens and fans it out over WebSockets to clients viewing that activity. (Decided 2026-11-03 over Redis pub/sub, which has a gap between commit and publish and needs another service. Redis remains the path if booking volume outgrows `NOTIFY`.) Each event carries a monotonically increasing version, so clients ignore stale or out-of-order updates. Target: p95 ≤ 2 s from commit to client render, measured by client acknowledgements.
 - **Immutable attribution.** Invites and attribution events live in append-only tables. The database role used by the API has no UPDATE or DELETE on them, and a trigger rejects changes. Each row stores a hash of the previous row for the activity, so tampering is detectable in an audit.
 - **Performance.** Activity page first content under 1.5 s on a mid-range Android over 3G, since Zainab and Kofi mostly arrive on mobile.
-- **Privacy.** A vouch stores the invitee's contact only to deliver and match the invite. Hosts see names, not phone numbers or emails. Contact details never appear in URLs.
+- **Privacy.** A vouch stores the invitee's contact only to deliver and match the invite. Hosts see names, not phone numbers or emails. Contact details never appear in URLs. Maps are provided by Google, and the privacy note says that loading a map shares the viewer's IP address with Google.
 - **Accessibility.** WCAG AA contrast on Velio's cream and forest palette; spots-left changes are announced to screen readers politely, not on every tick.
 
 ## Success metrics and tracking
@@ -434,3 +440,5 @@ Raised while writing the business rules and resolved by the product owner on 202
 | Q10 | Do people have profiles? | **A minimal profile page:** public-form name, avatar, "On Velio since", and upcoming activities they host. Never bookings or Plans. | — |
 | Q11 | How real are communities? | **Seeded records with a page** listing upcoming activities. No posting or voting. | Integration with Velio's real communities (Q6). |
 | Q12 | What do public visitors see of members? | **First name and last initial.** Full names only inside the Plan and to the host. | Public-rail conversion suffers measurably from the reduced social proof. |
+| Q13 | How are locations shown? (Raised 2026-11-03.) | **Google Maps:** host picker with search and pin, a map with directions on activity, invite, "You're in" and Plan screens, a community map, and an optional meeting point (A4–A7). The exact location is public. Flutter uses an interactive map. Spending above Google's free caps is allowed, with a $10 monthly alert. See `spec/2026-11-03_10-34_google-maps-locations/`. | Hosts list activities at private homes, or Maps costs pass the alert regularly. |
+| Q14 | How does someone find their Plans again? (Raised 2026-11-03.) | **A My plans screen** (L2) on web and Flutter, tied to the "continue as" identity. On a new device, a person sees their Plans after continuing with the same email or phone. | Real authentication ships. |

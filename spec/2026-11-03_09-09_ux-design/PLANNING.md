@@ -147,3 +147,4 @@ None. UX-1 and UX-2 were confirmed by the product owner on 2026-11-03.
 - 2026-11-03 09:09: created, with the prototype canvas (4 artboards).
 - 2026-11-03: UX-1 (price line) and UX-2 (booking reference) confirmed. The reference was added to the MVP plan's data model and requirements, and the copy deck gained `price.payment` and `success.ref`.
 - 2026-11-03: **approved by the product owner.** Remaining wireframes (G8, H2, H3, C1, P1, A1, X1) are still required before S5–S7.
+- 2026-11-03: superseded for screens by `spec/2026-11-03_10-34_complete-ui-design/` (approved): every screen, including the former W items, new map states and My plans (B6), is designed at high fidelity in Claude Design. The "W" status is retired. This prototype canvas is archived as a reference. Principles, tokens, copy deck and UX-1–UX-5 still apply.
