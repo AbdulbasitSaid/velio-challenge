@@ -1,0 +1,9 @@
+# Generated (drift-checked in CI instead)
+apps/api/src/db/types.ts
+packages/contracts/openapi.json
+bun.lock
+# Docs and specs are maintained by hand
+*.md
+spec/
+# Local tool settings
+.claude/

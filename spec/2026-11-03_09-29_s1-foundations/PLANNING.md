@@ -2,7 +2,7 @@
 
 - **Spec ID:** 2026-11-03_09-29_s1-foundations
 - **Created:** 2026-11-03 09:29 (local)
-- **Status:** In review
+- **Status:** Implemented
 - **Parent:** `spec/2026-11-03_07-42_group-bookings-mvp-plan/` (approved), delivery step S1
 - **PRD:** `Velio Group Bookings PRD.md`
 
@@ -230,3 +230,20 @@ Parent plan §4.3–§4.8, §4.12, §5, §6, §7 · UX spec (no S1 dependency).
   - **Versions:** latest stable, pinned exactly.
   - **Sessions:** OWASP-style lifetimes, rotation and sign-out (`DELETE /api/sessions/current`) added to §4.4 and T9.
 - 2026-11-03: aligned with the approved Google Maps spec (`spec/2026-11-03_10-34_google-maps-locations/`). `activities` gets location columns and their checks, a location-lock trigger, and the `location_locked` error code (§4.3, §4.5 Contracts). Maps configuration stays out of S1 (§4.7). Added FR-015 and V-DB-6.
+- 2026-11-03 14:47: **approved and authorized for implementation** by the user ("Approve + implement S1"). Phase 1's S10 part (app stack) is not covered and still needs its own spec.
+- 2026-11-03 15:14: **implemented.** Results are in `VALIDATION.md` Part B. Changes from the plan made during implementation:
+  - **T3 spike passed** on Bun 1.4.4: the OpenTelemetry JS SDK (trace SDK 3.0 with `@opentelemetry/sdk-trace`, metrics SDK 3.0, OTLP/HTTP exporters 0.300) and `@hono/otel` 1.3.0 deliver spans and metrics to the collector, and the AsyncLocalStorage context manager carries trace context through Hono middleware. **The Prometheus fallback was not needed.**
+  - **Versions below "latest"**, each the newest compatible release (recorded in Part B):
+    - **TypeScript 6.0.3, not 7.0.2.** typescript-eslint 8.72.1 supports TypeScript below 6.1 only.
+    - **postgres.js 3.4.9, not 4.0.0.** 4.0.0 (released 2026-10-29) rewrites the pool and protocol, and `kysely-postgres-js` 5.0.1 supports `^3.4` only.
+  - **MinIO image:** MinIO no longer publishes official images (`minio/minio` is gone from Docker Hub). Compose uses Chainguard's `cgr.dev/chainguard/minio`, pinned by digest (MinIO RELEASE.2026-10-23T20-06-51Z). It is the local S3 stand-in only; production uses S3.
+  - **Collector health:** the collector image has no shell, so Docker can't health-check it from inside. Its `health_check` extension is published on `127.0.0.1:13133` and checked from the host instead (V-DX-2).
+  - **Migrations and roles:** dbmate connects as the bootstrap superuser. Each schema migration runs `SET LOCAL ROLE velio_owner` so objects are owned by `velio_owner`, then `RESET ROLE` so dbmate can record the version. The `velio_*` roles have no passwords; local Compose uses trust auth on `127.0.0.1`, and S10 sets passwords from the secret store.
+  - **Test databases:** `db:migrate` migrates `velio` (development) and `velio_test`; each test file clones a fresh database from `velio_test` as a template.
+  - **CI Postgres** starts through `docker compose up --wait postgres`, not a workflow `services:` container, so CI and local runs share the same scripts.
+  - **Error codes:** besides the §4.4 codes and `location_locked`, the union has the generic `invalid_contact`, `validation_failed`, `unauthenticated`, `forbidden`, `not_found` and `internal`. Trigger errors use SQLSTATE class `VL` (`VL001` location locked, `VL002` insert-only, `VL003` immutable column, `VL004` invalid time zone).
+  - **Input limits [Proposal]:** `displayName` 1–100 characters and `contact` up to 254 (the email maximum). `SessionCreate` takes an optional ISO country code (`country`) for phones written without a country code (FR-009). Clients may send `X-Device-Id`, stored as `sessions.device_id`.
+  - **Origin lockdown:** in production, every request except `/api/healthz` must carry `X-Origin-Verify` (liveness carries no data and is probed from inside the host).
+  - **Community blurbs** are neutral placeholders until S5, like the cover photos.
+  - **Extra guard:** `db.destroy()` closes the pool with a 2-second timeout. Without it, postgres.js could wait forever on a connection reservation left queued after a failed connection attempt.
+

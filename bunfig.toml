@@ -1,0 +1,3 @@
+[install]
+# Pin every dependency exactly (CLAUDE.md: latest stable, pinned).
+exact = true

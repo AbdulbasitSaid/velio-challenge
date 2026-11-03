@@ -1,0 +1,18 @@
+# Optional overlay: also export to Grafana Cloud from the local collector.
+# Enable with, in infra/.env or the shell:
+#   OTEL_COLLECTOR_EXTRA_CONFIG=/etc/otelcol/grafana.yaml
+#   GRAFANA_OTLP_ENDPOINT=https://otlp-gateway-<zone>.grafana.net/otlp
+#   GRAFANA_OTLP_AUTH=<base64 of instanceId:token>
+# Production wiring is S10.
+exporters:
+  otlphttp/grafana:
+    endpoint: ${env:GRAFANA_OTLP_ENDPOINT}
+    headers:
+      Authorization: Basic ${env:GRAFANA_OTLP_AUTH}
+
+service:
+  pipelines:
+    traces:
+      exporters: [debug, otlphttp/grafana]
+    metrics:
+      exporters: [debug, otlphttp/grafana]

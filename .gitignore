@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Environment: real values never committed (.env.example is)
+.env
+.env.*
+!.env.example
+
+# Build output and caches
+dist/
+build/
+out/
+coverage/
+*.tsbuildinfo
+.eslintcache
+
+# Load-test results (S2/S9)
+load/results/*.json
+
+# OS
+.DS_Store

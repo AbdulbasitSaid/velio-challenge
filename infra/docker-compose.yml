@@ -1,0 +1,84 @@
+# Local development stack (S1). Ports bind to 127.0.0.1 only.
+name: velio
+
+services:
+  postgres:
+    image: postgres:18.6
+    environment:
+      POSTGRES_DB: velio
+      # Local only: the velio_* roles are created by migrations without passwords.
+      # Production sets role passwords from the secret store (S10).
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - '127.0.0.1:5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d velio']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  # The official MinIO images are no longer published; this is Chainguard's build, pinned by digest.
+  minio:
+    image: cgr.dev/chainguard/minio@sha256:3c60a2a8c4d33409a9bc7a623a7fcbfb4605adc3d89422d2f53b3f673a6e5597
+    command: ['server', '/data', '--console-address', ':9001']
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-velio-local}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-velio-local-only}
+    ports:
+      - '127.0.0.1:9000:9000'
+      - '127.0.0.1:9001:9001'
+    volumes:
+      - miniodata:/data
+    healthcheck:
+      test:
+        - CMD
+        - bash
+        - -c
+        # The image has bash but no curl or grep: read the HTTP status line directly.
+        - >-
+          exec 3<>/dev/tcp/127.0.0.1/9000 &&
+          printf 'GET /minio/health/live HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 &&
+          read -r status <&3 && [[ $$status == *' 200 '* ]]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  # The image has no shell, so Docker cannot probe it from inside. Its health_check
+  # extension is published on 127.0.0.1:13133 for checks from the host.
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.164.0
+    command:
+      - --config=/etc/otelcol/config.yaml
+      - --config=${OTEL_COLLECTOR_EXTRA_CONFIG:-/etc/otelcol/empty.yaml}
+    environment:
+      GRAFANA_OTLP_ENDPOINT: ${GRAFANA_OTLP_ENDPOINT:-}
+      GRAFANA_OTLP_AUTH: ${GRAFANA_OTLP_AUTH:-}
+    volumes:
+      - ./otel-collector.local.yaml:/etc/otelcol/config.yaml:ro
+      - ./otel-collector.grafana.yaml:/etc/otelcol/grafana.yaml:ro
+      - ./otel-collector.empty.yaml:/etc/otelcol/empty.yaml:ro
+    ports:
+      - '127.0.0.1:4317:4317'
+      - '127.0.0.1:4318:4318'
+      - '127.0.0.1:13133:13133'
+
+  # Migrations: `bun run db:migrate`. Not started by `up`.
+  dbmate:
+    image: amacneil/dbmate:2.37.0
+    profiles: ['tools']
+    environment:
+      DATABASE_URL: postgres://postgres@postgres:5432/velio?sslmode=disable
+      DBMATE_MIGRATIONS_DIR: /db/migrations
+      DBMATE_NO_DUMP_SCHEMA: 'true'
+      DBMATE_WAIT: 'true'
+    volumes:
+      - ../apps/api/migrations:/db/migrations:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  miniodata:

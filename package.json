@@ -1,0 +1,34 @@
+{
+  "name": "velio",
+  "private": true,
+  "type": "module",
+  "packageManager": "bun@1.4.4",
+  "engines": {
+    "bun": "1.4.4"
+  },
+  "workspaces": [
+    "apps/api",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "bun run --cwd apps/api dev",
+    "db:migrate": "docker compose -f infra/docker-compose.yml run --rm dbmate up && docker compose -f infra/docker-compose.yml run --rm -e DATABASE_URL=postgres://postgres@postgres:5432/velio_test?sslmode=disable dbmate up",
+    "db:codegen": "kysely-codegen --dialect postgres --url postgres://postgres@localhost:5432/velio_test --exclude-pattern schema_migrations --out-file apps/api/src/db/types.ts",
+    "contracts:openapi": "bun apps/api/scripts/openapi.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit -p apps/api && tsc --noEmit -p packages/contracts"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/bun": "1.4.4",
+    "eslint": "10.14.0",
+    "globals": "17.14.0",
+    "kysely-codegen": "0.20.0",
+    "pg": "8.23.1",
+    "prettier": "3.9.10",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.1"
+  }
+}

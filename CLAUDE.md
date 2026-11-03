@@ -7,9 +7,10 @@ This file is the authoritative source of development rules for this project. If 
 ## Project facts (verified 2026-11-03)
 
 - **Product:** Velio Group Bookings. Hosts list activities with fixed spots, bookers reserve and invite friends into a shared Plan, guests claim spots from a link or code. Source of truth for product intent: `Velio Group Bookings PRD.md`.
-- **Code:** none yet. No application, tests, build tooling or dependencies exist.
+- **Code (updated 2026-11-03):** a Bun workspace with `apps/api` (Hono API, dbmate migrations, `bun test` against Compose Postgres) and `packages/contracts` (Zod schemas, generated `openapi.json`), plus local Docker Compose in `infra/` and CI in `.github/workflows/ci.yml`. Setup and scripts: `README.md`. Built by S1 (`spec/2026-11-03_09-29_s1-foundations/`).
 - **Version control:** the user owns git entirely. **Never run `git commit`, `git push`, `git init`, branch or remote commands, or create GitHub repositories.** Implement and leave changes in the working tree for the user to review and commit. Read-only git commands (`status`, `diff`, `log`) are fine.
-- **Versions:** use the latest stable release of every runtime, image and library, checked at implementation time and pinned exactly (lockfile, image tag).
+- **Versions:** use the latest stable release of every runtime, image and library, checked at implementation time and pinned exactly (lockfile, image tag). When the latest release is incompatible with another pinned dependency, use the newest compatible release and record why in the spec. Current exceptions: TypeScript 6.0.x (typescript-eslint supports < 6.1) and postgres.js 3.4.x (`kysely-postgres-js` supports `^3.4`).
+- **Branch protection:** not used. This is a time-boxed assessment; the user favours speed of execution, and CI runs after the fact.
 - **Stack (decided 2026-11-03):** Bun + Hono API, Next.js web (run on Node), Flutter mobile, PostgreSQL with `NOTIFY` for realtime, S3 for photos. Bun workspaces monorepo; git + GitHub + Actions.
 - **Hosting (decided 2026-11-03):** AWS eu-west-2, a single EC2 instance with Docker Compose behind CloudFront, using the free `cloudfront.net` hostname.
 - **Observability and load (decided 2026-11-03):** OpenTelemetry → Grafana Cloud free tier; k6 from a temporary spot EC2. Never put personal data, codes or tokens in telemetry, and never label metrics by entity IDs.
