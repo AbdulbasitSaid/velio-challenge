@@ -14,6 +14,8 @@ new AppStack(app, 'VelioApp', {
   amiId: 'ami-0d623184a69654e22', // al2023-ami-2023.12.20261102.0-kernel-6.18-arm64
   cloudfrontPrefixListId: 'pl-93a247fa',
   alertEmail,
-  githubRepository: 'AbdulbasitSaid/velio-challenge',
+  // The repository uses GitHub's immutable OIDC subject, which embeds the owner and repository IDs:
+  // `gh api repos/AbdulbasitSaid/velio-challenge/actions/oidc/customization/sub` → sub_claim_prefix.
+  githubRepository: 'AbdulbasitSaid@16627656/velio-challenge@1443959310',
   createGithubOidcProvider: app.node.tryGetContext('velio:createGithubOidcProvider') !== false,
 });
