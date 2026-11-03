@@ -1,0 +1,532 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "B1-Activity.dc.html": {
+      "h": 1800,
+      "is_interactive": true,
+      "title": "B1 / B5 · Activity page · web",
+      "w": 421,
+      "x": 0,
+      "y": 5900
+    },
+    "B1-Desktop.dc.html": {
+      "expand": "fill",
+      "h": 1420,
+      "is_interactive": true,
+      "title": "B1 · Activity page · desktop",
+      "w": 1280,
+      "x": 0,
+      "y": 8100
+    },
+    "B2-Booked.dc.html": {
+      "h": 1000,
+      "is_interactive": true,
+      "title": "B2 · Booked + invite prompt · web",
+      "w": 390,
+      "x": 501,
+      "y": 5900,
+      "expand": "fill"
+    },
+    "B3-Vouch.dc.html": {
+      "h": 1000,
+      "is_interactive": true,
+      "title": "B3 · Vouch form · web",
+      "w": 390,
+      "x": 971,
+      "y": 5900,
+      "expand": "fill"
+    },
+    "B3b-ShareLink.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "B3b · Public share link · web",
+      "w": 390,
+      "x": 1441,
+      "y": 5900,
+      "expand": "fill"
+    },
+    "B4-Desktop.dc.html": {
+      "expand": "fill",
+      "h": 1240,
+      "is_interactive": true,
+      "title": "B4 · Plan · desktop",
+      "w": 1280,
+      "x": 1360,
+      "y": 8100
+    },
+    "B4-Plan.dc.html": {
+      "h": 1540,
+      "is_interactive": true,
+      "title": "B4 · Plan · web",
+      "w": 390,
+      "x": 3760,
+      "y": 0
+    },
+    "B6-Desktop.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "is_interactive": true,
+      "title": "B6 · My plans · desktop",
+      "w": 1280,
+      "x": 2720,
+      "y": 8100
+    },
+    "B6-MyPlans.dc.html": {
+      "h": 1120,
+      "is_interactive": true,
+      "title": "B6 · My plans · web",
+      "w": 390,
+      "x": 4230,
+      "y": 0
+    },
+    "F-B4-Plan.dc.html": {
+      "h": 1300,
+      "is_interactive": true,
+      "title": "B4 · Plan · Flutter",
+      "w": 390,
+      "x": 2350,
+      "y": 4020
+    },
+    "F-B6-MyPlans.dc.html": {
+      "h": 1000,
+      "is_interactive": true,
+      "title": "B6 · My plans · Flutter",
+      "w": 390,
+      "x": 2820,
+      "y": 4020
+    },
+    "F-G1-Invite.dc.html": {
+      "h": 1480,
+      "is_interactive": true,
+      "title": "G1 / G2 · Invite · Flutter",
+      "w": 390,
+      "x": 470,
+      "y": 4020
+    },
+    "F-G3-Claim.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "G3 · Claim · Flutter",
+      "w": 390,
+      "x": 940,
+      "y": 4020
+    },
+    "F-G4-YoureIn.dc.html": {
+      "h": 1300,
+      "is_interactive": true,
+      "title": "G4 · You're in · Flutter",
+      "w": 390,
+      "x": 1410,
+      "y": 4020
+    },
+    "F-G8-Code.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "G8 · Code entry · Flutter",
+      "w": 390,
+      "x": 0,
+      "y": 4020
+    },
+    "F-Outcomes.dc.html": {
+      "h": 980,
+      "title": "G5 / G6 / G7 · Outcomes · Flutter",
+      "w": 390,
+      "x": 1880,
+      "y": 4020
+    },
+    "G2-Public.dc.html": {
+      "h": 1700,
+      "is_interactive": true,
+      "title": "G2 · Invite: public · web",
+      "w": 390,
+      "x": 470,
+      "y": 0
+    },
+    "G3-Claim.dc.html": {
+      "h": 980,
+      "is_interactive": true,
+      "title": "G3 · Claim form · web",
+      "w": 390,
+      "x": 940,
+      "y": 0,
+      "expand": "fill"
+    },
+    "G4-YoureIn.dc.html": {
+      "h": 1460,
+      "is_interactive": true,
+      "title": "G4 · You're in · web",
+      "w": 390,
+      "x": 1410,
+      "y": 0,
+      "expand": "fill"
+    },
+    "G5-SoldOut.dc.html": {
+      "h": 1080,
+      "is_interactive": true,
+      "title": "G5 · Sold out · web",
+      "w": 390,
+      "x": 1880,
+      "y": 0,
+      "expand": "fill"
+    },
+    "G6-Expired.dc.html": {
+      "h": 980,
+      "is_interactive": true,
+      "title": "G6 · Expired · web",
+      "w": 390,
+      "x": 2350,
+      "y": 0,
+      "expand": "fill"
+    },
+    "G7-AlreadyClaimed.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "G7 · Already claimed · web",
+      "w": 390,
+      "x": 2820,
+      "y": 0,
+      "expand": "fill"
+    },
+    "G9-InvalidCode.dc.html": {
+      "h": 844,
+      "title": "G9 · Invalid code · web",
+      "w": 390,
+      "x": 3290,
+      "y": 0,
+      "expand": "fill"
+    },
+    "H1-Attendance-Desktop.dc.html": {
+      "expand": "fill",
+      "h": 1240,
+      "is_interactive": true,
+      "title": "H1 · Live attendance · desktop",
+      "w": 1280,
+      "x": 2720,
+      "y": 9920
+    },
+    "H1-Attendance.dc.html": {
+      "h": 1360,
+      "is_interactive": true,
+      "title": "H1 · Live attendance · web phone",
+      "w": 390,
+      "x": 940,
+      "y": 12660
+    },
+    "H2-Create-Desktop.dc.html": {
+      "expand": "fill",
+      "h": 2340,
+      "is_interactive": true,
+      "title": "H2 · Create and edit activity · desktop",
+      "w": 1280,
+      "x": 0,
+      "y": 9920
+    },
+    "H2-Create.dc.html": {
+      "h": 2380,
+      "is_interactive": true,
+      "title": "H2 · Create and edit activity · web phone",
+      "w": 390,
+      "x": 0,
+      "y": 12660
+    },
+    "H3-Activities-Desktop.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "is_interactive": true,
+      "title": "H3 · Host's activities · desktop",
+      "w": 1280,
+      "x": 1360,
+      "y": 9920
+    },
+    "H3-Activities.dc.html": {
+      "h": 1000,
+      "is_interactive": true,
+      "title": "H3 · Host's activities · web phone",
+      "w": 390,
+      "x": 470,
+      "y": 12660
+    },
+    "Invite-Desktop.dc.html": {
+      "expand": "fill",
+      "h": 1460,
+      "is_interactive": true,
+      "title": "G1 / G2 · Invite · desktop",
+      "w": 1280,
+      "x": 0,
+      "y": 2120
+    },
+    "Main.dc.html": {
+      "h": 1720,
+      "is_interactive": true,
+      "title": "G1 · Invite: vouch · web",
+      "w": 390,
+      "x": 0,
+      "y": 0
+    },
+    "C1-Community.dc.html": {
+      "x": 0,
+      "y": 15440,
+      "w": 390,
+      "h": 1780,
+      "title": "C1 · Community page · web phone",
+      "is_interactive": true
+    },
+    "P1-Profile.dc.html": {
+      "x": 470,
+      "y": 15440,
+      "w": 390,
+      "h": 1400,
+      "title": "P1 · Profile · web phone",
+      "is_interactive": true
+    },
+    "X1-SignIn.dc.html": {
+      "x": 940,
+      "y": 15440,
+      "w": 390,
+      "h": 844,
+      "title": "X1 · Sign in · web phone",
+      "is_interactive": true
+    },
+    "X4-Error.dc.html": {
+      "x": 1410,
+      "y": 15440,
+      "w": 390,
+      "h": 844,
+      "title": "X4 · Not found and errors · web phone",
+      "is_interactive": true,
+      "expand": "fill"
+    },
+    "C1-Desktop.dc.html": {
+      "x": 0,
+      "y": 17620,
+      "w": 1280,
+      "h": 1240,
+      "title": "C1 · Community page · desktop",
+      "is_interactive": true,
+      "expand": "fill"
+    },
+    "P1-Desktop.dc.html": {
+      "x": 1360,
+      "y": 17620,
+      "w": 1280,
+      "h": 1000,
+      "title": "P1 · Profile · desktop",
+      "is_interactive": true,
+      "expand": "fill"
+    },
+    "X1-Desktop.dc.html": {
+      "x": 2720,
+      "y": 17620,
+      "w": 1280,
+      "h": 800,
+      "title": "X1 · Sign in · desktop",
+      "is_interactive": true,
+      "expand": "fill"
+    },
+    "F-P1-Profile.dc.html": {
+      "x": 0,
+      "y": 19260,
+      "w": 390,
+      "h": 1000,
+      "title": "P1 · Profile · Flutter",
+      "is_interactive": true
+    },
+    "F-X4-Error.dc.html": {
+      "x": 470,
+      "y": 19260,
+      "w": 390,
+      "h": 844,
+      "title": "X4 · Not found and errors · Flutter",
+      "is_interactive": true
+    },
+    "A1-Admin.dc.html": {
+      "x": 0,
+      "y": 20660,
+      "w": 1440,
+      "h": 1700,
+      "title": "A1 · Admin metrics · desktop",
+      "is_interactive": true,
+      "expand": "fill"
+    },
+    "Guest-Screens-Desktop.dc.html": {
+      "x": 1360,
+      "y": 2120,
+      "w": 1280,
+      "h": 1500,
+      "title": "G3–G9, B2, B3, B3b, X4 · phone-first screens on desktop",
+      "expand": "fill",
+      "is_interactive": true
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-11-03T12:05:00Z",
+    "v": 1
+  },
+  "designSystems": [
+    {
+      "artifact": "https://claude.ai/artifact/HVyi155enP8ug5BVzdg8qz",
+      "copiedAt": "2026-11-03T12:59:37Z",
+      "namespace": "velio",
+      "title": "Velio",
+      "version": "1793710757-b658"
+    }
+  ],
+  "launch": {
+    "view": "canvas"
+  },
+  "noteOrder": [
+    "rowweb",
+    "rowdesk",
+    "rowflutter",
+    "rowbooker",
+    "rowbookerdesk",
+    "rowhostdesk",
+    "rowhost",
+    "rowcommunity",
+    "rowcommunitydesk",
+    "rowcommunityflutter",
+    "rowadmin",
+    "about"
+  ],
+  "notes": {
+    "about": {
+      "fill": "green",
+      "size": 24,
+      "text": "All screens: guest, booker, host, community and profile, account and errors, admin. Open an artboard's Tweaks to switch its states.\n\nMaps and photos are representative art. Production shows Google Maps with Google's attribution and the host's own photo.\n\nCopy comes from the UX spec's copy deck. PRD refs are in each artboard's title.",
+      "w": 360,
+      "x": 4740,
+      "y": 0
+    },
+    "rowbooker": {
+      "kind": "title1",
+      "maxW": 1831,
+      "text": "Booker flow · web, phone",
+      "w": 240,
+      "x": 0,
+      "y": 5620
+    },
+    "rowbookerdesk": {
+      "kind": "title1",
+      "maxW": 4000,
+      "text": "Booker flow · web, desktop",
+      "w": 240,
+      "x": 0,
+      "y": 7820
+    },
+    "rowdesk": {
+      "kind": "title1",
+      "maxW": 2640,
+      "text": "Guest flow · web, desktop",
+      "w": 240,
+      "x": 0,
+      "y": 1840
+    },
+    "rowflutter": {
+      "kind": "title1",
+      "maxW": 3210,
+      "text": "Guest flow · Flutter app",
+      "w": 240,
+      "x": 0,
+      "y": 3740
+    },
+    "rowhost": {
+      "kind": "title1",
+      "maxW": 1330,
+      "text": "Host flow · web, phone",
+      "w": 240,
+      "x": 0,
+      "y": 12380
+    },
+    "rowhostdesk": {
+      "kind": "title1",
+      "maxW": 4000,
+      "text": "Host flow · web, desktop",
+      "w": 240,
+      "x": 0,
+      "y": 9640
+    },
+    "rowweb": {
+      "kind": "title1",
+      "maxW": 4620,
+      "text": "Guest flow · web, phone",
+      "w": 240,
+      "x": 0,
+      "y": -280
+    },
+    "rowcommunity": {
+      "x": 0,
+      "y": 15160,
+      "text": "Community, profile and account · web, phone",
+      "kind": "title1",
+      "maxW": 1800
+    },
+    "rowcommunitydesk": {
+      "x": 0,
+      "y": 17340,
+      "text": "Community, profile and account · web, desktop",
+      "kind": "title1",
+      "maxW": 4000
+    },
+    "rowcommunityflutter": {
+      "x": 0,
+      "y": 18980,
+      "text": "Profile and errors · Flutter",
+      "kind": "title1",
+      "maxW": 860
+    },
+    "rowadmin": {
+      "x": 0,
+      "y": 20380,
+      "text": "Admin",
+      "kind": "title1",
+      "maxW": 1440
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "G2-Public.dc.html",
+    "G3-Claim.dc.html",
+    "G4-YoureIn.dc.html",
+    "G5-SoldOut.dc.html",
+    "G6-Expired.dc.html",
+    "G7-AlreadyClaimed.dc.html",
+    "G9-InvalidCode.dc.html",
+    "B4-Plan.dc.html",
+    "B6-MyPlans.dc.html",
+    "Invite-Desktop.dc.html",
+    "Guest-Screens-Desktop.dc.html",
+    "F-G8-Code.dc.html",
+    "F-G1-Invite.dc.html",
+    "F-G3-Claim.dc.html",
+    "F-G4-YoureIn.dc.html",
+    "F-Outcomes.dc.html",
+    "F-B4-Plan.dc.html",
+    "F-B6-MyPlans.dc.html",
+    "B1-Activity.dc.html",
+    "B2-Booked.dc.html",
+    "B3-Vouch.dc.html",
+    "B3b-ShareLink.dc.html",
+    "B1-Desktop.dc.html",
+    "B4-Desktop.dc.html",
+    "B6-Desktop.dc.html",
+    "H2-Create-Desktop.dc.html",
+    "H3-Activities-Desktop.dc.html",
+    "H1-Attendance-Desktop.dc.html",
+    "H2-Create.dc.html",
+    "H3-Activities.dc.html",
+    "H1-Attendance.dc.html",
+    "C1-Community.dc.html",
+    "P1-Profile.dc.html",
+    "X1-SignIn.dc.html",
+    "X4-Error.dc.html",
+    "C1-Desktop.dc.html",
+    "P1-Desktop.dc.html",
+    "X1-Desktop.dc.html",
+    "F-P1-Profile.dc.html",
+    "F-X4-Error.dc.html",
+    "A1-Admin.dc.html"
+  ],
+  "pages": [],
+  "title": "Velio Group Bookings"
+}

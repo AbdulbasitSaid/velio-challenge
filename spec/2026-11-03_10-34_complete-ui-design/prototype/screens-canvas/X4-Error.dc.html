@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Not found or error (phone)</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/velio/tokens.css">
+<link rel="stylesheet" href="ds/velio/components/bundle.css">
+<script src="ds/velio/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&amp;family=Sora:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#173600}a:hover{color:#0a0a0a}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 844px; box-sizing: border-box; background: var(--cream); color: var(--ink); font-family: var(--font-body); display: flex; flex-direction: column">
+<header style="display: flex; align-items: center; padding: 14px 20px">
+<a class="vl-wordmark" href="#">velio</a>
+</header>
+<main style="width: 100%; max-width: 480px; margin: 0 auto; box-sizing: border-box; flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 16px; padding: 24px 20px 64px">
+<span style="font: 700 64px/1 var(--font-display); color: var(--forest); letter-spacing: -2px">{{code}}</span>
+<h1 class="title" style="margin: 0">{{headline}}</h1>
+<p style="margin: 0; font-size: 15px; line-height: 22px; color: var(--muted)">{{body}}</p>
+<sc-if value="{{serverError}}" hint-placeholder-val="{{ false }}">
+<button class="vl-btn vl-btn-primary vl-btn-block" type="button">Try again</button>
+</sc-if>
+<a class="vl-btn vl-btn-secondary vl-btn-block" href="#">Go to communities</a>
+<a class="vl-btn vl-btn-quiet" href="B6-MyPlans.dc.html" style="align-self: center">My plans</a>
+<sc-if value="{{serverError}}" hint-placeholder-val="{{ false }}">
+<span style="font-size: 12px; color: var(--muted); text-align: center">Reference {{requestId}}</span>
+</sc-if>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"kind":{"editor":"enum","options":["not found","something broke"],"default":"not found"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const broke = (this.props.kind ?? 'not found') === 'something broke';
+    return {
+      serverError: broke,
+      code: broke ? '500' : '404',
+      headline: broke ? "Something went wrong on our side." : "This page doesn't exist.",
+      body: broke ? "It's not you. Try again in a moment." : 'The link may be old or mistyped. Your plans and invites are where you left them.',
+      requestId: 'req_7f3k2q'
+    };
+  }
+}
+</script>
+</body>
+</html>

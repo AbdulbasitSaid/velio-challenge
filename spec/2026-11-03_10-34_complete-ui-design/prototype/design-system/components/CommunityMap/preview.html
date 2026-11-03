@@ -1,0 +1,12 @@
+<!-- @dsCard group="Maps" height=440 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>CommunityMap</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var V = window.Velio, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'vl-row',style:{alignItems:'flex-start'}},h('div',{style:{width:420}},h(V.CommunityMap,{})),h('div',{style:{width:420}},h(V.CommunityMap,{selected:0,card:h(V.PlanCard,{scene:'lake',title:'Sunset Kayaking',date:'Sat 14 Dec, 17:30',place:'Lake Naivasha',members:['Tunde A.','Imani K.'],memberTotal:9,code:'6 spots left'})}))));
+</script>
+</body>
+</html>

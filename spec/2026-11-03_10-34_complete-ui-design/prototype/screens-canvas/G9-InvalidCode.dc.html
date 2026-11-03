@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Invite not found</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/velio/tokens.css">
+<link rel="stylesheet" href="ds/velio/components/bundle.css">
+<script src="ds/velio/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&amp;family=Sora:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#173600}a:hover{color:#0a0a0a}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 844px; box-sizing: border-box; background: var(--cream); color: var(--ink); font-family: var(--font-body); display: flex; flex-direction: column">
+<header style="display: flex; align-items: center; padding: 14px 20px">
+<a class="vl-wordmark" href="#">velio</a>
+</header>
+
+<main style="width: 100%; max-width: 480px; margin: 0 auto; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px; padding: 4px 20px 32px">
+<h1 class="title" style="margin: 0">{{headline}}</h1>
+<p style="margin: 0; font-size: 15px; line-height: 22px; color: var(--muted)">{{body}}</p>
+
+<form style="display: flex; flex-direction: column; gap: 12px; padding: 16px; background: var(--surface); border-radius: 16px">
+<x-import component-from-global-scope="Velio.TextField" id="code" label="Invite code" code="{{yes}}" value="{{code}}" error="{{error}}" help="6 letters and numbers, from the link or message you got." disabled="{{limited}}"></x-import>
+<sc-if value="{{open}}" hint-placeholder-val="{{ true }}">
+<button class="vl-btn vl-btn-primary vl-btn-block" type="button">Open invite</button>
+</sc-if>
+<sc-if value="{{limited}}" hint-placeholder-val="{{ false }}">
+<button class="vl-btn vl-btn-primary vl-btn-block" type="button" disabled>Try again in an hour</button>
+</sc-if>
+</form>
+
+<a class="vl-btn vl-btn-quiet" href="#" style="align-self: center">Browse communities</a>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"state":{"editor":"enum","options":["not found","rate limited"],"default":"not found"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const limited = (this.props.state ?? 'not found') === 'rate limited';
+    return {
+      yes: true,
+      limited: limited,
+      open: !limited,
+      code: 'K7PQ2M',
+      headline: limited ? 'Too many attempts from this device.' : "We can't find that invite.",
+      body: limited ? 'To protect invites from guessing, codes are paused here for an hour. Your real invite still works when you try again.' : 'The link may be cut short or mistyped. Check the code in the message you got and type it below.',
+      error: limited ? null : "That code doesn't match an invite. Check the letters."
+    };
+  }
+}
+</script>
+</body>
+</html>

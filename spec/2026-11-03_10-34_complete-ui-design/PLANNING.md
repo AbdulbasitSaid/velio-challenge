@@ -2,7 +2,7 @@
 
 - **Spec ID:** 2026-11-03_10-34_complete-ui-design
 - **Created:** 2026-11-03 10:34 (local)
-- **Status:** Approved for implementation (2026-11-03). In progress: design system approved; batches 1 (guest) and 2 (booker) approved; batches 3 (host), 4 (community and profile) and 5 (account, errors, admin) published. Every screen in §5.3 is designed; awaiting the owner's full review.
+- **Status:** Implemented (2026-11-03). Approved by the owner; Phase 0 closed.
 - **Phase:** 0 (Decide and design), reworked on 2026-11-03
 - **Extends:** `spec/2026-11-03_09-09_ux-design/` (principles, tokens, copy deck and decisions UX-1–UX-5 stay in force)
 - **Depends on:** `Velio Group Bookings PRD.md`, `spec/2026-11-03_10-34_google-maps-locations/`
@@ -41,9 +41,9 @@ Two Claude Design artifacts that S5, S6 and S7 can build from without guessing:
 
 | Deliverable | Link | Status |
 | --- | --- | --- |
-| Velio design system | [claude.ai/artifact/HVyi155enP8ug5BVzdg8qz](https://claude.ai/artifact/HVyi155enP8ug5BVzdg8qz) (private) | Approved by the owner 2026-11-03 |
+| Velio design system | [claude.ai/artifact/HVyi155enP8ug5BVzdg8qz](https://claude.ai/artifact/HVyi155enP8ug5BVzdg8qz) (private) | Approved 2026-11-03. Source: `prototype/design-system/` |
 | Archived first prototype | [claude.ai/artifact/NirxnmSocq3eaLLrAwxjBe](https://claude.ai/artifact/NirxnmSocq3eaLLrAwxjBe) | Retitled "(archived)" with a note linking the new artifacts (UI-D4, FR-012) |
-| Velio Group Bookings screens | [claude.ai/artifact/9hFK2e2AhKVGMsrwPMei48](https://claude.ai/artifact/9hFK2e2AhKVGMsrwPMei48) (private) | Batch 1 (guest) approved 2026-11-03. Batch 2 (booker) approved 2026-11-03. Batches 3–5 published 2026-11-03. All 41 artboards awaiting the owner's full review. |
+| Velio Group Bookings screens | [claude.ai/artifact/9hFK2e2AhKVGMsrwPMei48](https://claude.ai/artifact/9hFK2e2AhKVGMsrwPMei48) (private) | Approved 2026-11-03: 42 artboards. Source: `prototype/screens-canvas/` |
 
 Source copies are saved to `prototype/` when the owner approves (FR-010).
 
@@ -123,7 +123,7 @@ Source copies are saved to `prototype/` when the owner approves (FR-010).
 
 ### 5.5 Copy deck additions (FR-008)
 
-New strings introduced by the designs. They extend the UX spec's copy deck and need the owner's approval with the batch that uses them. Batch 1 and 2 strings approved 2026-11-03.
+New strings introduced by the designs. They extend the UX spec's copy deck and need the owner's approval with the batch that uses them. All batch strings (1–5) approved 2026-11-03.
 
 | Key | Copy | Screen |
 | --- | --- | --- |
@@ -289,3 +289,4 @@ Large: about 26 screens, over 100 states, two artifacts, five clickable flows.
 - 2026-11-03: the owner reported UI overflow. Root causes found with a local headless-Chrome harness that renders every artboard state with the real components: (1) full-width link buttons were 100% wide plus padding because components lacked border-box sizing; (2) `AttendanceRow` used a prop named `ref`, which React reserves, so attendance rows failed to render (renamed `bookingRef`); (3) the desktop header did not fit at phone width (nav now hides below 720px and the header wraps); (4) list rows squeezed names to nothing on phones (rows now wrap); (5) desktop grids used fixed column counts or minimums wider than a phone (now `auto-fit` with `min(…, 100%)`); (6) 13 frames were shorter than their content, so the canvas cropped them (frames resized, rows re-spaced). Design system republished (v5) and recopied into the canvas.
 - 2026-11-03: the owner asked whether the designs are responsive and approved the proposed rules (UI-D5, §5.6, FR-013 to FR-016). Scope added: phone-first web screens made fluid with a centred column and a desktop frame for them; checks at 360px and with 200% text scaling.
 - 2026-11-03: UI-D5 implemented. The 10 phone-first web screens are now fluid pages (full-width header, content in a centred 480px column) and a new desktop frame, "phone-first screens on desktop", shows each at 1280px through a screen picker. Flutter claim summary row now wraps at large text sizes. Design system rule added: text scales to 200% and rows wrap; avatar initials and icons keep their size. Results in VALIDATION Part B.
+- 2026-11-03: **approved by the owner; Phase 0 closed.** Batches 3–5 and their copy approved with the whole design. Open calls settled as designed: the desktop sign-in headline and the guest search on phone attendance are kept. Source of both artifacts saved to `prototype/` (FR-010). Status: Implemented.

@@ -1,0 +1,12 @@
+<!-- @dsCard group="Lists" height=250 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>MemberRow</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var V = window.Velio, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'vl-col'},h('div',{className:'vl-list'},h(V.MemberRow,{name:'Tunde Adeyemi',you:true,meta:'Booked Mon 2 Dec',source:'direct'}),h(V.MemberRow,{name:'Zainab Okafor',meta:'Claimed Tue 3 Dec',source:'vouch',sourceLabel:'Via Tunde'}),h(V.MemberRow,{name:'Invite for Kofi',pending:true,meta:'Vouch · code K7PQ2N',status:'opened'}),h(V.MemberRow,{name:'Imani Kariuki',removed:true,source:'public'}))));
+</script>
+</body>
+</html>

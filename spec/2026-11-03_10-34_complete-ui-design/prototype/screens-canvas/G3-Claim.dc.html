@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Claim your spot</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/velio/tokens.css">
+<link rel="stylesheet" href="ds/velio/components/bundle.css">
+<script src="ds/velio/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&amp;family=Sora:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#173600}a:hover{color:#0a0a0a}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 980px; box-sizing: border-box; background: var(--cream); color: var(--ink); font-family: var(--font-body); display: flex; flex-direction: column">
+<header style="width: 100%; max-width: 480px; margin: 0 auto; box-sizing: border-box; display: flex; align-items: center; gap: 8px; padding: 8px 12px">
+<a href="Main.dc.html" class="vl-iconbtn" aria-label="Back to the invite"><svg class="vl-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5L8 12l6.5 6.5"></path></svg></a>
+<span style="flex: 1; font-weight: 700; font-size: 15px">Invite from Tunde</span>
+<span class="vl-chip" style="font-variant-numeric: tabular-nums; letter-spacing: 1px">Code K7PQ2N</span>
+</header>
+
+<main style="width: 100%; max-width: 480px; margin: 0 auto; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px; padding: 8px 20px 32px">
+<div style="display: flex; gap: 12px; align-items: center; padding: 12px; background: var(--surface); border-radius: 16px">
+<div style="width: 64px; height: 64px; border-radius: 10px; overflow: hidden; flex: none">
+<x-import component-from-global-scope="Velio.PhotoArt" scene="lake" alt="" style="display: block; width: 64px; height: 64px"></x-import>
+</div>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<strong style="font-size: 16px">Sunset Kayaking</strong>
+<span style="font-size: 13px; color: var(--muted)">Sat 14 Dec, 17:30 Nairobi time</span>
+<span><x-import component-from-global-scope="Velio.SpotsBadge" spots="{{spots}}"></x-import></span>
+</div>
+</div>
+
+<h1 class="title" style="margin: 0">Claim your spot</h1>
+
+<sc-if value="{{rateLimited}}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="Velio.Banner" tone="error" title="Too many attempts from this device.">Try again in an hour. Your invite still works.</x-import>
+</sc-if>
+<sc-if value="{{serverError}}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="Velio.Banner" tone="error" title="We couldn't confirm your spot. Nothing was booked.">Try again. You won't be booked twice.</x-import>
+</sc-if>
+<sc-if value="{{soldOut}}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="Velio.Banner" tone="error" title="Someone just took the last spot.">We didn't book you. <a href="G5-SoldOut.dc.html">See other dates and activities</a></x-import>
+</sc-if>
+
+<form style="display: flex; flex-direction: column; gap: 16px">
+<x-import component-from-global-scope="Velio.TextField" id="claim-name" label="Your name" value="{{nameValue}}" placeholder="First and last name" autocomplete="name" error="{{nameError}}" help="The host and the people in your group see this."></x-import>
+<x-import component-from-global-scope="Velio.TextField" id="claim-contact" label="Phone or email" value="{{contactValue}}" placeholder="+254 7… or you@example.com" autocomplete="tel" error="{{contactError}}" help="So you can find this booking again. We don't message you."></x-import>
+
+<x-import component-from-global-scope="Velio.Banner" title="What the host sees">Amara (the host) will see your name and that Tunde invited you. Your phone or email stays private.</x-import>
+
+<sc-if value="{{submitting}}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="Velio.Button" block="{{yes}}" loading="{{yes}}">Confirming…</x-import>
+</sc-if>
+<sc-if value="{{idle}}" hint-placeholder-val="{{ true }}">
+<a class="vl-btn vl-btn-primary vl-btn-block" href="G4-YoureIn.dc.html">{{ctaLabel}}</a>
+</sc-if>
+<sc-if value="{{rateLimited}}" hint-placeholder-val="{{ false }}">
+<button class="vl-btn vl-btn-primary vl-btn-block" type="button" disabled>Confirm my spot</button>
+</sc-if>
+<p style="margin: 0; text-align: center; font-size: 13px; line-height: 18px; color: var(--muted)">Spots aren't held. Claim while they last.</p>
+</form>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"state":{"editor":"enum","options":["empty","filled","submitting","validation error","sold out at confirm","rate limited","server error"],"default":"filled"},"$preview":{"width":390,"height":980}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.props.state ?? 'filled';
+    const filled = s !== 'empty' && s !== 'validation error';
+    return {
+      yes: true,
+      spots: s === 'sold out at confirm' ? 0 : 6,
+      nameValue: s === 'empty' ? '' : 'Zainab Okafor',
+      contactValue: filled ? '+254 712 345 678' : (s === 'validation error' ? '0712 34' : ''),
+      nameError: null,
+      contactError: s === 'validation error' ? 'Enter a full phone number with country code, or an email address.' : null,
+      submitting: s === 'submitting',
+      rateLimited: s === 'rate limited',
+      serverError: s === 'server error',
+      soldOut: s === 'sold out at confirm',
+      idle: s !== 'submitting' && s !== 'rate limited' && s !== 'sold out at confirm',
+      ctaLabel: s === 'server error' ? 'Try again' : 'Confirm my spot'
+    };
+  }
+}
+</script>
+</body>
+</html>

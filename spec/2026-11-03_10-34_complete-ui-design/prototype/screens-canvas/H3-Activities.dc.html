@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>My activities (phone)</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/velio/tokens.css">
+<link rel="stylesheet" href="ds/velio/components/bundle.css">
+<script src="ds/velio/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&amp;family=Sora:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#173600}a:hover{color:#0a0a0a}
+</style>
+</helmet>
+<div style="width: 390px; min-height: 1000px; box-sizing: border-box; background: var(--cream); color: var(--ink); font-family: var(--font-body); display: flex; flex-direction: column">
+<header style="display: flex; align-items: center; justify-content: space-between; padding: 14px 20px">
+<a class="vl-wordmark" href="#">velio</a>
+<x-import component-from-global-scope="Velio.Segmented" label="Role" value="Host" options="{{roles}}"></x-import>
+</header>
+
+<main style="display: flex; flex-direction: column; gap: 20px; padding: 4px 20px 32px">
+<div style="display: flex; justify-content: space-between; align-items: center">
+<h1 class="title" style="margin: 0">My activities</h1>
+<a class="vl-btn vl-btn-primary vl-btn-sm" href="H2-Create.dc.html">Create</a>
+</div>
+<x-import component-from-global-scope="Velio.Segmented" label="Show" value="{{tab}}" options="{{tabs}}"></x-import>
+
+<sc-if value="{{hasRows}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="3">
+<a href="{{r.href}}" style="display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 16px; background: var(--surface); color: var(--ink); text-decoration: none">
+<div style="display: flex; gap: 12px; align-items: center">
+<div style="width: 56px; height: 56px; border-radius: 10px; overflow: hidden; flex: none; background: var(--forest)"><x-import component-from-global-scope="Velio.PhotoArt" scene="{{r.scene}}" alt="" style="display: block; width: 56px; height: 56px"></x-import></div>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<strong>{{r.title}}</strong>
+<span style="font-size: 13px; color: var(--muted)">{{r.when}}</span>
+</div>
+</div>
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px">
+<span style="font-size: 14px; font-variant-numeric: tabular-nums"><strong>{{r.booked}}</strong> of {{r.capacity}} booked</span>
+<x-import component-from-global-scope="Velio.Chip" tone="{{r.tone}}">{{r.status}}</x-import>
+</div>
+</a>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{empty}}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="Velio.EmptyState" icon="calendar" title="No activities yet" body="Create your first activity. It gets a page in its community and links you can share."></x-import>
+<a class="vl-btn vl-btn-primary vl-btn-block" href="H2-Create.dc.html">Create activity</a>
+</sc-if>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"state":{"editor":"enum","options":["upcoming","past","empty"],"default":"upcoming"},"$preview":{"width":390,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.props.state ?? 'upcoming';
+    const upcoming = [
+      { scene: 'lake', title: 'Sunset Kayaking', when: 'Sat 14 Dec, 17:30', booked: 9, capacity: 14, status: '5 spots left', tone: 'lime', href: 'H1-Attendance.dc.html' },
+      { scene: 'lake', title: 'Sunset Kayaking', when: 'Sun 15 Dec, 17:30', booked: 14, capacity: 14, status: 'Sold out', tone: 'forest', href: 'H1-Attendance.dc.html' },
+      { scene: 'lake', title: 'Sunset Kayaking', when: 'Sat 21 Dec, 17:30', booked: 0, capacity: 14, status: 'No bookings yet', tone: 'neutral', href: 'H1-Attendance.dc.html' }
+    ];
+    const past = [
+      { scene: 'lake', title: 'Sunset Kayaking', when: 'Sat 30 Nov, 17:30', booked: 12, capacity: 14, status: '11 attended', tone: 'neutral', href: 'H1-Attendance.dc.html' },
+      { scene: 'savanna', title: 'Hell’s Gate cycle', when: 'Sat 19 Oct, 08:00', booked: 10, capacity: 12, status: 'Mark attendance', tone: 'danger', href: 'H1-Attendance.dc.html' }
+    ];
+    return {
+      roles: ['Booker', 'Host'],
+      tab: s === 'past' ? 'past' : 'upcoming',
+      tabs: [{ value: 'upcoming', label: 'Upcoming' }, { value: 'past', label: 'Past' }],
+      rows: s === 'past' ? past : upcoming,
+      hasRows: s !== 'empty',
+      empty: s === 'empty'
+    };
+  }
+}
+</script>
+</body>
+</html>

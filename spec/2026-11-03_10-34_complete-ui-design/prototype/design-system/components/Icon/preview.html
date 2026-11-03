@@ -1,0 +1,12 @@
+<!-- @dsCard group="Actions" height=90 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Icon</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var V = window.Velio, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'vl-row',style:{color:'var(--forest)'}},['calendar','pin','price','host','people','directions','check','close','search','share','copy','chevron','back','plus','minus','offline','alert','info','lock','map','list','flag','clock','ticket','refresh','menu','target','phone','sparkle','arrow'].map(function(n){return h('span',{key:n,title:n,style:{display:'inline-flex',width:44,height:44,alignItems:'center',justifyContent:'center',background:'var(--surface)',borderRadius:10}},h(V.Icon,{name:n}))})));
+</script>
+</body>
+</html>

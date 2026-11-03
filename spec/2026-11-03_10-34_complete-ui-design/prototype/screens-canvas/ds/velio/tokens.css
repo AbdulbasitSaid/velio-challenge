@@ -1,0 +1,56 @@
+/* Velio — generated from tokens.json */
+:root, [data-theme="light"] {
+  --cream: #f5f3ec;
+  --surface: #ffffff;
+  --line: #eceae2;
+  --ink: #0a0a0a;
+  --muted: #4a4a4a;
+  --forest: #173600;
+  --lime: #c8fc7c;
+  --lime-press: #b8ec6c;
+  --live: #2f8f00;
+  --danger: #be1e1e;
+  --info: #edf4fc;
+  --disabled: #e5e5e5;
+  --field-border: #8a8a8a;
+  --sky: #cde7ff;
+  --sun: #ffe58a;
+  --lilac: #f2d4ff;
+  --peach: #ffd6ba;
+  --map-land: #ebe8dd;
+  --map-water: #bcd9ea;
+  --map-park: #d4e8bd;
+  --map-road: #ffffff;
+  --scrim: rgba(10,10,10,0.45);
+  --shadow-raised: 0 1px 2px rgba(10,10,10,0.06), 0 8px 24px rgba(23,54,0,0.08);
+  --shadow-sheet: 0 -4px 32px rgba(10,10,10,0.14);
+}
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --radius-pill: 999px;
+  --radius-hero: 22px;
+  --radius-card: 16px;
+  --radius-field: 14px;
+  --radius-small: 10px;
+  --touch-min: 44px;
+  --button-height: 52px;
+  --content-max: 1120px;
+  --font-display: Sora, "Nohemi", system-ui, sans-serif;
+  --font-body: "DM Sans", "Satoshi", system-ui, sans-serif;
+}
+.display { font-family: var(--font-display); font-size: 40px; line-height: 44px; font-weight: 700; letter-spacing: -0.8px; }
+.title { font-family: var(--font-display); font-size: 28px; line-height: 34px; font-weight: 700; letter-spacing: -0.56px; }
+.heading { font-family: var(--font-display); font-size: 22px; line-height: 28px; font-weight: 700; }
+.subheading { font-family: var(--font-body); font-size: 17px; line-height: 24px; font-weight: 700; }
+.button { font-family: var(--font-body); font-size: 17px; line-height: 20px; font-weight: 700; }
+.body { font-family: var(--font-body); font-size: 15px; line-height: 22px; font-weight: 400; }
+.body-strong { font-family: var(--font-body); font-size: 15px; line-height: 22px; font-weight: 700; }
+.caption { font-family: var(--font-body); font-size: 13px; line-height: 18px; font-weight: 400; }
+.code { font-family: var(--font-body); font-size: 18px; line-height: 24px; font-weight: 700; letter-spacing: 2px; }

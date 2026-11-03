@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>My plans (app)</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/velio/tokens.css">
+<link rel="stylesheet" href="ds/velio/components/bundle.css">
+<script src="ds/velio/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&amp;family=Sora:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#173600}a:hover{color:#0a0a0a}
+</style>
+</helmet>
+<div style="width: 390px; min-height: 1000px; box-sizing: border-box; background: var(--cream); color: var(--ink); font-family: var(--font-body); display: flex; flex-direction: column">
+<div class="vl-appbar" style="padding: 8px 12px 8px 20px">
+<span class="vl-wordmark" style="flex: 1">velio</span>
+<a href="F-G8-Code.dc.html" class="vl-btn vl-btn-quiet vl-btn-sm" style="text-decoration: none">Enter a code</a>
+</div>
+
+<main style="display: flex; flex-direction: column; gap: 20px; padding: 8px 20px 32px">
+<h1 class="title" style="margin: 0">My plans</h1>
+
+<sc-if value="{{offline}}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="Velio.Banner" tone="offline" title="You're offline · Last updated 25 min ago">Showing your saved plans.</x-import>
+</sc-if>
+
+<x-import component-from-global-scope="Velio.Segmented" label="Show" value="upcoming" options="{{tabs}}"></x-import>
+
+<sc-if value="{{list}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<x-import component-from-global-scope="Velio.PlanCard" scene="lake" title="Sunset Kayaking" date="Sat 14 Dec, 17:30" place="Lake Naivasha" members="{{m1}}" member-total="{{four}}" code="VLO-48213" href="F-B4-Plan.dc.html"></x-import>
+<x-import component-from-global-scope="Velio.PlanCard" scene="savanna" title="Nairobi National Park at dawn" date="Sun 15 Dec, 06:00" place="Nairobi" members="{{m2}}" member-total="{{two}}" code="VLO-7RT2P"></x-import>
+</div>
+</sc-if>
+
+<sc-if value="{{empty}}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="Velio.EmptyState" icon="ticket" title="No plans yet" body="When you claim a spot from an invite, your plan shows up here."></x-import>
+<a class="vl-btn vl-btn-primary vl-btn-block" href="F-G8-Code.dc.html">Enter an invite code</a>
+</sc-if>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"state":{"editor":"enum","options":["upcoming","offline (cached)","empty"],"default":"upcoming"},"$preview":{"width":390,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.props.state ?? 'upcoming';
+    return {
+      two: 2, four: 4,
+      tabs: [{ value: 'upcoming', label: 'Upcoming' }, { value: 'past', label: 'Past' }],
+      offline: s === 'offline (cached)',
+      list: s !== 'empty',
+      empty: s === 'empty',
+      m1: ['Tunde A.', 'Zainab O.', 'Imani K.'],
+      m2: ['Zainab O.', 'Omar M.']
+    };
+  }
+}
+</script>
+</body>
+</html>

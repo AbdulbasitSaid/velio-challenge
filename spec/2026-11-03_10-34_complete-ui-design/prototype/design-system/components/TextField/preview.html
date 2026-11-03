@@ -1,0 +1,12 @@
+<!-- @dsCard group="Forms" height=300 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>TextField</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var V = window.Velio, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'vl-col',style:{maxWidth:420}},h(V.TextField,{label:'Your name',value:'Zainab Okafor',help:'The host and your group see this.'}),h(V.TextField,{label:'Phone or email',placeholder:'+254 7… or you@example.com',error:'Enter a phone number or an email address.'}),h(V.TextField,{label:'Invite code',code:true,value:'K7PQ2N',error:'That code doesn\u2019t match an invite. Check the letters.'})));
+</script>
+</body>
+</html>

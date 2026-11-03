@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Continue (desktop)</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/velio/tokens.css">
+<link rel="stylesheet" href="ds/velio/components/bundle.css">
+<script src="ds/velio/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&amp;family=Sora:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#173600}a:hover{color:#0a0a0a}
+</style>
+</helmet>
+<div style="min-height: 800px; box-sizing: border-box; background: var(--cream); color: var(--ink); font-family: var(--font-body)">
+<x-import component-from-global-scope="Velio.AppHeader" signed-in="{{no}}" compact="{{yes}}"></x-import>
+<main style="max-width: 1120px; margin: 0 auto; padding: 64px 40px; display: flex; flex-wrap: wrap; gap: 48px; align-items: center">
+<div style="flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+<h1 class="display" style="margin: 0; font-size: 48px; line-height: 52px">Book together. Go together.</h1>
+<p style="margin: 0; font-size: 17px; line-height: 26px; color: var(--muted); max-width: 46ch">Hosts list activities with fixed spots. You book one, invite friends into your plan, and watch the spots fill live.</p>
+</div>
+<form style="flex: 1 1 380px; min-width: 0; max-width: 440px; display: flex; flex-direction: column; gap: 16px; padding: 28px; background: var(--surface); border-radius: 22px">
+<h2 class="heading" style="margin: 0">Continue to Velio</h2>
+<p style="margin: 0; font-size: 14px; color: var(--muted)">Your name and a phone number or email. No password.</p>
+<sc-if value="{{serverError}}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="Velio.Banner" tone="error" title="We couldn't sign you in.">Check your connection and try again.</x-import>
+</sc-if>
+<x-import component-from-global-scope="Velio.TextField" id="x1d-name" label="Your name" value="{{name}}" placeholder="First and last name" help="Others see your first name and last initial."></x-import>
+<x-import component-from-global-scope="Velio.TextField" id="x1d-contact" label="Phone or email" value="{{contact}}" placeholder="+254 7… or you@example.com" error="{{contactError}}" help="Use the same one on every device to see your plans. We don't message you."></x-import>
+<a class="vl-btn vl-btn-primary vl-btn-block" href="B6-Desktop.dc.html">Continue</a>
+</form>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"state":{"editor":"enum","options":["empty","filled","invalid contact","server error"],"default":"filled"},"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.props.state ?? 'filled';
+    const filled = s !== 'empty';
+    return {
+      yes: true, no: false,
+      name: filled ? 'Amara Otieno' : '',
+      contact: s === 'invalid contact' ? 'amara@' : filled ? 'amara@example.com' : '',
+      contactError: s === 'invalid contact' ? 'Enter a phone number with country code, or a full email address.' : null,
+      serverError: s === 'server error'
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Vouch for a friend</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/velio/tokens.css">
+<link rel="stylesheet" href="ds/velio/components/bundle.css">
+<script src="ds/velio/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&amp;family=Sora:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#173600}a:hover{color:#0a0a0a}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 1000px; box-sizing: border-box; background: var(--cream); color: var(--ink); font-family: var(--font-body); display: flex; flex-direction: column">
+<header style="width: 100%; max-width: 480px; margin: 0 auto; box-sizing: border-box; display: flex; align-items: center; gap: 8px; padding: 8px 12px">
+<a href="B2-Booked.dc.html" class="vl-iconbtn" aria-label="Back"><svg class="vl-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5L8 12l6.5 6.5"></path></svg></a>
+<span style="flex: 1; font-weight: 700; font-size: 15px">Sunset Kayaking · Sat 14 Dec</span>
+</header>
+
+<sc-if value="{{form}}" hint-placeholder-val="{{ true }}">
+<main style="width: 100%; max-width: 480px; margin: 0 auto; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px; padding: 8px 20px 32px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<h1 class="title" style="margin: 0">Vouch for a friend</h1>
+<p style="margin: 0; font-size: 15px; line-height: 22px; color: var(--muted)">One invite, one person. It shows your name, so they know it's from you.</p>
+</div>
+
+<form style="display: flex; flex-direction: column; gap: 16px">
+<x-import component-from-global-scope="Velio.TextField" id="v-name" label="Friend's name" value="{{name}}" placeholder="Who is it for?" error="{{nameError}}"></x-import>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<x-import component-from-global-scope="Velio.TextField" id="v-contact" label="Their phone or email" value="{{contact}}" placeholder="+254 7… or name@example.com" help="Used only to send and match this invite. Amara never sees it."></x-import>
+<x-import component-from-global-scope="Velio.Button" variant="quiet" small="{{yes}}" icon="people">Choose from contacts</x-import>
+</div>
+<x-import component-from-global-scope="Velio.TextField" id="v-note" label="Note (optional)" multiline="{{yes}}" value="{{note}}" placeholder="A line from you, shown on their invite"></x-import>
+
+<sc-if value="{{creating}}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="Velio.Button" block="{{yes}}" loading="{{yes}}">Creating…</x-import>
+</sc-if>
+<sc-if value="{{idle}}" hint-placeholder-val="{{ true }}">
+<button class="vl-btn vl-btn-primary vl-btn-block" type="button">Create invite</button>
+</sc-if>
+<p style="margin: 0; text-align: center; font-size: 13px; line-height: 18px; color: var(--muted)">Invites don't hold a spot. 5 spots left right now.</p>
+</form>
+</main>
+</sc-if>
+
+<sc-if value="{{created}}" hint-placeholder-val="{{ false }}">
+<main style="width: 100%; max-width: 480px; margin: 0 auto; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px; padding: 8px 20px 32px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<h1 class="title" style="margin: 0">Send it to Wanjiru</h1>
+<p style="margin: 0; font-size: 15px; line-height: 22px; color: var(--muted)">Your invite is ready. Send it however you usually talk.</p>
+</div>
+
+<section style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 16px; background: var(--surface)">
+<span style="font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted)">Message preview</span>
+<p style="margin: 0; font-size: 15px; line-height: 22px">Wanjiru, I'm going to Sunset Kayaking on Sat 14 Dec and want you there. Claim your spot: d3x9k2.cloudfront.net/i/H4XM9R</p>
+<div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap">
+<span class="vl-chip" style="letter-spacing: 1px">Code H4XM9R</span>
+<span style="font-size: 13px; color: var(--muted)">Works once, until the activity starts</span>
+</div>
+</section>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<a class="vl-btn vl-btn-primary vl-btn-block" href="#">Send on WhatsApp</a>
+<a class="vl-btn vl-btn-secondary vl-btn-block" href="#">Send by text message</a>
+<x-import component-from-global-scope="Velio.Button" variant="quiet" block="{{yes}}" icon="copy">Copy link</x-import>
+</div>
+
+<x-import component-from-global-scope="Velio.Banner" title="What happens next">You'll see "Opened" in your plan when Wanjiru opens it, and "Claimed" once the spot is taken. "Created" means the link exists; we can't see whether it was sent.</x-import>
+<a class="vl-btn vl-btn-quiet" href="B4-Plan.dc.html" style="align-self: center">Done</a>
+</main>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"state":{"editor":"enum","options":["empty","filled","validation error","creating","created (send)"],"default":"filled"},"$preview":{"width":390,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.props.state ?? 'filled';
+    const filled = s === 'filled' || s === 'creating';
+    return {
+      yes: true,
+      form: s !== 'created (send)',
+      created: s === 'created (send)',
+      name: filled ? 'Wanjiru Njoroge' : '',
+      contact: filled ? '+254 722 118 904' : '',
+      note: filled ? 'Sunset on the lake, then nyama choma in town after. You’ll love it.' : '',
+      nameError: s === 'validation error' ? 'Add their name, so the invite is addressed to them.' : null,
+      creating: s === 'creating',
+      idle: s !== 'creating'
+    };
+  }
+}
+</script>
+</body>
+</html>

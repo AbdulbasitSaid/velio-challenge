@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin metrics</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/velio/tokens.css">
+<link rel="stylesheet" href="ds/velio/components/bundle.css">
+<script src="ds/velio/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&amp;family=Sora:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#173600}a:hover{color:#0a0a0a}
+</style>
+</helmet>
+<div style="min-height: 1700px; box-sizing: border-box; background: var(--cream); color: var(--ink); font-family: var(--font-body)">
+<header style="display: flex; align-items: center; gap: 16px; padding: 14px 40px; border-bottom: 1px solid var(--line); flex-wrap: wrap">
+<a class="vl-wordmark" href="#">velio</a>
+<span class="vl-chip vl-chip-forest">Admin</span>
+<span style="margin-left: auto; font-size: 13px; color: var(--muted)">Flag group_invites · updated 1 min ago</span>
+</header>
+
+<main style="max-width: 1360px; margin: 0 auto; padding: 32px 40px 64px; display: flex; flex-direction: column; gap: 28px">
+<div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 class="title" style="margin: 0; font-size: 32px; line-height: 38px">Group bookings</h1>
+<span style="font-size: 14px; color: var(--muted)">Example figures for design review</span>
+</div>
+<div style="display: flex; gap: 12px; flex-wrap: wrap">
+<x-import component-from-global-scope="Velio.Segmented" label="Time range" value="7d" options="{{ranges}}"></x-import>
+<x-import component-from-global-scope="Velio.Segmented" label="Arm" value="all" options="{{arms}}"></x-import>
+</div>
+</div>
+
+<sc-if value="{{oversold}}" hint-placeholder-val="{{ false }}">
+<div role="alert" style="display: flex; gap: 14px; align-items: center; padding: 16px 20px; border-radius: 16px; background: var(--surface); box-shadow: inset 0 0 0 2px var(--danger); flex-wrap: wrap">
+<svg class="vl-icon" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--danger)"><path d="M12 3.5l9.5 16.5h-19zM12 10v4.5M12 17.5h.01"></path></svg>
+<div style="flex: 1; min-width: 260px; display: flex; flex-direction: column">
+<strong style="color: var(--danger)">Oversold: Sunset Kayaking, Sat 14 Dec has 15 bookings for 14 spots.</strong>
+<span style="font-size: 14px; color: var(--muted)">Detected 2 min ago by the 5-minute check. The host has been alerted.</span>
+</div>
+<button class="vl-btn vl-btn-danger vl-btn-sm" type="button">Pause bookings for this activity</button>
+</div>
+</sc-if>
+
+<section style="display: flex; flex-direction: column; gap: 12px">
+<h2 class="heading" style="margin: 0">Goals</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 12px">
+<sc-for list="{{goals}}" as="g" hint-placeholder-count="5">
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 18px; background: var(--surface); border-radius: 16px; box-shadow: {{g.ring}}">
+<span style="font-size: 13px; color: var(--muted)">{{g.label}}</span>
+<strong style="font: 700 32px/38px var(--font-display); font-variant-numeric: tabular-nums; color: var(--ink)">{{g.value}}</strong>
+<span style="font-size: 13px; color: var(--muted)">Target {{g.target}}</span>
+<span style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: {{g.statusColor}}"><svg class="vl-icon" viewBox="0 0 24 24" aria-hidden="true" style="width: 16px; height: 16px"><path d="{{g.icon}}"></path></svg>{{g.status}}</span>
+</div>
+</sc-for>
+</div>
+</section>
+
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+<section style="flex: 2 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px; padding: 20px; background: var(--surface); border-radius: 16px">
+<div style="display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+<h2 class="heading" style="margin: 0">Invite funnel by rail</h2>
+<span style="font-size: 13px; color: var(--muted)">Each bar is scaled to its rail's first step · last 7 days</span>
+</div>
+<sc-for list="{{rails}}" as="r" hint-placeholder-count="2">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<strong style="font-size: 15px">{{r.name}}</strong>
+<sc-for list="{{r.steps}}" as="st" hint-placeholder-count="3">
+<div style="display: grid; grid-template-columns: 80px minmax(0, 1fr) 120px; gap: 12px; align-items: center">
+<span style="font-size: 13px; color: var(--muted)">{{st.label}}</span>
+<div style="height: 18px; background: var(--cream); border-radius: 4px; overflow: hidden" title="{{st.label}}: {{st.count}}"><div style="height: 100%; width: {{st.pct}}; background: var(--forest); border-radius: 0 4px 4px 0"></div></div>
+<span style="font-size: 13px; font-variant-numeric: tabular-nums; text-align: right"><strong>{{st.count}}</strong> <span style="color: var(--muted)">{{st.rate}}</span></span>
+</div>
+</sc-for>
+</div>
+</sc-for>
+<a href="#" style="font-size: 13px; font-weight: 700">Show as table</a>
+</section>
+
+<section style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 20px; background: var(--surface); border-radius: 16px">
+<h2 class="heading" style="margin: 0">K-factor by rail</h2>
+<span style="font-size: 13px; color: var(--muted)">New users brought in per existing user</span>
+<div style="display: flex; justify-content: space-between; align-items: baseline"><span>Vouch</span><strong style="font: 700 24px/30px var(--font-display); font-variant-numeric: tabular-nums">0.42</strong></div>
+<div style="display: flex; justify-content: space-between; align-items: baseline"><span>Public link</span><strong style="font: 700 24px/30px var(--font-display); font-variant-numeric: tabular-nums">0.18</strong></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 20px; background: var(--surface); border-radius: 16px">
+<h2 class="heading" style="margin: 0">Holdout</h2>
+<span style="font-size: 13px; color: var(--muted)">New users per booker · 90% exposed, 10% holdout</span>
+<div style="display: flex; justify-content: space-between; align-items: baseline"><span>Exposed</span><strong style="font: 700 24px/30px var(--font-display); font-variant-numeric: tabular-nums">0.61</strong></div>
+<div style="display: flex; justify-content: space-between; align-items: baseline"><span>Holdout</span><strong style="font: 700 24px/30px var(--font-display); font-variant-numeric: tabular-nums">0.48</strong></div>
+<span style="font-size: 13px; color: var(--muted)">Read the result after 4 weeks of general availability.</span>
+</div>
+</section>
+</div>
+
+<section style="display: flex; flex-direction: column; gap: 12px; padding: 20px; background: var(--surface); border-radius: 16px">
+<h2 class="heading" style="margin: 0">Guardrails</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; color: var(--muted)">Plans that happen</span><strong style="font-size: 20px">71%</strong><span style="font-size: 13px; color: var(--muted)">Every member marked attended · baseline week</span></div>
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; color: var(--muted)">No-show or removal, invited vs organic</span><strong style="font-size: 20px">1.2×</strong><span style="font-size: 13px; color: var(--muted)">Alerts above 1.5×</span></div>
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; color: var(--muted)">Paused public links</span><strong style="font-size: 20px">2</strong><a href="#" style="font-size: 13px; font-weight: 700">Review</a></div>
+</div>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"state":{"editor":"enum","options":["all goals on target","oversell detected"],"default":"all goals on target"},"$preview":{"width":1440,"height":1700}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const bad = (this.props.state ?? 'all goals on target') === 'oversell detected';
+    const ok = { statusColor: 'var(--forest)', icon: 'M5 12.5l4.5 4.5L19 7.5', status: 'On target', ring: 'none' };
+    return {
+      oversold: bad,
+      ranges: [{ value: '24h', label: '24 h' }, { value: '7d', label: '7 days' }, { value: 'all', label: 'Since launch' }],
+      arms: [{ value: 'all', label: 'All' }, { value: 'exposed', label: 'Exposed' }, { value: 'holdout', label: 'Holdout' }],
+      goals: [
+        Object.assign({ label: 'Oversold activities', value: bad ? '1' : '0', target: '0, ever' }, bad ? { statusColor: 'var(--danger)', icon: 'M12 3.5l9.5 16.5h-19zM12 10v4.5M12 17.5h.01', status: 'Breached', ring: 'inset 0 0 0 2px var(--danger)' } : ok),
+        Object.assign({ label: 'Bookings that succeed', value: '99.7%', target: '≥ 99.5%' }, ok),
+        Object.assign({ label: 'Live update, p95', value: '1.3 s', target: '≤ 2 s' }, ok),
+        Object.assign({ label: 'Bookers who invite', value: '31%', target: '30%' }, ok),
+        Object.assign({ label: 'Opened invites claimed', value: '27%', target: '25%' }, ok)
+      ],
+      rails: [
+        { name: 'Vouch · 412 invites created', steps: [
+          { label: 'Created', count: '412', rate: '', pct: '100%' },
+          { label: 'Opened', count: '298', rate: '72%', pct: '72%' },
+          { label: 'Claimed', count: '120', rate: '40% of opened', pct: '29%' } ] },
+        { name: 'Public link · 96 links created', steps: [
+          { label: 'Opened', count: '540', rate: '', pct: '100%' },
+          { label: 'Claimed', count: '110', rate: '20% of opened', pct: '20%' } ] }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Booked: who's coming with you?</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/velio/tokens.css">
+<link rel="stylesheet" href="ds/velio/components/bundle.css">
+<script src="ds/velio/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&amp;family=Sora:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#173600}a:hover{color:#0a0a0a}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 1000px; box-sizing: border-box; background: var(--cream); color: var(--ink); font-family: var(--font-body); display: flex; flex-direction: column">
+<header style="display: flex; align-items: center; justify-content: space-between; padding: 14px 20px">
+<a class="vl-wordmark" href="#">velio</a>
+<x-import component-from-global-scope="Velio.Avatar" name="Tunde Adeyemi" size="{{s36}}"></x-import>
+</header>
+
+<main style="width: 100%; max-width: 480px; margin: 0 auto; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px; padding: 4px 20px 32px">
+<section style="display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: 22px; background: var(--lime); color: var(--forest)">
+<span style="display: inline-flex; width: 44px; height: 44px; border-radius: 50%; background: var(--forest); color: var(--lime); align-items: center; justify-content: center; flex: none"><svg class="vl-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+<div style="display: flex; flex-direction: column; min-width: 0">
+<span style="font-size: 14px">You're going to</span>
+<strong style="font: 700 20px/26px var(--font-display)">Sunset Kayaking</strong>
+<span style="font-size: 13px">Sat 14 Dec, 17:30 Nairobi time · VLO-3HX7M</span>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 12px">
+<h1 class="title" style="margin: 0">Who's coming with you?</h1>
+<p style="margin: 0; font-size: 15px; line-height: 22px; color: var(--muted)">Only 5 spots left. Invites don't hold a spot, so tell friends now.</p>
+<x-import component-from-global-scope="Velio.SpotsBadge" spots="{{five}}"></x-import>
+</section>
+
+<a href="B3-Vouch.dc.html" style="display: flex; gap: 14px; align-items: flex-start; padding: 18px; border-radius: 16px; background: var(--surface); color: var(--ink); text-decoration: none; box-shadow: inset 0 0 0 2px var(--forest)">
+<span style="display: inline-flex; width: 44px; height: 44px; border-radius: 50%; background: var(--lime); color: var(--forest); align-items: center; justify-content: center; flex: none"><svg class="vl-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4.5 20.5c1.2-3.6 4-5.5 7.5-5.5s6.3 1.9 7.5 5.5"></path></svg></span>
+<span style="display: flex; flex-direction: column; gap: 4px; flex: 1">
+<strong style="font-size: 17px">Vouch for a friend</strong>
+<span style="font-size: 14px; line-height: 20px; color: var(--muted)">One invite, one person. It shows your name, so they know it's from you.</span>
+</span>
+<svg class="vl-icon" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--forest); align-self: center"><path d="M9.5 5.5L16 12l-6.5 6.5"></path></svg>
+</a>
+
+<a href="B3b-ShareLink.dc.html" style="display: flex; gap: 14px; align-items: flex-start; padding: 18px; border-radius: 16px; background: var(--surface); color: var(--ink); text-decoration: none">
+<span style="display: inline-flex; width: 44px; height: 44px; border-radius: 50%; background: var(--sky); color: var(--forest); align-items: center; justify-content: center; flex: none"><svg class="vl-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3.5M7.5 8L12 3.5 16.5 8M5 12.5V20h14v-7.5"></path></svg></span>
+<span style="display: flex; flex-direction: column; gap: 4px; flex: 1">
+<strong style="font-size: 17px">Share a link</strong>
+<span style="font-size: 14px; line-height: 20px; color: var(--muted)">For a group chat or a community thread. Anyone with it can claim a spot while spots last.</span>
+</span>
+<svg class="vl-icon" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--forest); align-self: center"><path d="M9.5 5.5L16 12l-6.5 6.5"></path></svg>
+</a>
+
+<a class="vl-btn vl-btn-quiet" href="B4-Plan.dc.html" style="align-self: center">Go to my plan</a>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { s36: 36, five: 5 };
+  }
+}
+</script>
+</body>
+</html>

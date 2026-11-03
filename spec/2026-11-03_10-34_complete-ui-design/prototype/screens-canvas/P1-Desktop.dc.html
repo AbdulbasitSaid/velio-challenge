@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Profile (desktop)</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/velio/tokens.css">
+<link rel="stylesheet" href="ds/velio/components/bundle.css">
+<script src="ds/velio/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&amp;family=Sora:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#173600}a:hover{color:#0a0a0a}
+</style>
+</helmet>
+<div style="min-height: 1000px; box-sizing: border-box; background: var(--cream); color: var(--ink); font-family: var(--font-body)">
+<x-import component-from-global-scope="Velio.AppHeader" role="booker" user="Tunde Adeyemi"></x-import>
+
+<main style="max-width: 1120px; margin: 0 auto; padding: 40px 40px 64px; display: flex; flex-direction: column; gap: 32px">
+<section style="display: flex; gap: 24px; align-items: center; flex-wrap: wrap">
+<x-import component-from-global-scope="Velio.Avatar" name="{{name}}" size="{{s96}}"></x-import>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 class="title" style="margin: 0; font-size: 36px; line-height: 42px">{{name}}</h1>
+<span style="font-size: 15px; color: var(--muted)">{{since}}</span>
+</div>
+</section>
+
+<sc-if value="{{host}}" hint-placeholder-val="{{ true }}">
+<section style="display: flex; flex-direction: column; gap: 16px">
+<h2 class="heading" style="margin: 0">Upcoming with Amara</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); gap: 16px">
+<a href="B1-Desktop.dc.html" style="text-decoration: none; color: inherit"><x-import component-from-global-scope="Velio.ActivityCard" compact="{{yes}}" scene="lake" spots="{{six}}" title="Sunset Kayaking" date="Sat 14 Dec, 17:30" place="Lake Naivasha"></x-import></a>
+<x-import component-from-global-scope="Velio.ActivityCard" compact="{{yes}}" scene="lake" spots="{{zero}}" title="Sunset Kayaking" date="Sun 15 Dec, 17:30" place="Lake Naivasha"></x-import>
+<x-import component-from-global-scope="Velio.ActivityCard" compact="{{yes}}" scene="lake" spots="{{fourteen}}" title="Sunset Kayaking" date="Sat 21 Dec, 17:30" place="Lake Naivasha"></x-import>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{guest}}" hint-placeholder-val="{{ false }}">
+<p style="margin: 0; font-size: 16px; color: var(--muted)">Zainab isn't hosting anything right now.</p>
+</sc-if>
+
+<p style="margin: 0; display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted)"><svg class="vl-icon" viewBox="0 0 24 24" aria-hidden="true" style="width: 16px; height: 16px; color: var(--forest)"><path d="M6 10.5h12v10H6zM8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3"></path></svg>Profiles never show which activities someone has booked.</p>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"person":{"editor":"enum","options":["host with activities","guest, nothing hosted"],"default":"host with activities"},"$preview":{"width":1280,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const host = (this.props.person ?? 'host with activities') === 'host with activities';
+    return {
+      yes: true, s96: 96, six: 6, zero: 0, fourteen: 14,
+      host: host, guest: !host,
+      name: host ? 'Amara O.' : 'Zainab O.',
+      since: host ? 'On Velio since March 2024' : 'On Velio since November 2026'
+    };
+  }
+}
+</script>
+</body>
+</html>

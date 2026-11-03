@@ -1,0 +1,43 @@
+<!-- @dsCard height=288 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Velio cover</title>
+<style>
+  html, body { margin: 0; background: var(--cream); }
+  .cover { position: relative; width: 960px; height: 288px; overflow: hidden; background: var(--cream); }
+  .cover svg { position: absolute; left: 0; top: 0; width: 960px; height: 288px; }
+  .lime { fill: var(--lime); }
+  .forest { fill: var(--forest); }
+  .sky { fill: var(--sky); }
+  .sun { fill: var(--sun); }
+  .surface { fill: var(--surface); }
+  .ink { fill: var(--ink); }
+  .name { position: absolute; left: 40px; bottom: 72px; margin: 0; font: 700 120px/0.92 var(--font-display); letter-spacing: -4px; color: var(--forest); }
+  .tag { position: absolute; left: 44px; bottom: 40px; margin: 0; max-width: 400px; font: 400 14px/20px var(--font-body); color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="cover">
+  <svg viewBox="0 0 960 288" aria-hidden="true">
+    <!--
+      blocks: lime 200x288 slab (brand action), forest 160x168 pill-ended block, sky 120x120, sun 120x80; ink only in the sold-out pill.
+      arrangement: one tall lime slab bleeding top and bottom with satellites stacked to its right, all right of x=480.
+      pattern: pills from radius-pill. Velio's identity is the spots badge, a pill that counts down; a row of pills shortening left to right reads as spots going.
+      scales: steps space-4 (16), space-6 (24), space-10 (40); radius-pill on every pill, radius-hero (22) on blocks.
+    -->
+    <rect class="lime" x="520" y="-22" width="200" height="332" rx="22"/>
+    <rect class="forest" x="736" y="24" width="200" height="120" rx="60"/>
+    <rect class="sky" x="736" y="160" width="96" height="104" rx="22"/>
+    <rect class="sun" x="848" y="160" width="88" height="104" rx="22"/>
+    <rect class="surface" x="544" y="40" width="152" height="40" rx="20"/>
+    <rect class="surface" x="544" y="96" width="120" height="40" rx="20"/>
+    <rect class="surface" x="544" y="152" width="88" height="40" rx="20"/>
+    <rect class="forest" x="544" y="208" width="56" height="40" rx="20"/>
+    <rect class="ink" x="616" y="208" width="80" height="40" rx="20"/>
+    <circle class="lime" cx="776" cy="84" r="16"/>
+  </svg>
+  <h1 class="name">Velio</h1>
+  <p class="tag">Group bookings that fill themselves: live spots, one tap to claim.</p>
+</div>
+</body>
+</html>

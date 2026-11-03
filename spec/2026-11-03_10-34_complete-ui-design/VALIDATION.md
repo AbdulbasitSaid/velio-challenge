@@ -61,15 +61,15 @@ Stand-in fonts; representative map imagery instead of live Google Maps; no real 
 | Copy audit | 2026-11-03 | Listed every string not in the UX copy deck in PLANNING §5.5 as screens were built | Done: batches 1–2 approved; batches 3–5 strings await approval | FR-008, AC-004 |
 | Overflow and clipping audit | 2026-11-03 | Local harness: each artboard's template rendered with the real `bundle.js` and `bundle.css` in headless Chrome, every Tweaks state, at frame width (and 390px for desktop pages); flags horizontal overflow, elements outside the frame, and content taller than the frame | First run: 22 of 41 artboards failed (6 causes, see PLANNING change log). After fixes: 41 of 41 pass | NFR-002 (partial), FR-004 |
 | Responsive check (UI-D5) | 2026-11-03 | Same harness, extended for embedded screens (`dc-import`), forced widths and text scaling. Web fluid pages (21) at 360, 390, 768, 1024, 1280px; fixed-width phone web screens (11) squeezed to 360px; Flutter (9) at 360px and at 390px with text ×2 (avatar initials exempt by rule); admin at 768, 1024, 1440px | Web: 105/105 and 11/11 pass. Admin: 3/3 pass. Flutter 360px: 9/9 pass. Flutter 200% text: first run 5/9 failed (avatar initials, claim summary row); after the fixes 9/9 pass | FR-013, FR-014, FR-015, FR-016 |
+| Owner approval | 2026-11-03 | Owner reviewed the canvas and closed Phase 0 | Pass | AC-005 |
+| Source copy | 2026-11-03 | Copied canvas (42 artboards, index, design-system copy) and design-system source into `prototype/` | Pass | FR-010 |
 | Archived canvas | 2026-11-03 | Retitled the first prototype "(archived)" and added a note linking both new artifacts | Pass | FR-012 |
 
 **Checks not run:**
 - **Visual review of the live canvas:** the Chrome extension was not connected, so the live canvas was not opened. The local harness approximates the canvas runtime; small differences are possible.
-- **Click-through of the five flows (AC-002):** links are wired, but not exercised by me.
+- **Click-through of the five flows (AC-002):** links are wired; not exercised by me (covered by the owner's review).
 - **Touch-target measurement (NFR-002):** components use the 44px `touch-min` token, but rendered sizes were not measured.
-- **Source copy into `prototype/` (FR-010):** waits for final approval.
-- **Owner approval (AC-005):** pending.
 
 **Known deviations:** listed in the PLANNING change log (B5 folded into B1, X2/X3 via components, scope removals of drafts and duplicate, guest search on phone attendance for review).
 
-**Final validation status:** Not run (pending the owner's review and approval).
+**Final validation status:** Passed with exceptions. Exceptions: layout checks used a local approximation of the canvas runtime and a simulated text scale; touch targets were not measured; flows were not clicked through by me. All are recorded above.

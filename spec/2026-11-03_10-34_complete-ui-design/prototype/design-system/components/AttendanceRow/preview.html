@@ -1,0 +1,12 @@
+<!-- @dsCard group="Lists" height=220 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>AttendanceRow</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var V = window.Velio, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'vl-col'},h('div',{className:'vl-list'},h(V.AttendanceRow,{name:'Zainab Okafor',bookingRef:'VLO-48213',time:'Booked 2 min ago',source:'vouch',sourceLabel:'Via Tunde',isNew:true}),h(V.AttendanceRow,{name:'Kofi Mensah',bookingRef:'VLO-9KQ2D',time:'Booked yesterday',source:'public',sourceLabel:'Public link'}),h(V.AttendanceRow,{name:'Tunde Adeyemi',bookingRef:'VLO-3HX7M',source:'direct',mode:'after',mark:'attended'}),h(V.AttendanceRow,{name:'Imani Kariuki',bookingRef:'VLO-7RT2P',source:'vouch',sourceLabel:'Via Tunde',mode:'after',mark:'no_show'}))));
+</script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>My plans (desktop)</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/velio/tokens.css">
+<link rel="stylesheet" href="ds/velio/components/bundle.css">
+<script src="ds/velio/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&amp;family=Sora:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#173600}a:hover{color:#0a0a0a}
+</style>
+</helmet>
+<div style="min-height: 1000px; box-sizing: border-box; background: var(--cream); color: var(--ink); font-family: var(--font-body)">
+<x-import component-from-global-scope="Velio.AppHeader" role="booker" current="My plans" user="Tunde Adeyemi"></x-import>
+
+<main style="max-width: 1120px; margin: 0 auto; padding: 32px 40px 64px; display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap">
+<h1 class="title" style="margin: 0; font-size: 36px; line-height: 42px">My plans</h1>
+<x-import component-from-global-scope="Velio.Segmented" label="Show" value="{{tab}}" options="{{tabs}}"></x-import>
+</div>
+
+<sc-if value="{{upcoming}}" hint-placeholder-val="{{ true }}">
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); gap: 16px">
+<x-import component-from-global-scope="Velio.PlanCard" scene="lake" title="Sunset Kayaking" date="Sat 14 Dec, 17:30" place="Lake Naivasha" members="{{m1}}" member-total="{{four}}" code="VLO-3HX7M" href="B4-Desktop.dc.html"></x-import>
+<x-import component-from-global-scope="Velio.PlanCard" scene="savanna" title="Nairobi National Park at dawn" date="Sun 15 Dec, 06:00" place="Nairobi" members="{{m2}}" member-total="{{two}}" code="VLO-7RT2P"></x-import>
+<x-import component-from-global-scope="Velio.PlanCard" scene="coast" title="Zanzibar sunrise dhow" date="Sat 4 Jan, 05:30" place="Stone Town" members="{{m3}}" member-total="{{three}}" code="VLO-Q2WD8"></x-import>
+<x-import component-from-global-scope="Velio.PlanCard" scene="city" title="Medina food walk" date="Fri 10 Jan, 19:00" place="Marrakech" members="{{m4}}" removed="{{yes}}"></x-import>
+</div>
+</sc-if>
+
+<sc-if value="{{past}}" hint-placeholder-val="{{ false }}">
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); gap: 16px">
+<x-import component-from-global-scope="Velio.PlanCard" scene="coast" title="Lamu dhow sail" date="Sun 3 Nov" place="Lamu" members="{{m2}}" past="{{yes}}"></x-import>
+<x-import component-from-global-scope="Velio.PlanCard" scene="savanna" title="Hell's Gate cycle" date="Sat 19 Oct" place="Naivasha" members="{{m1}}" past="{{yes}}" attended="{{no}}"></x-import>
+</div>
+</sc-if>
+
+<sc-if value="{{empty}}" hint-placeholder-val="{{ false }}">
+<div style="max-width: 480px; margin: 40px auto; display: flex; flex-direction: column; gap: 16px">
+<x-import component-from-global-scope="Velio.EmptyState" icon="ticket" title="No plans yet" body="When you book or claim a spot, your plan shows up here."></x-import>
+<a class="vl-btn vl-btn-secondary" href="#" style="align-self: center">Browse communities</a>
+</div>
+</sc-if>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"state":{"editor":"enum","options":["upcoming","past","empty"],"default":"upcoming"},"$preview":{"width":1280,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.props.state ?? 'upcoming';
+    return {
+      yes: true, no: false, two: 2, three: 3, four: 4,
+      tab: s === 'past' ? 'past' : 'upcoming',
+      tabs: [{ value: 'upcoming', label: 'Upcoming' }, { value: 'past', label: 'Past' }],
+      upcoming: s === 'upcoming', past: s === 'past', empty: s === 'empty',
+      m1: ['Tunde A.', 'Zainab O.', 'Imani K.'],
+      m2: ['Tunde A.', 'Omar M.'],
+      m3: ['Tunde A.', 'Kofi M.', 'Lerato N.'],
+      m4: ['Tunde A.']
+    };
+  }
+}
+</script>
+</body>
+</html>

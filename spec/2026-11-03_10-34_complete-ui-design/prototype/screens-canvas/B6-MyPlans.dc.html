@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>My plans</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/velio/tokens.css">
+<link rel="stylesheet" href="ds/velio/components/bundle.css">
+<script src="ds/velio/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&amp;family=Sora:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#173600}a:hover{color:#0a0a0a}
+</style>
+</helmet>
+<div style="width: 390px; min-height: 1120px; box-sizing: border-box; background: var(--cream); color: var(--ink); font-family: var(--font-body); display: flex; flex-direction: column">
+<header style="display: flex; align-items: center; justify-content: space-between; padding: 14px 20px">
+<a class="vl-wordmark" href="#">velio</a>
+<x-import component-from-global-scope="Velio.Avatar" name="Zainab Okafor" size="{{size}}"></x-import>
+</header>
+
+<main style="display: flex; flex-direction: column; gap: 20px; padding: 4px 20px 32px">
+<h1 class="title" style="margin: 0">My plans</h1>
+<x-import component-from-global-scope="Velio.Segmented" label="Show" value="{{tab}}" options="{{tabs}}"></x-import>
+
+<sc-if value="{{loading}}" hint-placeholder-val="{{ false }}">
+<div class="vl-list">
+<x-import component-from-global-scope="Velio.Skeleton" variant="row"></x-import>
+<x-import component-from-global-scope="Velio.Skeleton" variant="row"></x-import>
+<x-import component-from-global-scope="Velio.Skeleton" variant="row"></x-import>
+</div>
+</sc-if>
+
+<sc-if value="{{upcoming}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<x-import component-from-global-scope="Velio.PlanCard" scene="lake" title="Sunset Kayaking" date="Sat 14 Dec, 17:30" place="Lake Naivasha" members="{{m1}}" member-total="{{four}}" code="VLO-48213" href="B4-Plan.dc.html"></x-import>
+<x-import component-from-global-scope="Velio.PlanCard" scene="savanna" title="Nairobi National Park at dawn" date="Sun 15 Dec, 06:00" place="Nairobi" members="{{m2}}" member-total="{{two}}" code="VLO-7RT2P"></x-import>
+<x-import component-from-global-scope="Velio.PlanCard" scene="city" title="Medina food walk" date="Fri 3 Jan, 19:00" place="Marrakech" members="{{m3}}" removed="{{yes}}"></x-import>
+</div>
+<p style="margin: 0; font-size: 13px; line-height: 18px; color: var(--muted)">Plans for Zainab Okafor (+254 712 •••). On another phone, continue with the same number to see these.</p>
+</sc-if>
+
+<sc-if value="{{past}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<x-import component-from-global-scope="Velio.PlanCard" scene="coast" title="Zanzibar sunrise dhow" date="Sun 3 Nov" place="Stone Town" members="{{m2}}" past="{{yes}}"></x-import>
+<x-import component-from-global-scope="Velio.PlanCard" scene="savanna" title="Hell's Gate cycle" date="Sat 19 Oct" place="Naivasha" members="{{m1}}" past="{{yes}}" attended="{{no}}"></x-import>
+</div>
+</sc-if>
+
+<sc-if value="{{empty}}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="Velio.EmptyState" icon="ticket" title="No plans yet" body="When you book or claim a spot, your plan shows up here."></x-import>
+<a class="vl-btn vl-btn-secondary vl-btn-block" href="#">Browse communities</a>
+</sc-if>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"state":{"editor":"enum","options":["upcoming","past","empty","loading"],"default":"upcoming"},"$preview":{"width":390,"height":1120}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.props.state ?? 'upcoming';
+    return {
+      yes: true, no: false, size: 36, two: 2, four: 4,
+      tab: s === 'past' ? 'past' : 'upcoming',
+      tabs: [{ value: 'upcoming', label: 'Upcoming' }, { value: 'past', label: 'Past' }],
+      loading: s === 'loading',
+      upcoming: s === 'upcoming',
+      past: s === 'past',
+      empty: s === 'empty',
+      m1: ['Tunde A.', 'Zainab O.', 'Imani K.'],
+      m2: ['Zainab O.', 'Omar M.'],
+      m3: ['Zainab O.']
+    };
+  }
+}
+</script>
+</body>
+</html>

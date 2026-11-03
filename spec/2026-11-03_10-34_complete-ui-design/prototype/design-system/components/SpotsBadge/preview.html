@@ -1,0 +1,12 @@
+<!-- @dsCard group="Status" height=64 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>SpotsBadge</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var V = window.Velio, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'vl-row'},h(V.SpotsBadge,{spots:6}),h(V.SpotsBadge,{spots:5,state:'changed'}),h(V.SpotsBadge,{spots:2}),h(V.SpotsBadge,{spots:1}),h(V.SpotsBadge,{spots:0}),h(V.SpotsBadge,{spots:4,state:'stale'})));
+</script>
+</body>
+</html>

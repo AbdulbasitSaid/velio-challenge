@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Plan: Sunset Kayaking (desktop)</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/velio/tokens.css">
+<link rel="stylesheet" href="ds/velio/components/bundle.css">
+<script src="ds/velio/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&amp;family=Sora:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#173600}a:hover{color:#0a0a0a}
+</style>
+</helmet>
+<div style="min-height: 1240px; box-sizing: border-box; background: var(--cream); color: var(--ink); font-family: var(--font-body)">
+<x-import component-from-global-scope="Velio.AppHeader" role="booker" current="My plans" user="Tunde Adeyemi"></x-import>
+
+<div style="max-width: 1120px; margin: 0 auto; padding: 24px 40px 64px; display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 15px; color: var(--forest); font-weight: 700">You're going to</span>
+<h1 class="title" style="margin: 0; font-size: 36px; line-height: 42px">Sunset Kayaking</h1>
+<span style="font-size: 15px; color: var(--muted)">Sat 14 Dec, 17:30 Nairobi time · KES 3,500 · pay the host on the day</span>
+</div>
+<div style="display: flex; gap: 12px; align-items: center">
+<x-import component-from-global-scope="Velio.LivePill" status="live"></x-import>
+<x-import component-from-global-scope="Velio.SpotsBadge" spots="{{five}}"></x-import>
+</div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start">
+<main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 28px">
+<section style="display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; justify-content: space-between; align-items: baseline">
+<h2 class="heading" style="margin: 0">Going</h2>
+<span style="font-size: 13px; color: var(--muted)">4 people</span>
+</div>
+<div class="vl-list">
+<x-import component-from-global-scope="Velio.MemberRow" name="Tunde Adeyemi" you="{{yes}}" meta="Booked Mon 2 Dec" source="direct"></x-import>
+<x-import component-from-global-scope="Velio.MemberRow" name="Zainab Okafor" meta="Claimed Tue 3 Dec" source="vouch" source-label="Via Tunde"></x-import>
+<x-import component-from-global-scope="Velio.MemberRow" name="Imani Kariuki" meta="Claimed Tue 3 Dec" source="vouch" source-label="Via Tunde"></x-import>
+<x-import component-from-global-scope="Velio.MemberRow" name="Kofi Mensah" meta="Claimed Wed 4 Dec" source="public" source-label="Public link"></x-import>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap">
+<h2 class="heading" style="margin: 0">Invites</h2>
+<div style="display: flex; gap: 8px">
+<a class="vl-btn vl-btn-primary vl-btn-sm" href="B3-Vouch.dc.html">Vouch for a friend</a>
+<a class="vl-btn vl-btn-secondary vl-btn-sm" href="B3b-ShareLink.dc.html">Share link</a>
+</div>
+</div>
+<div class="vl-list">
+<x-import component-from-global-scope="Velio.MemberRow" name="Invite for Wanjiru" pending="{{yes}}" meta="Vouch from Zainab · Wed 4 Dec" status="opened"></x-import>
+<x-import component-from-global-scope="Velio.MemberRow" name="Invite for Lerato" pending="{{yes}}" meta="Vouch from you · Tue 3 Dec" status="created"></x-import>
+<x-import component-from-global-scope="Velio.MemberRow" name="Invite for Zainab" pending="{{yes}}" meta="Vouch from you · Mon 2 Dec" status="claimed"></x-import>
+<x-import component-from-global-scope="Velio.MemberRow" name="Public link" pending="{{yes}}" meta="From you · 1 claim" status="claimed"></x-import>
+</div>
+<p style="margin: 0; font-size: 13px; line-height: 18px; color: var(--muted)">"Created" means the link exists; we can't see whether it was sent.</p>
+</section>
+</main>
+
+<aside style="flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; flex-direction: column; gap: 12px; padding: 20px; background: var(--surface); border-radius: 22px">
+<x-import component-from-global-scope="Velio.BookingRef" code="VLO-3HX7M"></x-import>
+<span style="font-size: 13px; line-height: 18px; color: var(--muted)">Show this to Amara when you arrive.</span>
+</div>
+<div style="padding: 20px; background: var(--surface); border-radius: 22px">
+<x-import component-from-global-scope="Velio.LocationBlock" venue="Lake Naivasha Boat Club" address="Moi South Lake Rd, Naivasha, Kenya" meeting-point="Meet at the blue gate by the jetty, 15 minutes before" copy="{{yes}}"></x-import>
+</div>
+</aside>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1240}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { yes: true, five: 5 };
+  }
+}
+</script>
+</body>
+</html>

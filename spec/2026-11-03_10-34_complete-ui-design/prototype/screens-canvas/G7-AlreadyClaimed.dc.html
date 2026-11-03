@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Invite already claimed</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/velio/tokens.css">
+<link rel="stylesheet" href="ds/velio/components/bundle.css">
+<script src="ds/velio/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&amp;family=Sora:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#173600}a:hover{color:#0a0a0a}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 844px; box-sizing: border-box; background: var(--cream); color: var(--ink); font-family: var(--font-body); display: flex; flex-direction: column">
+<header style="display: flex; align-items: center; padding: 14px 20px">
+<a class="vl-wordmark" href="#">velio</a>
+</header>
+
+<sc-if value="{{own}}" hint-placeholder-val="{{ true }}">
+<main style="width: 100%; max-width: 480px; margin: 0 auto; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px; padding: 4px 20px 32px">
+<h1 class="title" style="margin: 0">You're already going, Zainab.</h1>
+<p style="margin: 0; font-size: 15px; line-height: 22px; color: var(--muted)">You claimed this invite on this phone on Tue 3 Dec. Here's your booking.</p>
+<x-import component-from-global-scope="Velio.PlanCard" scene="lake" title="Sunset Kayaking" date="Sat 14 Dec, 17:30" place="Lake Naivasha" members="{{members}}" member-total="{{four}}" code="VLO-48213" href="B4-Plan.dc.html"></x-import>
+<a class="vl-btn vl-btn-primary vl-btn-block" href="B4-Plan.dc.html">Open the plan</a>
+</main>
+</sc-if>
+
+<sc-if value="{{other}}" hint-placeholder-val="{{ false }}">
+<main style="width: 100%; max-width: 480px; margin: 0 auto; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px; padding: 4px 20px 32px">
+<span style="display: inline-flex; width: 56px; height: 56px; border-radius: 50%; background: var(--surface); color: var(--forest); align-items: center; justify-content: center"><svg class="vl-icon" viewBox="0 0 24 24" aria-hidden="true" style="width: 28px; height: 28px"><path d="M3.5 7.5h17v3a2 2 0 0 0 0 4v3h-17v-3a2 2 0 0 0 0-4zM14.5 7.5v10"></path></svg></span>
+<h1 class="title" style="margin: 0">This invite has already been claimed.</h1>
+<p style="margin: 0; font-size: 15px; line-height: 22px; color: var(--muted)">A vouch invite is for one person. If it was meant for you, ask Tunde for a new one. If you claimed it on another phone, continue with the same phone number or email to see your booking.</p>
+<x-import component-from-global-scope="Velio.NextSteps" items="{{steps}}"></x-import>
+</main>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"variant":{"editor":"enum","options":["claimed on this device","claimed elsewhere"],"default":"claimed on this device"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const own = (this.props.variant ?? 'claimed on this device') === 'claimed on this device';
+    return {
+      own: own,
+      other: !own,
+      four: 4,
+      members: ['Tunde A.', 'Zainab O.', 'Imani K.'],
+      steps: [
+        { icon: 'share', title: 'Ask Tunde for a new invite', meta: 'Opens your share sheet' },
+        { icon: 'phone', title: 'Continue with your phone or email', meta: 'See bookings from another device' },
+        { scene: 'lake', title: 'Sunset Kayaking', meta: 'Sat 14 Dec · 5 spots left' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+<!-- @dsCard group="Navigation" height=64 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Segmented</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var V = window.Velio, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'vl-row'},h(V.Segmented,{label:'Role',value:'Booker',options:['Booker','Host']}),h(V.Segmented,{label:'View',value:'map',options:[{value:'list',label:'List',icon:'list'},{value:'map',label:'Map',icon:'map'}]})));
+</script>
+</body>
+</html>

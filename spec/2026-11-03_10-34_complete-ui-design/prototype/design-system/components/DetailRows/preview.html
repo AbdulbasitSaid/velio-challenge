@@ -1,0 +1,12 @@
+<!-- @dsCard group="Cards" height=170 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>DetailRows</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var V = window.Velio, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'vl-col',style:{maxWidth:380}},h(V.DetailRows,{rows:[{icon:'calendar',value:'Sat 14 Dec, 17:30',sub:'Nairobi time'},{icon:'pin',value:'Lake Naivasha Boat Club',sub:'Moi South Lake Rd, Naivasha'},{icon:'price',value:'KES 3,500 · pay the host on the day'},{icon:'host',value:'Hosted by Amara O.'}]})));
+</script>
+</body>
+</html>

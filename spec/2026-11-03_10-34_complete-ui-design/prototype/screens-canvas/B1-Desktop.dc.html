@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Activity: Sunset Kayaking (desktop)</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/velio/tokens.css">
+<link rel="stylesheet" href="ds/velio/components/bundle.css">
+<script src="ds/velio/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&amp;family=Sora:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#173600}a:hover{color:#0a0a0a}
+</style>
+</helmet>
+<div style="min-height: 1420px; box-sizing: border-box; background: var(--cream); color: var(--ink); font-family: var(--font-body)">
+<x-import component-from-global-scope="Velio.AppHeader" role="booker" current="Communities" user="Tunde Adeyemi"></x-import>
+
+<div style="max-width: 1120px; margin: 0 auto; padding: 24px 40px 64px; display: flex; flex-direction: column; gap: 20px">
+<nav aria-label="Breadcrumb" style="font-size: 14px; color: var(--muted)"><a href="#" style="font-weight: 700">Explore Kenya</a> / Sunset Kayaking</nav>
+
+<div style="display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-start">
+<main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 24px">
+<div style="position: relative; border-radius: 22px; overflow: hidden; aspect-ratio: 16 / 9; background: var(--forest)">
+<x-import component-from-global-scope="Velio.PhotoArt" scene="lake" alt="Kayaks on Lake Naivasha at sunset" style="position: absolute; inset: 0; width: 100%; height: 100%"></x-import>
+</div>
+<h1 class="display" style="margin: 0; font-size: 48px; line-height: 52px">Sunset Kayaking</h1>
+<section style="display: flex; flex-direction: column; gap: 8px; max-width: 640px">
+<h2 class="heading" style="margin: 0">About</h2>
+<p style="margin: 0; font-size: 16px; line-height: 24px">Two hours on Lake Naivasha as the sun drops. Stable sit-on-top kayaks, a guide at the front and back, and hippos kept at a respectful distance. No experience needed. Life jackets and a dry bag are provided.</p>
+</section>
+<div style="max-width: 640px">
+<x-import component-from-global-scope="Velio.LocationBlock" venue="Lake Naivasha Boat Club" address="Moi South Lake Rd, Naivasha, Kenya" meeting-point="Meet at the blue gate by the jetty, 15 minutes before" map-state="{{mapState}}" tap-hint="{{tapHint}}" copy="{{yes}}"></x-import>
+</div>
+</main>
+
+<aside style="flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 16px; padding: 24px; background: var(--surface); border-radius: 22px">
+<x-import component-from-global-scope="Velio.SpotsBadge" spots="{{spots}}"></x-import>
+<x-import component-from-global-scope="Velio.DetailRows" rows="{{rows}}"></x-import>
+<x-import component-from-global-scope="Velio.AvatarStack" people="{{going}}" total="{{eight}}"></x-import>
+
+<sc-if value="{{midCheckout}}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="Velio.Banner" tone="error" title="Someone just took the last spot.">We didn't book or charge you.</x-import>
+</sc-if>
+<sc-if value="{{already}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; gap: 10px; align-items: center; padding: 12px 14px; border-radius: 14px; background: var(--lime); color: var(--forest)">
+<strong style="flex: 1">You're already going</strong>
+<a href="B4-Desktop.dc.html" style="font-weight: 700">Open plan</a>
+</div>
+</sc-if>
+
+<sc-if value="{{canBook}}" hint-placeholder-val="{{ true }}">
+<a class="vl-btn vl-btn-primary vl-btn-block" href="B2-Booked.dc.html">Book a spot</a>
+</sc-if>
+<sc-if value="{{booking}}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="Velio.Button" block="{{yes}}" loading="{{yes}}">Booking…</x-import>
+</sc-if>
+<sc-if value="{{soldOut}}" hint-placeholder-val="{{ false }}">
+<button class="vl-btn vl-btn-primary vl-btn-block" type="button" disabled>Sold out</button>
+<x-import component-from-global-scope="Velio.NextSteps" items="{{next}}"></x-import>
+</sc-if>
+<p style="margin: 0; text-align: center; font-size: 13px; line-height: 18px; color: var(--muted)">Pay the host on the day. Velio doesn't take payment.</p>
+<hr style="border: 0; border-top: 1px solid var(--line); margin: 0">
+<div style="display: flex; align-items: center; gap: 12px">
+<x-import component-from-global-scope="Velio.Avatar" name="Amara O." size="{{s44}}"></x-import>
+<div style="display: flex; flex-direction: column; flex: 1">
+<strong style="font-size: 15px">Hosted by Amara O.</strong>
+<span style="font-size: 13px; color: var(--muted)">On Velio since March 2024 · 3 upcoming</span>
+</div>
+<a href="#" style="font-weight: 700; font-size: 14px">Profile</a>
+</div>
+</aside>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"state":{"editor":"enum","options":["available","booking (optimistic)","sold out mid-checkout","sold out","already booked"],"default":"available"},"map":{"editor":"enum","options":["static image","interactive (after tap)"],"default":"static image"},"$preview":{"width":1280,"height":1420}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.props.state ?? 'available';
+    const interactive = (this.props.map ?? 'static image') !== 'static image';
+    const soldOut = s === 'sold out' || s === 'sold out mid-checkout';
+    return {
+      yes: true, s44: 44, eight: 8,
+      spots: soldOut ? 0 : 6,
+      midCheckout: s === 'sold out mid-checkout',
+      already: s === 'already booked',
+      canBook: s === 'available',
+      booking: s === 'booking (optimistic)',
+      soldOut: soldOut,
+      mapState: interactive ? 'interactive' : 'static',
+      tapHint: !interactive,
+      rows: [
+        { icon: 'calendar', value: 'Sat 14 Dec, 17:30', sub: 'Nairobi time · 2 hours' },
+        { icon: 'pin', value: 'Lake Naivasha Boat Club', sub: 'Naivasha, Kenya' },
+        { icon: 'price', value: 'KES 3,500 · pay the host on the day' }
+      ],
+      going: ['Imani K.', 'Omar M.', 'Wanjiru N.'],
+      next: [
+        { scene: 'lake', title: "Amara's other dates", meta: 'Sun 15 Dec · 4 left' },
+        { scene: 'savanna', title: 'More in Explore Kenya', meta: 'Nairobi National Park at dawn · 7 left' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

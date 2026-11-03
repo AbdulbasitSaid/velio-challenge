@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Plan (app)</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/velio/tokens.css">
+<link rel="stylesheet" href="ds/velio/components/bundle.css">
+<script src="ds/velio/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&amp;family=Sora:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#173600}a:hover{color:#0a0a0a}
+</style>
+</helmet>
+<div style="width: 390px; min-height: 1300px; box-sizing: border-box; background: var(--cream); color: var(--ink); font-family: var(--font-body); display: flex; flex-direction: column">
+<div class="vl-appbar">
+<a href="F-B6-MyPlans.dc.html" class="vl-iconbtn" aria-label="Back to My plans"><svg class="vl-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5L8 12l6.5 6.5"></path></svg></a>
+<span class="vl-appbar-title">Plan</span>
+<x-import component-from-global-scope="Velio.LivePill" status="live"></x-import>
+</div>
+
+<main style="display: flex; flex-direction: column; gap: 20px; padding: 8px 20px 32px">
+<sc-if value="{{removed}}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="Velio.Banner" tone="error" title="The host removed this booking.">Your spot was released. You can still book another date.</x-import>
+</sc-if>
+
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 15px; color: var(--forest); font-weight: 700">{{lead}}</span>
+<h1 class="title" style="margin: 0">Sunset Kayaking</h1>
+<span style="font-size: 15px; color: var(--muted)">Sat 14 Dec, 17:30 Nairobi time</span>
+</div>
+
+<sc-if value="{{active}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap">
+<x-import component-from-global-scope="Velio.BookingRef" code="VLO-48213"></x-import>
+<x-import component-from-global-scope="Velio.SpotsBadge" spots="{{five}}"></x-import>
+</div>
+
+<x-import component-from-global-scope="Velio.LocationBlock" venue="Lake Naivasha Boat Club" address="Moi South Lake Rd, Naivasha, Kenya" meeting-point="Meet at the blue gate by the jetty, 15 minutes before" map-state="interactive" ratio="16 / 10"></x-import>
+
+<section style="display: flex; flex-direction: column; gap: 12px">
+<h2 class="heading" style="margin: 0">Going · 4</h2>
+<div class="vl-list">
+<x-import component-from-global-scope="Velio.MemberRow" name="Tunde Adeyemi" meta="Booked Mon 2 Dec" source="direct"></x-import>
+<x-import component-from-global-scope="Velio.MemberRow" name="Zainab Okafor" you="{{yes}}" meta="Claimed Tue 3 Dec" source="vouch" source-label="Via Tunde"></x-import>
+<x-import component-from-global-scope="Velio.MemberRow" name="Imani Kariuki" meta="Claimed Tue 3 Dec" source="vouch" source-label="Via Tunde"></x-import>
+<x-import component-from-global-scope="Velio.MemberRow" name="Kofi Mensah" meta="Claimed Wed 4 Dec" source="public" source-label="Public link"></x-import>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 12px">
+<h2 class="heading" style="margin: 0">Your invites</h2>
+<div class="vl-list">
+<x-import component-from-global-scope="Velio.MemberRow" name="Invite for Wanjiru" pending="{{yes}}" meta="Vouch · code H4XM9R" status="opened"></x-import>
+</div>
+<p style="margin: 0; font-size: 13px; line-height: 18px; color: var(--muted)">"Created" means the link exists; we can't see whether it was sent.</p>
+<x-import component-from-global-scope="Velio.Button" icon="share" block="{{yes}}">Invite a friend</x-import>
+</section>
+</sc-if>
+
+<sc-if value="{{removed}}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="Velio.NextSteps" items="{{dates}}"></x-import>
+</sc-if>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"state":{"editor":"enum","options":["going","removed by host"],"default":"going"},"$preview":{"width":390,"height":1300}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const removed = (this.props.state ?? 'going') === 'removed by host';
+    return {
+      yes: true, five: 5,
+      removed: removed, active: !removed,
+      lead: removed ? 'Your plan' : "You're going to",
+      dates: [
+        { scene: 'lake', title: 'Sunset Kayaking · Sat 21 Dec', meta: '17:30 Nairobi time · 9 spots left' },
+        { scene: 'savanna', title: 'More in Explore Kenya', meta: '6 upcoming activities with spots' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Claim (app)</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/velio/tokens.css">
+<link rel="stylesheet" href="ds/velio/components/bundle.css">
+<script src="ds/velio/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&amp;family=Sora:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#173600}a:hover{color:#0a0a0a}
+</style>
+</helmet>
+<div style="width: 390px; min-height: 900px; box-sizing: border-box; background: var(--cream); color: var(--ink); font-family: var(--font-body); display: flex; flex-direction: column">
+<div class="vl-appbar">
+<a href="F-G1-Invite.dc.html" class="vl-iconbtn" aria-label="Back"><svg class="vl-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5L8 12l6.5 6.5"></path></svg></a>
+<span class="vl-appbar-title">Claim your spot</span>
+<span class="vl-chip" style="letter-spacing: 1px">K7PQ2N</span>
+</div>
+
+<main style="flex: 1; display: flex; flex-direction: column; gap: 20px; padding: 8px 20px 32px">
+<div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 12px; background: var(--surface); border-radius: 16px">
+<div style="width: 56px; height: 56px; border-radius: 10px; overflow: hidden; flex: none">
+<x-import component-from-global-scope="Velio.PhotoArt" scene="lake" alt="" style="display: block; width: 56px; height: 56px"></x-import>
+</div>
+<div style="flex: 1 1 160px; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<strong style="font-size: 16px">Sunset Kayaking</strong>
+<span style="font-size: 13px; color: var(--muted)">Sat 14 Dec, 17:30 Nairobi time</span>
+</div>
+<x-import component-from-global-scope="Velio.SpotsBadge" spots="{{six}}"></x-import>
+</div>
+
+<sc-if value="{{error}}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="Velio.Banner" tone="error" title="We couldn't confirm your spot. Nothing was booked.">Try again. You won't be booked twice.</x-import>
+</sc-if>
+
+<sc-if value="{{returning}}" hint-placeholder-val="{{ false }}">
+<section style="display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: var(--surface); border-radius: 16px">
+<x-import component-from-global-scope="Velio.Avatar" name="Zainab Okafor" size="{{size}}"></x-import>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+<strong>Claiming as Zainab Okafor</strong>
+<span style="font-size: 13px; color: var(--muted)">+254 712 ••• · saved on this phone</span>
+</div>
+<a href="#" style="font-weight: 700; font-size: 14px">Not you?</a>
+</section>
+</sc-if>
+
+<sc-if value="{{form}}" hint-placeholder-val="{{ true }}">
+<form style="display: flex; flex-direction: column; gap: 16px">
+<x-import component-from-global-scope="Velio.TextField" id="fc-name" label="Your name" value="Zainab Okafor" help="The host and the people in your group see this."></x-import>
+<x-import component-from-global-scope="Velio.TextField" id="fc-contact" label="Phone or email" value="+254 712 345 678" type="tel" help="So you can find this booking again. We don't message you."></x-import>
+</form>
+</sc-if>
+
+<x-import component-from-global-scope="Velio.Banner" title="What the host sees">Amara (the host) will see your name and that Tunde invited you. Your phone or email stays private.</x-import>
+
+<div style="margin-top: auto; display: flex; flex-direction: column; gap: 10px">
+<sc-if value="{{submitting}}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="Velio.Button" block="{{yes}}" loading="{{yes}}">Confirming…</x-import>
+</sc-if>
+<sc-if value="{{idle}}" hint-placeholder-val="{{ true }}">
+<a class="vl-btn vl-btn-primary vl-btn-block" href="F-G4-YoureIn.dc.html">{{cta}}</a>
+</sc-if>
+<p style="margin: 0; text-align: center; font-size: 13px; line-height: 18px; color: var(--muted)">Spots aren't held. Claim while they last.</p>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"state":{"editor":"enum","options":["new guest","returning on this phone","submitting","server error"],"default":"new guest"},"$preview":{"width":390,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.props.state ?? 'new guest';
+    return {
+      yes: true, six: 6, size: 44,
+      returning: s === 'returning on this phone',
+      form: s !== 'returning on this phone',
+      error: s === 'server error',
+      submitting: s === 'submitting',
+      idle: s !== 'submitting',
+      cta: s === 'server error' ? 'Try again' : 'Confirm my spot'
+    };
+  }
+}
+</script>
+</body>
+</html>

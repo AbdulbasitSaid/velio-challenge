@@ -1,0 +1,12 @@
+<!-- @dsCard group="Status" height=96 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Chip</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var V = window.Velio, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'vl-col'},h('div',{className:'vl-row',style:{padding:0}},h(V.Chip,null,'Created'),h(V.Chip,{tone:'sky'},'Opened'),h(V.Chip,{tone:'lime'},'Claimed')),h('div',{className:'vl-row',style:{padding:0}},h(V.Chip,null,'Direct'),h(V.Chip,{tone:'lime'},'Via Tunde'),h(V.Chip,{tone:'sky'},'Public link'),h(V.Chip,{tone:'outline'},'Explore Kenya'),h(V.Chip,{tone:'forest'},'Host'),h(V.Chip,{tone:'danger'},'Removed by host'))));
+</script>
+</body>
+</html>

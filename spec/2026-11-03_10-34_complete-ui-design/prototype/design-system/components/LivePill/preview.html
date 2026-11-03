@@ -1,0 +1,12 @@
+<!-- @dsCard group="Status" height=56 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>LivePill</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var V = window.Velio, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'vl-row'},h(V.LivePill,{status:'live'}),h(V.LivePill,{status:'reconnecting'}),h(V.LivePill,{status:'offline',minutes:3})));
+</script>
+</body>
+</html>

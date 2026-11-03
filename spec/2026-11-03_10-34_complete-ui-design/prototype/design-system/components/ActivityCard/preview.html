@@ -1,0 +1,12 @@
+<!-- @dsCard group="Cards" height=560 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>ActivityCard</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var V = window.Velio, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'vl-row',style:{alignItems:'flex-start'}},h('div',{style:{width:340}},h(V.ActivityCard,{scene:'lake',community:'Explore Kenya',spots:6,title:'Sunset Kayaking',date:'Sat 14 Dec, 17:30',zone:'Nairobi time',place:'Lake Naivasha Boat Club',price:'KES 3,500',host:'Amara O.',going:['Tunde A.','Imani K.','Omar M.'],goingTotal:9})),h('div',{style:{width:260}},h(V.ActivityCard,{compact:true,scene:'savanna',spots:2,title:'Nairobi National Park at dawn',date:'Sun 15 Dec',place:'Nairobi'}))));
+</script>
+</body>
+</html>

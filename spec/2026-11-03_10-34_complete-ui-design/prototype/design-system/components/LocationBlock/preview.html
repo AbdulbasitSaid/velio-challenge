@@ -1,0 +1,12 @@
+<!-- @dsCard group="Maps" height=480 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>LocationBlock</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var V = window.Velio, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'vl-row',style:{alignItems:'flex-start'}},h('div',{style:{width:380}},h(V.LocationBlock,{venue:'Lake Naivasha Boat Club',address:'Moi South Lake Rd, Naivasha, Kenya',meetingPoint:'Meet at the blue gate by the jetty',tapHint:true})),h('div',{style:{width:300}},h(V.LocationBlock,{mapState:'failed',venue:'Lake Naivasha Boat Club',address:'Moi South Lake Rd, Naivasha, Kenya',copy:true}))));
+</script>
+</body>
+</html>

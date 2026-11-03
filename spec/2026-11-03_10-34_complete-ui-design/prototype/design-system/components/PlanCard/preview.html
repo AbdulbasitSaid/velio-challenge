@@ -1,0 +1,12 @@
+<!-- @dsCard group="Cards" height=330 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>PlanCard</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var V = window.Velio, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'vl-col',style:{maxWidth:420}},h(V.PlanCard,{scene:'lake',title:'Sunset Kayaking',date:'Sat 14 Dec, 17:30',place:'Lake Naivasha',members:['Tunde A.','Zainab O.','Kofi M.'],memberTotal:4,code:'VLO-48213'}),h(V.PlanCard,{scene:'city',title:'Medina food walk',date:'Fri 3 Jan',place:'Marrakech',members:['Lerato N.'],removed:true}),h(V.PlanCard,{scene:'coast',title:'Zanzibar sunrise dhow',date:'Sun 3 Nov',place:'Stone Town',members:['Tunde A.','Omar M.'],past:true})));
+</script>
+</body>
+</html>

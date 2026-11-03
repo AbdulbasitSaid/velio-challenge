@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Invite outcomes (app)</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/velio/tokens.css">
+<link rel="stylesheet" href="ds/velio/components/bundle.css">
+<script src="ds/velio/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&amp;family=Sora:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#173600}a:hover{color:#0a0a0a}
+</style>
+</helmet>
+<div style="width: 390px; min-height: 980px; box-sizing: border-box; background: var(--cream); color: var(--ink); font-family: var(--font-body); display: flex; flex-direction: column">
+<div class="vl-appbar">
+<a href="F-G8-Code.dc.html" class="vl-iconbtn" aria-label="Back"><svg class="vl-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5L8 12l6.5 6.5"></path></svg></a>
+<span class="vl-appbar-title">Invite</span>
+<span style="width: 44px"></span>
+</div>
+
+<main style="display: flex; flex-direction: column; gap: 20px; padding: 8px 20px 32px">
+<sc-if value="{{soldOut}}" hint-placeholder-val="{{ true }}">
+<div style="position: relative; border-radius: 22px; overflow: hidden; aspect-ratio: 16 / 9; background: var(--forest)">
+<x-import component-from-global-scope="Velio.PhotoArt" scene="lake" alt="Kayaks on Lake Naivasha at sunset" style="position: absolute; inset: 0; width: 100%; height: 100%; opacity: .55"></x-import>
+<div style="position: absolute; left: 12px; bottom: 12px"><x-import component-from-global-scope="Velio.SpotsBadge" spots="{{zero}}"></x-import></div>
+</div>
+</sc-if>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 15px; color: var(--muted)">Sunset Kayaking · Sat 14 Dec</span>
+<h1 class="title" style="margin: 0">{{headline}}</h1>
+<sc-if value="{{hasBody}}" hint-placeholder-val="{{ true }}">
+<p style="margin: 0; font-size: 15px; line-height: 22px; color: var(--muted)">{{body}}</p>
+</sc-if>
+</div>
+
+<sc-if value="{{soldOut}}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="Velio.AvatarStack" people="{{going}}" total="{{fourteen}}"></x-import>
+</sc-if>
+
+<sc-if value="{{own}}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="Velio.PlanCard" scene="lake" title="Sunset Kayaking" date="Sat 14 Dec, 17:30" place="Lake Naivasha" members="{{going}}" member-total="{{four}}" code="VLO-48213" href="F-B4-Plan.dc.html"></x-import>
+<a class="vl-btn vl-btn-primary vl-btn-block" href="F-B4-Plan.dc.html">Open the plan</a>
+</sc-if>
+
+<sc-if value="{{hasSteps}}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="Velio.NextSteps" items="{{steps}}"></x-import>
+</sc-if>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"outcome":{"editor":"enum","options":["sold out","expired invite","activity started","already claimed (this phone)","already claimed (elsewhere)"],"default":"sold out"},"$preview":{"width":390,"height":980}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const o = this.props.outcome ?? 'sold out';
+    const more = [
+      { scene: 'lake', title: "Amara's other dates", meta: 'Sunset Kayaking · Sun 15 Dec · 4 left' },
+      { scene: 'savanna', title: 'More in Explore Kenya', meta: 'Nairobi National Park at dawn · 7 left' }
+    ];
+    const map = {
+      'sold out': { headline: 'This one filled up before you got here.', body: '', steps: [{ icon: 'share', title: 'Tell Tunde', meta: 'Let them know it filled up' }].concat(more) },
+      'expired invite': { headline: 'This invite expired when the activity started.', body: 'Bookings close at the start time.', steps: [{ icon: 'host', title: "See Tunde's profile", meta: 'Tunde A.' }].concat(more) },
+      'activity started': { headline: 'This activity has started.', body: 'Bookings closed at 17:30 Nairobi time. Amara has more coming up.', steps: more },
+      'already claimed (this phone)': { headline: "You're already going, Zainab.", body: 'You claimed this invite on this phone on Tue 3 Dec.', steps: [] },
+      'already claimed (elsewhere)': { headline: 'This invite has already been claimed.', body: 'A vouch invite is for one person. If it was meant for you, ask Tunde for a new one.', steps: [{ icon: 'share', title: 'Ask Tunde for a new invite', meta: 'Opens your share sheet' }, { icon: 'phone', title: 'Continue with your phone or email', meta: 'See bookings from another device' }] }
+    };
+    const v = map[o];
+    return {
+      zero: 0, four: 4, fourteen: 14,
+      going: ['Tunde A.', 'Imani K.', 'Omar M.'],
+      soldOut: o === 'sold out',
+      own: o === 'already claimed (this phone)',
+      headline: v.headline,
+      body: v.body,
+      hasBody: !!v.body,
+      steps: v.steps,
+      hasSteps: v.steps.length > 0
+    };
+  }
+}
+</script>
+</body>
+</html>

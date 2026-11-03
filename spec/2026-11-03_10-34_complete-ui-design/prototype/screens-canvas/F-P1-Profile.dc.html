@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Profile (app)</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/velio/tokens.css">
+<link rel="stylesheet" href="ds/velio/components/bundle.css">
+<script src="ds/velio/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&amp;family=Sora:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#173600}a:hover{color:#0a0a0a}
+</style>
+</helmet>
+<div style="width: 390px; min-height: 1000px; box-sizing: border-box; background: var(--cream); color: var(--ink); font-family: var(--font-body); display: flex; flex-direction: column">
+<div class="vl-appbar">
+<a href="F-Outcomes.dc.html" class="vl-iconbtn" aria-label="Back"><svg class="vl-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5L8 12l6.5 6.5"></path></svg></a>
+<span class="vl-appbar-title">Profile</span>
+<span style="width: 44px"></span>
+</div>
+<main style="display: flex; flex-direction: column; gap: 24px; padding: 12px 20px 32px">
+<section style="display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center">
+<x-import component-from-global-scope="Velio.Avatar" name="{{name}}" size="{{s88}}"></x-import>
+<h1 class="title" style="margin: 0">{{name}}</h1>
+<span style="font-size: 14px; color: var(--muted)">{{since}}</span>
+</section>
+<sc-if value="{{host}}" hint-placeholder-val="{{ true }}">
+<section style="display: flex; flex-direction: column; gap: 14px">
+<h2 class="heading" style="margin: 0">Upcoming with Tunde</h2>
+<x-import component-from-global-scope="Velio.ActivityCard" compact="{{yes}}" scene="city" spots="{{ten}}" title="Karura Forest cycle" date="Sat 21 Dec, 08:00" place="Nairobi"></x-import>
+</section>
+</sc-if>
+<sc-if value="{{guest}}" hint-placeholder-val="{{ false }}">
+<p style="margin: 0; text-align: center; font-size: 15px; color: var(--muted)">Tunde isn't hosting anything right now.</p>
+</sc-if>
+<p style="margin: 0; display: flex; gap: 8px; align-items: flex-start; font-size: 13px; line-height: 18px; color: var(--muted)"><svg class="vl-icon" viewBox="0 0 24 24" aria-hidden="true" style="width: 16px; height: 16px; flex: none; margin-top: 1px; color: var(--forest)"><path d="M6 10.5h12v10H6zM8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3"></path></svg>Profiles never show which activities someone has booked.</p>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"person":{"editor":"enum","options":["inviter who also hosts","inviter, nothing hosted"],"default":"inviter, nothing hosted"},"$preview":{"width":390,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const host = (this.props.person ?? 'inviter, nothing hosted') === 'inviter who also hosts';
+    return {
+      yes: true, s88: 88, ten: 10,
+      host: host, guest: !host,
+      name: 'Tunde A.',
+      since: 'On Velio since June 2023'
+    };
+  }
+}
+</script>
+</body>
+</html>

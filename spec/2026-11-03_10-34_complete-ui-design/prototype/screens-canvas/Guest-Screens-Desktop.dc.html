@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Guest and booking screens on desktop</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/velio/tokens.css">
+<link rel="stylesheet" href="ds/velio/components/bundle.css">
+<script src="ds/velio/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&amp;family=Sora:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#173600}a:hover{color:#0a0a0a}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 1500px; background: var(--cream)">
+<sc-if value="{{g3}}" hint-placeholder-val="{{ true }}"><dc-import name="G3-Claim" hint-size="100%,980px"></dc-import></sc-if>
+<sc-if value="{{g4}}" hint-placeholder-val="{{ false }}"><dc-import name="G4-YoureIn" hint-size="100%,1460px"></dc-import></sc-if>
+<sc-if value="{{g5}}" hint-placeholder-val="{{ false }}"><dc-import name="G5-SoldOut" hint-size="100%,1080px"></dc-import></sc-if>
+<sc-if value="{{g6}}" hint-placeholder-val="{{ false }}"><dc-import name="G6-Expired" hint-size="100%,980px"></dc-import></sc-if>
+<sc-if value="{{g7}}" hint-placeholder-val="{{ false }}"><dc-import name="G7-AlreadyClaimed" hint-size="100%,844px"></dc-import></sc-if>
+<sc-if value="{{g9}}" hint-placeholder-val="{{ false }}"><dc-import name="G9-InvalidCode" hint-size="100%,844px"></dc-import></sc-if>
+<sc-if value="{{b2}}" hint-placeholder-val="{{ false }}"><dc-import name="B2-Booked" hint-size="100%,1000px"></dc-import></sc-if>
+<sc-if value="{{b3}}" hint-placeholder-val="{{ false }}"><dc-import name="B3-Vouch" hint-size="100%,1000px"></dc-import></sc-if>
+<sc-if value="{{b3b}}" hint-placeholder-val="{{ false }}"><dc-import name="B3b-ShareLink" hint-size="100%,900px"></dc-import></sc-if>
+<sc-if value="{{x4}}" hint-placeholder-val="{{ false }}"><dc-import name="X4-Error" hint-size="100%,844px"></dc-import></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"screen":{"editor":"enum","options":["G3 Claim form","G4 You&#39;re in","G5 Sold out","G6 Expired","G7 Already claimed","G9 Invalid code","B2 Booked","B3 Vouch form","B3b Share link","X4 Error"],"default":"G3 Claim form"},"$preview":{"width":1280,"height":1500}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.props.screen ?? 'G3 Claim form';
+    const k = s.split(' ')[0];
+    return { g3: k === 'G3', g4: k === 'G4', g5: k === 'G5', g6: k === 'G6', g7: k === 'G7', g9: k === 'G9', b2: k === 'B2', b3: k === 'B3', b3b: k === 'B3b', x4: k === 'X4' };
+  }
+}
+</script>
+</body>
+</html>

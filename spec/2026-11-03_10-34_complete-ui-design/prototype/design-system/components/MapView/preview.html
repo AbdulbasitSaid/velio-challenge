@@ -1,0 +1,12 @@
+<!-- @dsCard group="Maps" height=420 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>MapView</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var V = window.Velio, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'vl-row',style:{alignItems:'flex-start'}},[['static','Static'],['interactive','Interactive'],['loading','Loading'],['failed','Failed'],['offline','Offline']].map(function(s){return h('div',{key:s[0],style:{width:240,display:'flex',flexDirection:'column',gap:6}},h('span',{style:{fontSize:13,fontWeight:700}},s[1]),h(V.MapView,{state:s[0],venue:'Lake Naivasha Boat Club',tapHint:s[0]==='static'}))})));
+</script>
+</body>
+</html>

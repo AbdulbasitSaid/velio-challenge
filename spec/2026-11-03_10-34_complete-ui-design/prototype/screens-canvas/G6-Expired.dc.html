@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Invite expired</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/velio/tokens.css">
+<link rel="stylesheet" href="ds/velio/components/bundle.css">
+<script src="ds/velio/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&amp;family=Sora:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#173600}a:hover{color:#0a0a0a}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 980px; box-sizing: border-box; background: var(--cream); color: var(--ink); font-family: var(--font-body); display: flex; flex-direction: column">
+<header style="display: flex; align-items: center; padding: 14px 20px">
+<a class="vl-wordmark" href="#">velio</a>
+</header>
+
+<main style="width: 100%; max-width: 480px; margin: 0 auto; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px; padding: 4px 20px 32px">
+<span style="display: inline-flex; width: 56px; height: 56px; border-radius: 50%; background: var(--surface); color: var(--forest); align-items: center; justify-content: center"><svg class="vl-icon" viewBox="0 0 24 24" aria-hidden="true" style="width: 28px; height: 28px"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7.5V12l3 2"></path></svg></span>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 15px; color: var(--muted)">Sunset Kayaking · Sat 14 Dec, 17:30 Nairobi time</span>
+<h1 class="title" style="margin: 0">{{headline}}</h1>
+<p style="margin: 0; font-size: 15px; line-height: 22px; color: var(--muted)">{{body}}</p>
+</div>
+
+<section style="display: flex; flex-direction: column; gap: 12px">
+<sc-if value="{{isInvite}}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="Velio.NextSteps" items="{{inviter}}"></x-import>
+</sc-if>
+<h2 style="margin: 8px 0 0; font-size: 15px; font-weight: 700">Amara's other dates</h2>
+<x-import component-from-global-scope="Velio.NextSteps" items="{{dates}}"></x-import>
+<h2 style="margin: 8px 0 0; font-size: 15px; font-weight: 700">More in Explore Kenya</h2>
+<x-import component-from-global-scope="Velio.NextSteps" items="{{community}}"></x-import>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"variant":{"editor":"enum","options":["expired invite","activity started (direct link)"],"default":"expired invite"},"$preview":{"width":390,"height":980}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const isInvite = (this.props.variant ?? 'expired invite') === 'expired invite';
+    return {
+      isInvite: isInvite,
+      headline: isInvite ? 'This invite expired when the activity started.' : 'This activity has started.',
+      body: isInvite ? 'Bookings close at the start time. Here are a few ways to still get out together.' : 'Bookings closed at 17:30 Nairobi time. Amara has more coming up.',
+      inviter: [{ icon: 'host', title: "See Tunde's profile", meta: 'Tunde A. · On Velio since June 2023' }],
+      dates: [{ scene: 'lake', title: 'Sunset Kayaking · Sat 21 Dec', meta: '17:30 Nairobi time · 9 spots left' }],
+      community: [
+        { scene: 'savanna', title: 'Nairobi National Park at dawn', meta: 'Sun 15 Dec · 7 spots left' },
+        { scene: 'city', title: 'Karura Forest cycle', meta: 'Sat 21 Dec · 10 spots left' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

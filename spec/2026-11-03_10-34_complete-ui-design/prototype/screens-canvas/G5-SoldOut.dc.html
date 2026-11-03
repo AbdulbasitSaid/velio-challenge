@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sold out: Sunset Kayaking</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/velio/tokens.css">
+<link rel="stylesheet" href="ds/velio/components/bundle.css">
+<script src="ds/velio/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&amp;family=Sora:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#173600}a:hover{color:#0a0a0a}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 1080px; box-sizing: border-box; background: var(--cream); color: var(--ink); font-family: var(--font-body); display: flex; flex-direction: column">
+<header style="display: flex; align-items: center; justify-content: space-between; padding: 14px 20px">
+<a class="vl-wordmark" href="#">velio</a>
+<x-import component-from-global-scope="Velio.LivePill" status="live"></x-import>
+</header>
+
+<main style="width: 100%; max-width: 480px; margin: 0 auto; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px; padding: 4px 20px 32px">
+<div style="position: relative; border-radius: 22px; overflow: hidden; aspect-ratio: 16 / 9; background: var(--forest)">
+<x-import component-from-global-scope="Velio.PhotoArt" scene="lake" alt="Kayaks on Lake Naivasha at sunset" style="position: absolute; inset: 0; width: 100%; height: 100%; opacity: .55"></x-import>
+<div style="position: absolute; left: 12px; bottom: 12px">
+<x-import component-from-global-scope="Velio.SpotsBadge" spots="{{zero}}"></x-import>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 15px; color: var(--muted)">Sunset Kayaking · Sat 14 Dec</span>
+<h1 class="title" style="margin: 0">This one filled up before you got here.</h1>
+</div>
+
+<x-import component-from-global-scope="Velio.AvatarStack" people="{{going}}" total="{{fourteen}}"></x-import>
+
+<section style="display: flex; flex-direction: column; gap: 12px">
+<h2 class="heading" style="margin: 0">What you can do</h2>
+<x-import component-from-global-scope="Velio.NextSteps" items="{{tell}}"></x-import>
+<sc-if value="{{hasMore}}" hint-placeholder-val="{{ true }}">
+<h3 style="margin: 8px 0 0; font-size: 15px; font-weight: 700">Amara's other dates</h3>
+<x-import component-from-global-scope="Velio.NextSteps" items="{{dates}}"></x-import>
+<h3 style="margin: 8px 0 0; font-size: 15px; font-weight: 700">More in Explore Kenya</h3>
+<x-import component-from-global-scope="Velio.NextSteps" items="{{community}}"></x-import>
+</sc-if>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"nextSteps":{"editor":"enum","options":["other dates and community picks","no other activities"],"default":"other dates and community picks"},"$preview":{"width":390,"height":1080}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const hasMore = (this.props.nextSteps ?? 'other dates and community picks') !== 'no other activities';
+    return {
+      zero: 0,
+      fourteen: 14,
+      going: ['Tunde A.', 'Imani K.', 'Omar M.'],
+      hasMore: hasMore,
+      tell: [{ icon: 'share', title: 'Tell Tunde', meta: 'Let them know it filled up' }],
+      dates: [{ scene: 'lake', title: 'Sunset Kayaking · Sun 15 Dec', meta: '17:30 Nairobi time · 4 spots left' }],
+      community: [
+        { scene: 'savanna', title: 'Nairobi National Park at dawn', meta: 'Sun 15 Dec · 7 spots left' },
+        { scene: 'city', title: 'Karura Forest cycle', meta: 'Sat 21 Dec · 10 spots left' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

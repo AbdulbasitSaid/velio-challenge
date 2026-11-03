@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>You're in (app)</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/velio/tokens.css">
+<link rel="stylesheet" href="ds/velio/components/bundle.css">
+<script src="ds/velio/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&amp;family=Sora:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#173600}a:hover{color:#0a0a0a}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; min-height: 1300px; box-sizing: border-box; background: var(--cream); color: var(--ink); font-family: var(--font-body); display: flex; flex-direction: column">
+<div class="vl-appbar">
+<a href="F-G8-Code.dc.html" class="vl-iconbtn" aria-label="Close"><svg class="vl-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></a>
+<span class="vl-appbar-title">You're in</span>
+<span style="width: 44px"></span>
+</div>
+
+<main style="display: flex; flex-direction: column; gap: 20px; padding: 8px 20px 32px">
+<section style="display: flex; flex-direction: column; gap: 14px; padding: 24px 20px; border-radius: 22px; background: var(--lime); color: var(--forest)">
+<span style="display: inline-flex; width: 48px; height: 48px; border-radius: 50%; background: var(--forest); color: var(--lime); align-items: center; justify-content: center"><svg class="vl-icon" viewBox="0 0 24 24" aria-hidden="true" style="width: 26px; height: 26px"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+<h1 class="title" style="margin: 0; color: var(--forest)">You're in, Zainab.</h1>
+<p style="margin: 0; font-size: 15px; line-height: 22px">Sunset Kayaking with Tunde's group. Sat 14 Dec, 17:30 Nairobi time.</p>
+<div style="display: flex; flex-direction: column; gap: 4px; padding: 12px 16px; border-radius: 14px; background: var(--surface)">
+<span style="font-size: 12px; line-height: 16px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted)">Booking ref</span>
+<span class="code" style="color: var(--forest)">VLO-48213</span>
+<span style="font-size: 13px; line-height: 18px; color: var(--muted)">KES 3,500, paid to Amara on the day.</span>
+</div>
+</section>
+
+<x-import component-from-global-scope="Velio.LocationBlock" venue="Lake Naivasha Boat Club" address="Moi South Lake Rd, Naivasha, Kenya" meeting-point="Meet at the blue gate by the jetty, 15 minutes before" map-state="interactive" ratio="4 / 3"></x-import>
+
+<section style="display: flex; flex-direction: column; gap: 12px">
+<h2 class="heading" style="margin: 0">Your group</h2>
+<x-import component-from-global-scope="Velio.AvatarStack" people="{{group}}" total="{{four}}" label="Tunde, Imani, Kofi and you"></x-import>
+<a class="vl-btn vl-btn-secondary vl-btn-block" href="F-B4-Plan.dc.html">See the plan</a>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 16px; background: var(--surface)">
+<h2 class="heading" style="margin: 0">Who's coming with you?</h2>
+<p style="margin: 0; font-size: 15px; line-height: 22px; color: var(--muted)">Only 5 spots left. Invites don't hold a spot, so tell friends now.</p>
+<x-import component-from-global-scope="Velio.Button" icon="share" block="{{yes}}">Invite a friend</x-import>
+</section>
+</main>
+
+<sc-if value="{{sheet}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; background: var(--scrim); display: flex; flex-direction: column; justify-content: flex-end">
+<x-import component-from-global-scope="Velio.BottomSheet" label="Open directions in">
+<strong style="font: 700 17px/24px var(--font-body)">Open directions in</strong>
+<span style="font-size: 14px; color: var(--muted)">Lake Naivasha Boat Club, Moi South Lake Rd</span>
+<x-import component-from-global-scope="Velio.Button" variant="secondary" block="{{yes}}">Apple Maps</x-import>
+<x-import component-from-global-scope="Velio.Button" variant="secondary" block="{{yes}}">Google Maps</x-import>
+<x-import component-from-global-scope="Velio.Button" variant="quiet" block="{{yes}}">Cancel</x-import>
+</x-import>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"state":{"editor":"enum","options":["confirmed","choosing a maps app (iOS)"],"default":"confirmed"},"$preview":{"width":390,"height":1300}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      yes: true, four: 4,
+      group: ['Tunde A.', 'Imani K.', 'Kofi M.'],
+      sheet: (this.props.state ?? 'confirmed') !== 'confirmed'
+    };
+  }
+}
+</script>
+</body>
+</html>

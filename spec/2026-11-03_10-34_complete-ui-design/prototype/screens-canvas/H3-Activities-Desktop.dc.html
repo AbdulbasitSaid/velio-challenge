@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>My activities (desktop)</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/velio/tokens.css">
+<link rel="stylesheet" href="ds/velio/components/bundle.css">
+<script src="ds/velio/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&amp;family=Sora:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#173600}a:hover{color:#0a0a0a}
+</style>
+</helmet>
+<div style="min-height: 1000px; box-sizing: border-box; background: var(--cream); color: var(--ink); font-family: var(--font-body)">
+<x-import component-from-global-scope="Velio.AppHeader" role="host" current="My activities" user="Amara Otieno"></x-import>
+
+<main style="max-width: 1120px; margin: 0 auto; padding: 32px 40px 64px; display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap">
+<h1 class="title" style="margin: 0; font-size: 36px; line-height: 42px">My activities</h1>
+<div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap">
+<x-import component-from-global-scope="Velio.Segmented" label="Show" value="{{tab}}" options="{{tabs}}"></x-import>
+<a class="vl-btn vl-btn-primary vl-btn-sm" href="H2-Create-Desktop.dc.html">Create activity</a>
+</div>
+</div>
+
+<sc-if value="{{hasRows}}" hint-placeholder-val="{{ true }}">
+<div style="overflow-x: auto; background: var(--surface); border-radius: 16px">
+<table style="width: 100%; min-width: 760px; border-collapse: collapse; font-size: 15px">
+<thead>
+<tr style="text-align: left; font-size: 13px; color: var(--muted)">
+<th scope="col" style="padding: 14px 16px; font-weight: 700">Activity</th>
+<th scope="col" style="padding: 14px 16px; font-weight: 700">When</th>
+<th scope="col" style="padding: 14px 16px; font-weight: 700">Booked</th>
+<th scope="col" style="padding: 14px 16px; font-weight: 700">Status</th>
+<th scope="col" style="padding: 14px 16px"><span class="vl-sr">Actions</span></th>
+</tr>
+</thead>
+<tbody>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="3">
+<tr style="border-top: 1px solid var(--line)">
+<td style="padding: 12px 16px">
+<div style="display: flex; gap: 12px; align-items: center">
+<div style="width: 56px; height: 40px; border-radius: 8px; overflow: hidden; flex: none; background: var(--forest)"><x-import component-from-global-scope="Velio.PhotoArt" scene="{{r.scene}}" alt="" style="display: block; width: 56px; height: 40px"></x-import></div>
+<div style="display: flex; flex-direction: column"><strong>{{r.title}}</strong><span style="font-size: 13px; color: var(--muted)">{{r.community}}</span></div>
+</div>
+</td>
+<td style="padding: 12px 16px; white-space: nowrap">{{r.when}}</td>
+<td style="padding: 12px 16px; font-variant-numeric: tabular-nums; white-space: nowrap"><strong>{{r.booked}}</strong> <span style="color: var(--muted)">of {{r.capacity}}</span></td>
+<td style="padding: 12px 16px"><x-import component-from-global-scope="Velio.Chip" tone="{{r.tone}}">{{r.status}}</x-import></td>
+<td style="padding: 12px 16px; text-align: right; white-space: nowrap">
+<a href="{{r.primaryHref}}" style="font-weight: 700; margin-right: 16px">{{r.primary}}</a>
+<a href="H2-Create-Desktop.dc.html" style="font-weight: 700">{{r.secondary}}</a>
+</td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+</sc-if>
+
+<sc-if value="{{empty}}" hint-placeholder-val="{{ false }}">
+<div style="max-width: 480px; margin: 40px auto; display: flex; flex-direction: column; gap: 16px">
+<x-import component-from-global-scope="Velio.EmptyState" icon="calendar" title="No activities yet" body="Create your first activity. It gets a page in its community and links you can share."></x-import>
+<a class="vl-btn vl-btn-primary" href="H2-Create-Desktop.dc.html" style="align-self: center">Create activity</a>
+</div>
+</sc-if>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"state":{"editor":"enum","options":["upcoming","past","empty"],"default":"upcoming"},"$preview":{"width":1280,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.props.state ?? 'upcoming';
+    const upcoming = [
+      { scene: 'lake', title: 'Sunset Kayaking', community: 'Explore Kenya', when: 'Sat 14 Dec, 17:30', booked: 9, capacity: 14, status: '5 spots left', tone: 'lime', primary: 'Attendance', primaryHref: 'H1-Attendance-Desktop.dc.html', secondary: 'Edit' },
+      { scene: 'lake', title: 'Sunset Kayaking', community: 'Explore Kenya', when: 'Sun 15 Dec, 17:30', booked: 14, capacity: 14, status: 'Sold out', tone: 'forest', primary: 'Attendance', primaryHref: 'H1-Attendance-Desktop.dc.html', secondary: 'Edit' },
+      { scene: 'lake', title: 'Sunset Kayaking', community: 'Explore Kenya', when: 'Sat 21 Dec, 17:30', booked: 0, capacity: 14, status: 'No bookings yet', tone: 'neutral', primary: 'View page', primaryHref: 'B1-Desktop.dc.html', secondary: 'Edit' }
+    ];
+    const past = [
+      { scene: 'lake', title: 'Sunset Kayaking', community: 'Explore Kenya', when: 'Sat 30 Nov, 17:30', booked: 12, capacity: 14, status: '11 attended', tone: 'neutral', primary: 'Attendance', primaryHref: 'H1-Attendance-Desktop.dc.html', secondary: 'View' },
+      { scene: 'savanna', title: 'Hell’s Gate cycle', community: 'Explore Kenya', when: 'Sat 19 Oct, 08:00', booked: 10, capacity: 12, status: 'Mark attendance', tone: 'danger', primary: 'Mark now', primaryHref: 'H1-Attendance-Desktop.dc.html', secondary: 'View' }
+    ];
+    return {
+      tab: s === 'past' ? 'past' : 'upcoming',
+      tabs: [{ value: 'upcoming', label: 'Upcoming' }, { value: 'past', label: 'Past' }],
+      rows: s === 'past' ? past : upcoming,
+      hasRows: s !== 'empty',
+      empty: s === 'empty'
+    };
+  }
+}
+</script>
+</body>
+</html>

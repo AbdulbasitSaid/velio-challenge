@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Create an activity (desktop)</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/velio/tokens.css">
+<link rel="stylesheet" href="ds/velio/components/bundle.css">
+<script src="ds/velio/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&amp;family=Sora:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#173600}a:hover{color:#0a0a0a}
+</style>
+</helmet>
+<div style="min-height: 2340px; box-sizing: border-box; background: var(--cream); color: var(--ink); font-family: var(--font-body)">
+<x-import component-from-global-scope="Velio.AppHeader" role="host" current="Create activity" user="Amara Otieno"></x-import>
+
+<div style="max-width: 1120px; margin: 0 auto; padding: 32px 40px 64px; display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<a href="H3-Activities-Desktop.dc.html" style="font-size: 14px; font-weight: 700">My activities</a>
+<h1 class="title" style="margin: 0; font-size: 36px; line-height: 42px">{{pageTitle}}</h1>
+</div>
+
+<sc-if value="{{published}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; gap: 14px; align-items: center; padding: 16px 20px; border-radius: 16px; background: var(--lime); color: var(--forest); flex-wrap: wrap">
+<svg class="vl-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+<strong style="flex: 1; min-width: 200px">Published. Sunset Kayaking is live in Explore Kenya.</strong>
+<a class="vl-btn vl-btn-secondary vl-btn-sm" href="H1-Attendance-Desktop.dc.html">Open live attendance</a>
+<a class="vl-btn vl-btn-quiet vl-btn-sm" href="B1-Desktop.dc.html">View the page</a>
+</div>
+</sc-if>
+<sc-if value="{{locked}}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="Velio.Banner" icon="lock" title="Date, time and place are locked now that people have booked.">9 people are going. You can still change the title, description, photo and number of spots.</x-import>
+</sc-if>
+<sc-if value="{{invalid}}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="Velio.Banner" tone="error" title="3 things need fixing before you can publish.">They're marked below.</x-import>
+</sc-if>
+
+<div style="display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-start">
+<form style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 28px">
+<section style="display: flex; flex-direction: column; gap: 16px">
+<h2 class="heading" style="margin: 0">The basics</h2>
+<sc-if value="{{hasPhoto}}" hint-placeholder-val="{{ true }}">
+<div style="position: relative; border-radius: 16px; overflow: hidden; aspect-ratio: 16 / 7; background: var(--forest)">
+<x-import component-from-global-scope="Velio.PhotoArt" scene="lake" alt="Uploaded photo: kayaks at sunset" style="position: absolute; inset: 0; width: 100%; height: 100%"></x-import>
+<button class="vl-btn vl-btn-sm" type="button" style="position: absolute; right: 12px; bottom: 12px; background: var(--surface); color: var(--forest)">Change photo</button>
+</div>
+</sc-if>
+<sc-if value="{{noPhoto}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 32px; border-radius: 16px; border: 2px dashed {{photoBorder}}; background: var(--surface); text-align: center">
+<strong>Add one photo</strong>
+<span style="font-size: 14px; color: var(--muted)">JPG or PNG. It leads your invite links, so pick one that shows the moment.</span>
+<button class="vl-btn vl-btn-secondary vl-btn-sm" type="button">Choose a photo</button>
+<sc-if value="{{invalid}}" hint-placeholder-val="{{ false }}"><span class="vl-field-error">Add a photo. It shows on the activity page and every invite.</span></sc-if>
+</div>
+</sc-if>
+<x-import component-from-global-scope="Velio.TextField" id="h-title" label="Title" value="{{titleValue}}" placeholder="What are people signing up for?" error="{{titleError}}"></x-import>
+<x-import component-from-global-scope="Velio.TextField" id="h-desc" label="Description" multiline="{{yes}}" value="{{desc}}" placeholder="What happens, what to bring, who it suits"></x-import>
+<div class="vl-field">
+<label for="h-community">Community</label>
+<select id="h-community" style="box-sizing: border-box; width: 100%; min-height: 52px; padding: 0 16px; border: 1.5px solid var(--field-border); border-radius: 14px; background: var(--surface); font: 400 16px/22px var(--font-body); color: var(--ink)"><option>Explore Kenya</option><option>The Tanzania Experience</option><option>The Medina Collective</option></select>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 16px">
+<h2 class="heading" style="margin: 0">When</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr)); gap: 12px">
+<x-import component-from-global-scope="Velio.TextField" id="h-date" label="Date" value="{{date}}" read-only="{{locked}}" error="{{dateError}}"></x-import>
+<x-import component-from-global-scope="Velio.TextField" id="h-time" label="Start time" value="{{time}}" read-only="{{locked}}"></x-import>
+<x-import component-from-global-scope="Velio.TextField" id="h-zone" label="Time zone" value="Africa/Nairobi" read-only="{{locked}}" help="Guests see times in this zone"></x-import>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 16px">
+<h2 class="heading" style="margin: 0">Where</h2>
+<sc-if value="{{pickerOn}}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="Velio.LocationPicker" state="{{pickerState}}" query="{{query}}"></x-import>
+</sc-if>
+<sc-if value="{{locked}}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="Velio.LocationBlock" title="{{no}}" venue="Lake Naivasha Boat Club" address="Moi South Lake Rd, Naivasha, Kenya" meeting-point="Meet at the blue gate by the jetty, 15 minutes before"></x-import>
+<p class="vl-public-note" style="margin: 0"><svg class="vl-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 10.5h12v10H6zM8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3"></path></svg>Location is locked because people have booked.</p>
+</sc-if>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 16px">
+<h2 class="heading" style="margin: 0">Price and spots</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 12px">
+<x-import component-from-global-scope="Velio.TextField" id="h-price" label="Price per person (KES)" value="{{price}}" error="{{priceError}}" help="Guests pay you on the day. Velio takes no payment."></x-import>
+<div class="vl-field">
+<label for="h-spots">Total spots</label>
+<div style="display: flex; align-items: center; gap: 8px">
+<button class="vl-iconbtn" type="button" aria-label="One fewer spot" style="background: var(--surface); border: 1.5px solid var(--field-border)"><svg class="vl-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path></svg></button>
+<input id="h-spots" value="{{spots}}" inputmode="numeric" style="box-sizing: border-box; width: 88px; min-height: 52px; text-align: center; border: 1.5px solid var(--field-border); border-radius: 14px; background: var(--surface); font: 700 18px/24px var(--font-body)">
+<button class="vl-iconbtn" type="button" aria-label="One more spot" style="background: var(--surface); border: 1.5px solid var(--field-border)"><svg class="vl-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
+</div>
+<span class="vl-field-help">{{spotsHelp}}</span>
+</div>
+</div>
+</section>
+</form>
+
+<aside style="flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+<span style="font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted)">Preview</span>
+<x-import component-from-global-scope="Velio.ActivityCard" scene="lake" community="Explore Kenya" spots="{{spotsLeft}}" title="{{previewTitle}}" date="{{previewDate}}" zone="Nairobi time" place="{{previewPlace}}" price="{{previewPrice}}" host="Amara O."></x-import>
+<sc-if value="{{draft}}" hint-placeholder-val="{{ true }}">
+<button class="vl-btn vl-btn-primary vl-btn-block" type="button">Publish</button>
+</sc-if>
+<sc-if value="{{editing}}" hint-placeholder-val="{{ false }}">
+<button class="vl-btn vl-btn-primary vl-btn-block" type="button">Save changes</button>
+</sc-if>
+<p style="margin: 0; font-size: 13px; line-height: 18px; color: var(--muted)">Once someone books, date, time and place lock. Check them before you publish.</p>
+</aside>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"state":{"editor":"enum","options":["empty","place search results","pin placed","no search results","maps unavailable","validation errors","published","editing, locked after bookings"],"default":"pin placed"},"$preview":{"width":1280,"height":2340}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.props.state ?? 'pin placed';
+    const empty = s === 'empty';
+    const invalid = s === 'validation errors';
+    const locked = s === 'editing, locked after bookings';
+    const filled = !empty && !invalid;
+    const picker = { 'empty': 'empty', 'place search results': 'results', 'pin placed': 'pinned', 'no search results': 'noresults', 'maps unavailable': 'unavailable', 'validation errors': 'empty', 'published': 'pinned' };
+    return {
+      yes: true, no: false,
+      pageTitle: locked ? 'Edit Sunset Kayaking' : s === 'published' ? 'Sunset Kayaking' : 'Create an activity',
+      published: s === 'published',
+      locked: locked,
+      invalid: invalid,
+      hasPhoto: filled,
+      noPhoto: !filled,
+      photoBorder: invalid ? 'var(--danger)' : 'var(--field-border)',
+      titleValue: filled ? 'Sunset Kayaking' : '',
+      titleError: invalid ? 'Add a title.' : null,
+      desc: filled ? 'Two hours on Lake Naivasha as the sun drops. Stable sit-on-top kayaks, a guide at the front and back. No experience needed.' : '',
+      date: filled ? 'Sat 14 Dec 2026' : (invalid ? 'Sat 14 Dec 2024' : ''),
+      dateError: invalid ? 'Pick a date in the future.' : null,
+      time: filled ? '17:30' : '',
+      pickerOn: !locked,
+      pickerState: picker[s] || 'pinned',
+      query: s === 'no search results' ? 'Naivasa jety' : 'Lake Naivasha',
+      price: filled ? '3,500' : '',
+      priceError: null,
+      spots: locked ? 14 : filled ? 14 : 10,
+      spotsHelp: locked ? '9 booked, so at least 9. You can always add more.' : 'You can add spots later, never fewer than people booked.',
+      spotsLeft: locked ? 5 : filled ? 14 : 10,
+      previewTitle: filled ? 'Sunset Kayaking' : 'Your activity title',
+      previewDate: filled ? 'Sat 14 Dec, 17:30' : 'Date and time',
+      previewPlace: filled && s !== 'no search results' && s !== 'maps unavailable' && s !== 'place search results' ? 'Lake Naivasha Boat Club' : 'Location',
+      previewPrice: filled ? 'KES 3,500' : null,
+      draft: !locked && s !== 'published',
+      editing: locked
+    };
+  }
+}
+</script>
+</body>
+</html>

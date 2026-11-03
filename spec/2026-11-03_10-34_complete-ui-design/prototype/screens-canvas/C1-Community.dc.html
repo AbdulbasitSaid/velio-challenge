@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Explore Kenya (phone)</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/velio/tokens.css">
+<link rel="stylesheet" href="ds/velio/components/bundle.css">
+<script src="ds/velio/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&amp;family=Sora:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#173600}a:hover{color:#0a0a0a}
+</style>
+</helmet>
+<div style="width: 390px; min-height: 1780px; box-sizing: border-box; background: var(--cream); color: var(--ink); font-family: var(--font-body); display: flex; flex-direction: column">
+<header style="display: flex; align-items: center; justify-content: space-between; padding: 14px 20px">
+<a class="vl-wordmark" href="#">velio</a>
+<x-import component-from-global-scope="Velio.Avatar" name="Tunde Adeyemi" size="{{s36}}"></x-import>
+</header>
+
+<main style="display: flex; flex-direction: column; gap: 20px; padding: 4px 20px 32px">
+<section style="position: relative; border-radius: 22px; overflow: hidden; aspect-ratio: 16 / 9; background: var(--forest)">
+<x-import component-from-global-scope="Velio.PhotoArt" scene="savanna" alt="Explore Kenya cover photo" style="position: absolute; inset: 0; width: 100%; height: 100%"></x-import>
+</section>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h1 class="title" style="margin: 0">Explore Kenya</h1>
+<p style="margin: 0; font-size: 15px; line-height: 22px; color: var(--muted)">Lakes, parks and city nights with people travelling Kenya the same weeks as you.</p>
+<span style="font-size: 14px; font-weight: 700; color: var(--forest)">{{countLine}}</span>
+</div>
+
+<sc-if value="{{hasActivities}}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="Velio.Segmented" label="View" value="{{view}}" options="{{views}}"></x-import>
+</sc-if>
+
+<sc-if value="{{list}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 14px">
+<sc-for list="{{activities}}" as="a" hint-placeholder-count="4">
+<a href="B1-Activity.dc.html" style="text-decoration: none; color: inherit">
+<x-import component-from-global-scope="Velio.ActivityCard" compact="{{yes}}" scene="{{a.scene}}" spots="{{a.spots}}" title="{{a.title}}" date="{{a.date}}" place="{{a.place}}"></x-import>
+</a>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{map}}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="Velio.CommunityMap" ratio="3 / 4" selected="{{selected}}"></x-import>
+<sc-if value="{{hasSelection}}" hint-placeholder-val="{{ false }}">
+<a href="B1-Activity.dc.html" style="text-decoration: none">
+<x-import component-from-global-scope="Velio.PlanCard" scene="lake" title="Sunset Kayaking" date="Sat 14 Dec, 17:30" place="Lake Naivasha · 6 spots left" members="{{selMembers}}" member-total="{{eight}}" code="View activity"></x-import>
+</a>
+</sc-if>
+<p style="margin: 0; font-size: 13px; line-height: 18px; color: var(--muted)">{{mapHint}}</p>
+</sc-if>
+
+<sc-if value="{{mapFailed}}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="Velio.MapView" state="failed" ratio="4 / 3" label="Map of Explore Kenya activities"></x-import>
+<a class="vl-btn vl-btn-secondary vl-btn-block" href="#">Show the list instead</a>
+</sc-if>
+
+<sc-if value="{{empty}}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="Velio.EmptyState" icon="calendar" title="Nothing coming up right now" body="Activities with spots show here as soon as a host publishes one."></x-import>
+</sc-if>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"state":{"editor":"enum","options":["list","map","map, activity selected","map failed","no upcoming activities"],"default":"list"},"$preview":{"width":390,"height":1780}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.props.state ?? 'list';
+    const isMap = s === 'map' || s === 'map, activity selected';
+    return {
+      yes: true, s36: 36,
+      countLine: s === 'no upcoming activities' ? 'No upcoming activities' : '6 upcoming activities with spots',
+      hasActivities: s !== 'no upcoming activities',
+      view: isMap || s === 'map failed' ? 'map' : 'list',
+      views: [{ value: 'list', label: 'List', icon: 'list' }, { value: 'map', label: 'Map', icon: 'map' }],
+      list: s === 'list',
+      map: isMap,
+      mapFailed: s === 'map failed',
+      empty: s === 'no upcoming activities',
+      selected: s === 'map, activity selected' ? 0 : null,
+      hasSelection: s === 'map, activity selected',
+      selMembers: ['Tunde A.', 'Imani K.'],
+      eight: 8,
+      mapHint: 'Only activities with spots show. Sold-out and started ones leave the map.',
+      activities: [
+        { scene: 'lake', spots: 6, title: 'Sunset Kayaking', date: 'Sat 14 Dec, 17:30', place: 'Lake Naivasha' },
+        { scene: 'savanna', spots: 7, title: 'Nairobi National Park at dawn', date: 'Sun 15 Dec, 06:00', place: 'Nairobi' },
+        { scene: 'city', spots: 10, title: 'Karura Forest cycle', date: 'Sat 21 Dec, 08:00', place: 'Nairobi' },
+        { scene: 'coast', spots: 2, title: 'Diani reef snorkel', date: 'Sat 28 Dec, 09:00', place: 'Diani Beach' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

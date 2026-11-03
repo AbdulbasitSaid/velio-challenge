@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Live attendance (desktop)</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/velio/tokens.css">
+<link rel="stylesheet" href="ds/velio/components/bundle.css">
+<script src="ds/velio/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&amp;family=Sora:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#173600}a:hover{color:#0a0a0a}
+</style>
+</helmet>
+<div style="position: relative; min-height: 1240px; box-sizing: border-box; background: var(--cream); color: var(--ink); font-family: var(--font-body)">
+<x-import component-from-global-scope="Velio.AppHeader" role="host" current="My activities" user="Amara Otieno"></x-import>
+
+<div style="max-width: 1120px; margin: 0 auto; padding: 24px 40px 64px; display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<a href="H3-Activities-Desktop.dc.html" style="font-size: 14px; font-weight: 700">My activities</a>
+<h1 class="title" style="margin: 0; font-size: 36px; line-height: 42px">Sunset Kayaking</h1>
+<span style="font-size: 15px; color: var(--muted)">Sat 14 Dec, 17:30 Nairobi time · Lake Naivasha Boat Club</span>
+</div>
+<div style="display: flex; gap: 12px; align-items: center">
+<x-import component-from-global-scope="Velio.LivePill" status="live"></x-import>
+<x-import component-from-global-scope="Velio.SpotsBadge" spots="{{spotsLeft}}" state="{{spotsState}}"></x-import>
+</div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr)); gap: 16px">
+<div style="padding: 16px 20px; background: var(--surface); border-radius: 16px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; color: var(--muted)">{{stat1Label}}</span><strong style="font: 700 28px/34px var(--font-display); font-variant-numeric: tabular-nums">{{stat1}}</strong></div>
+<div style="padding: 16px 20px; background: var(--surface); border-radius: 16px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; color: var(--muted)">{{stat2Label}}</span><strong style="font: 700 28px/34px var(--font-display); font-variant-numeric: tabular-nums">{{stat2}}</strong></div>
+<div style="padding: 16px 20px; background: var(--surface); border-radius: 16px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; color: var(--muted)">{{stat3Label}}</span><strong style="font: 700 28px/34px var(--font-display); font-variant-numeric: tabular-nums">{{stat3}}</strong></div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start">
+<main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px">
+<h2 class="heading" style="margin: 0">{{listTitle}}</h2>
+<span style="font-size: 13px; color: var(--muted)">{{listHint}}</span>
+</div>
+
+<sc-if value="{{after}}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="Velio.Banner" title="The activity has started.">Mark who came. It's how Velio counts the plans that actually happen.</x-import>
+</sc-if>
+
+<sc-if value="{{hasRows}}" hint-placeholder-val="{{ true }}">
+<div class="vl-list">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="5">
+<x-import component-from-global-scope="Velio.AttendanceRow" name="{{r.name}}" booking-ref="{{r.ref}}" time="{{r.time}}" source="{{r.source}}" source-label="{{r.sourceLabel}}" mode="{{r.mode}}" mark="{{r.mark}}" is-new="{{r.isNew}}"></x-import>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{empty}}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="Velio.EmptyState" icon="people" title="No bookings yet" body="This page updates by itself the moment someone books. Bookings close at 17:30 Nairobi time on Sat 14 Dec."></x-import>
+</sc-if>
+</main>
+
+<aside style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+<sc-if value="{{hasRows}}" hint-placeholder-val="{{ true }}">
+<section style="display: flex; flex-direction: column; gap: 12px; padding: 20px; background: var(--surface); border-radius: 16px">
+<h2 style="margin: 0; font-size: 17px; font-weight: 700">Groups</h2>
+<div style="display: flex; justify-content: space-between"><span>Tunde's group</span><strong>5</strong></div>
+<div style="display: flex; justify-content: space-between"><span>Omar's group</span><strong>2</strong></div>
+<div style="display: flex; justify-content: space-between"><span>Booked alone</span><strong>1</strong></div>
+<span style="font-size: 13px; line-height: 18px; color: var(--muted)">People who came in through each other's invites. Useful for seating and boats.</span>
+</section>
+</sc-if>
+<x-import component-from-global-scope="Velio.Banner" icon="lock" title="What you see">You see names and how people found you. Phone numbers, emails and invite notes stay private.</x-import>
+<a class="vl-btn vl-btn-secondary vl-btn-block" href="H2-Create-Desktop.dc.html">Edit activity</a>
+</aside>
+</div>
+</div>
+
+<sc-if value="{{confirm}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: var(--scrim)">
+<div style="width: 420px">
+<x-import component-from-global-scope="Velio.ConfirmDialog" title="Remove Imani Kariuki?" body="Their spot opens to whoever books next, and they'll see that you removed them." confirm="Remove Imani" cancel="Keep" destructive="{{yes}}"></x-import>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"state":{"editor":"enum","options":["before start","live arrival","remove confirm","after start (marking)","no bookings yet"],"default":"live arrival"},"$preview":{"width":1280,"height":1240}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.props.state ?? 'live arrival';
+    const after = s === 'after start (marking)';
+    const mode = after ? 'after' : 'before';
+    const base = [
+      { name: 'Tunde Adeyemi', ref: 'VLO-3HX7M', time: 'Booked Mon 2 Dec', source: 'direct', sourceLabel: 'Direct' },
+      { name: 'Zainab Okafor', ref: 'VLO-48213', time: 'Booked Tue 3 Dec', source: 'vouch', sourceLabel: 'Via Tunde' },
+      { name: 'Imani Kariuki', ref: 'VLO-7RT2P', time: 'Booked Tue 3 Dec', source: 'vouch', sourceLabel: 'Via Tunde' },
+      { name: 'Kofi Mensah', ref: 'VLO-9KQ2D', time: 'Booked Wed 4 Dec', source: 'public', sourceLabel: 'Public link' },
+      { name: 'Omar Mahmoud', ref: 'VLO-C4N8H', time: 'Booked Wed 4 Dec', source: 'direct', sourceLabel: 'Direct' },
+      { name: 'Lerato Nkosi', ref: 'VLO-T6V2K', time: 'Booked Thu 5 Dec', source: 'vouch', sourceLabel: 'Via Omar' },
+      { name: 'Wanjiru Njoroge', ref: 'VLO-H9E3W', time: 'Booked Thu 5 Dec', source: 'vouch', sourceLabel: 'Via Zainab' },
+      { name: 'Yusuf Bello', ref: 'VLO-P2F7M', time: 'Booked Fri 6 Dec', source: 'public', sourceLabel: 'Public link' }
+    ];
+    const marks = ['attended', 'attended', 'no_show', 'attended', 'attended', null, 'attended', null];
+    let rows = base.map((r, i) => Object.assign({}, r, { mode: mode, mark: after ? marks[i] : null, isNew: false }));
+    if (s === 'live arrival') rows = [{ name: 'Nia Wambui', ref: 'VLO-K8R4T', time: 'Booked just now', source: 'vouch', sourceLabel: 'Via Kofi', mode: 'before', mark: null, isNew: true }].concat(rows);
+    const booked = s === 'live arrival' ? 9 : s === 'no bookings yet' ? 0 : 8;
+    return {
+      yes: true,
+      after: after,
+      rows: rows,
+      hasRows: s !== 'no bookings yet',
+      empty: s === 'no bookings yet',
+      confirm: s === 'remove confirm',
+      spotsLeft: 14 - booked,
+      spotsState: s === 'live arrival' ? 'changed' : 'live',
+      listTitle: after ? 'Who came?' : 'Going',
+      listHint: after ? '6 of 8 marked' : 'Newest first',
+      stat1Label: 'Booked', stat1: booked + ' of 14',
+      stat2Label: after ? 'Attended' : 'Through invites', stat2: after ? '5' : (s === 'no bookings yet' ? '0' : (s === 'live arrival' ? '6' : '5')),
+      stat3Label: after ? 'No-shows' : 'Spots left', stat3: after ? '1' : String(14 - booked)
+    };
+  }
+}
+</script>
+</body>
+</html>
