@@ -33,28 +33,32 @@ Group activities on Velio are agreed socially but booked alone. Hosts cannot tru
 
 ## Current status
 
-- ✅ PRD written and refined.
+- ✅ PRD written, enriched and confirmed by the owner.
 - ✅ Development process established (`CLAUDE.md`, spec workflow, changelog).
+- 🔄 MVP plan (system design, stack, structure) in review.
 - No application code, repository (git) or infrastructure exists yet.
 
 ## Milestones
 
-### M0: Foundations ❓
+### M0: Decisions ✅
 
-Decisions needed before any feature spec can be implemented. None are made yet.
+All decided on 2026-11-03 and recorded in the [MVP plan](spec/2026-11-03_07-42_group-bookings-mvp-plan/PLANNING.md), §10:
 
-- Backend language and framework.
-- Web frontend framework.
-- Database engine. The PRD's queries are Postgres-style; not confirmed.
-- Real-time transport and Redis setup.
-- Hosting and environments for the prototype.
-- Repository setup: git, layout (monorepo or separate repos), CI, test tooling.
+- **Stack:** Bun + Hono API, Next.js web, Flutter mobile, PostgreSQL, in a Bun-workspaces monorepo.
+- **Realtime:** Postgres `NOTIFY` with WebSockets.
+- **Hosting:** AWS eu-west-2, a single EC2 instance with Docker Compose behind CloudFront, on the free `cloudfront.net` hostname.
+- **Repository:** git + GitHub + Actions.
+- **Observability:** OpenTelemetry → Grafana Cloud free tier.
+- **Load testing:** k6, with full runs from a temporary spot EC2 in eu-west-2.
+- **Product:** PRD decisions D1–D5 and Q1–Q7 confirmed by the owner; standalone prototype.
 
-### M1: 48-hour prototype 📋
+### M1: Prototype 📋
+
+The PRD sizes this at 48 hours. That is an estimate, not a deadline.
 
 All PRD P0 requirements, plus the concurrent last-spot test, metrics endpoint and admin page, SQL views for invite rate, open-to-claim and K-factor by rail, and the `group_invites` flag with holdout assignment. (PRD: Release plan)
 
-Depends on M0. Highest-risk items to prove first: no overselling, live counts, trustworthy attribution.
+Highest-risk items to prove first: no overselling, live counts, trustworthy attribution. The delivery order is S1 Foundations → S2 Booking core → S3 Realtime and S4 Invites → S5–S7 Web and mobile → S8 Metrics → S9 Hardening, with S10 AWS deployment alongside from S1 (see the MVP plan).
 
 ### M2: Staged rollout 📋
 
@@ -76,18 +80,19 @@ In PRD order:
 - Attribution must be append-only and auditable (PRD I5, R11).
 - The full risk register is in the PRD (R1–R12).
 
+- The prototype runs on one EC2 instance: a single point of failure, accepted for now, with Fargate + RDS as the upgrade path.
+
 ## Out of scope
 
-Payments (prices shown, not charged), full authentication, trust scores, host verification. (PRD: Non-goals)
+Payments (prices shown, not charged), full authentication, trust scores, host verification, activity cancellation by hosts (PRD Q1), integration with Velio's production systems (PRD Q6). (PRD: Non-goals)
 
 ## Open questions
 
-- All M0 decisions above.
-- Is the "48-hour build" a hard deadline for this project, or the PRD's sizing of the prototype?
-- Who is the PRD author or product owner who confirms decisions D1–D5? (The byline reads `@Someone`.)
+None blocking. The remaining assumptions are listed in the MVP plan, §10: the assumed peak load, mobile OS minimums, `Bun.sql` `LISTEN` support, and CloudFront VPC origins for EC2.
 
 ## Specifications
 
 | Spec | Milestone | Status |
 | --- | --- | --- |
 | [2026-11-03_07-25_establish-sdd-constitution](spec/2026-11-03_07-25_establish-sdd-constitution/) | Process | Implemented |
+| [2026-11-03_07-42_group-bookings-mvp-plan](spec/2026-11-03_07-42_group-bookings-mvp-plan/) | M0, M1 | In review |

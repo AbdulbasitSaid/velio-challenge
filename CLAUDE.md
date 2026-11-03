@@ -9,7 +9,10 @@ This file is the authoritative source of development rules for this project. If 
 - **Product:** Velio Group Bookings. Hosts list activities with fixed spots, bookers reserve and invite friends into a shared Plan, guests claim spots from a link or code. Source of truth for product intent: `Velio Group Bookings PRD.md`.
 - **Code:** none yet. No application, tests, build tooling or dependencies exist.
 - **Version control:** the directory is not a git repository.
-- **Stack named in the PRD:** responsive web app, Flutter mobile app, SQL database (Postgres-style queries), Redis pub/sub, WebSockets. Backend language, web framework, database engine and hosting are **not decided**. See open questions in `ROADMAP.md`. Do not assume them.
+- **Stack (decided 2026-11-03):** Bun + Hono API, Next.js web (run on Node), Flutter mobile, PostgreSQL with `NOTIFY` for realtime, S3 for photos. Bun workspaces monorepo; git + GitHub + Actions.
+- **Hosting (decided 2026-11-03):** AWS eu-west-2, a single EC2 instance with Docker Compose behind CloudFront, using the free `cloudfront.net` hostname.
+- **Observability and load (decided 2026-11-03):** OpenTelemetry → Grafana Cloud free tier; k6 from a temporary spot EC2. Never put personal data, codes or tokens in telemetry, and never label metrics by entity IDs.
+- **Rationale and design:** `spec/2026-11-03_07-42_group-bookings-mvp-plan/PLANNING.md`. Do not change these choices without a spec and the user's approval.
 
 ## Documents
 

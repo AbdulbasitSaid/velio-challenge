@@ -1,12 +1,30 @@
 # Velio Group Bookings PRD
 
-Nov 3, 2026 · @Someone
+Nov 3, 2026 · Owner: @abdulbasit · Status: decisions D1–D5 and Q1–Q7 confirmed
 
 ## TL;DR
 
 Group Bookings lets a **host** list an activity with a fixed number of spots, lets **bookers** reserve a spot and bring friends into a shared Plan, and lets **invited guests** claim their spot from a link or code on their phone in one flow. Spots update live on every screen, and the system never sells more spots than exist.
 
 Success means the feature grows Velio's network with people who actually show up. We measure that with five targets: zero oversold bookings, 99.5% booking success on available spots, live updates within 2 seconds at p95, 30% of bookers sending an invite, and 25% of opened invites ending in a claimed spot. Every invite records whether it was a **vouch** (sent to a specific person, carries trust) or a **public share** (reach only), so we can see which kind brings in people who stay.
+
+## Glossary
+
+| Term | Meaning |
+| --- | --- |
+| **Activity** | A dated experience with a fixed capacity, created by a host. |
+| **Spots left** | Capacity minus confirmed bookings. Stored and enforced by the database; never below zero. |
+| **Booking** | One person's confirmed spot on one activity. Direct bookings and invite claims are both bookings. |
+| **Plan** | The shared group around one activity. Created by a direct booking; joined by claiming an invite from a Plan member. |
+| **Invite** | A code and deep link created by a Plan member. Either a vouch or a public share. |
+| **Vouch** | A single-use invite addressed to one named person. Carries the inviter's trust. |
+| **Public share** | A multi-use link for anyone. Reach only, no trust. |
+| **Rail** | Which kind of invite a guest came through: vouch or public. Metrics are reported per rail. |
+| **Claim** | Booking a spot through an invite. |
+| **Generation** | Distance from organic sign-up. Organic users are generation 0; a new user who claims an invite is the inviter's generation + 1. Fixed at user creation. |
+| **Attribution** | The append-only record of who brought whom, through which rail and code. |
+| **Open** | The first rendered view of an invite page per invite per device. |
+| **Holdout** | The 10% of bookers who never see invite tools, used to measure the causal effect of invites. |
 
 ## Context
 
@@ -103,12 +121,12 @@ The names and details below are illustrative composites built from Velio's audie
 
 ## Scope challenges
 
-Five questions for the product owner, each with the assumption we build on until it is answered. The first and third challenge the goals themselves. Decisions D1 to D5, under Risks and decisions, settle the questions these raise.
+Five questions for the product owner, each with the assumption we build on. The first and third challenge the goals themselves. Decisions D1 to D5, under Risks and decisions, settle the questions these raise. The product owner confirmed all five working assumptions on 2026-11-03.
 
 | # | Question or concern | Why it matters for users | Working assumption |
 | --- | --- | --- | --- |
 | 1 | **One 25% target blends two different rails.** Zainab (vouch) and Kofi (public) convert very differently, and public links get far more opens. A blended number moves with the mix, not with the product. | We could "hit" 25% by suppressing public sharing, which hurts reach and Tunde's ability to fill a group. | Report open-to-claim per rail. The 25% target applies to vouch invites; public share gets a baseline in week 1 and its own target after. |
-| 2 | **"Opened" is undefined.** WhatsApp and iMessage fetch link previews automatically, and one person may open the same link five times. | Inflated opens make Zainab's flow look broken when it is not. | An open = first human page view per invite per device. Preview bots are filtered by user agent and repeat opens are de-duplicated. |
+| 2 | **"Opened" is undefined.** WhatsApp and iMessage fetch link previews automatically, and one person may open the same link five times. | Inflated opens make Zainab's flow look broken when it is not. | An open = first **rendered** invite page per invite per device, reported by a client beacon after first paint. Preview bots fetch the HTML but never run the beacon, so they are excluded by construction; user-agent filtering is a backup. Repeat opens are de-duplicated. |
 | 3 | **Invite volume is not the outcome.** 30% of bookers inviting can be hit with nagging, and a claimed spot is not a person who shows up. Velio's core metric is plans that happen. | Pressure to invite erodes the trust a vouch carries; ghost claims hurt Amara. | Keep 30% as the target, add guardrails: no-show and host-removal rate of invited vs. organic attendees (H2), and share of Plans where every member attended. Booker cancellation is not in MVP (D3), so it cannot be the guardrail yet. |
 | 4 | **Does an invite hold a spot?** If not, Tunde can promise Zainab a spot that sells out before she taps. If yes, unclaimed holds block real bookers. | This is Tunde's main fear and Amara's main cost, in direct tension. | MVP: invites do not hold spots. The invite shows live availability and a clear sold-out state. Next: a short "save a spot" hold for vouches, if data shows sell-outs between invite and claim. |
 | 5 | **What identity does a first-time guest get?** Full auth is out of scope, but attribution and invite generation need a stable user. | Asking Zainab to sign up kills conversion; no identity breaks attribution. | Lightweight guest identity at claim: display name plus phone or email, bound to a device token. Generation is stamped once, at creation, and never changes. |
@@ -193,6 +211,96 @@ P0 ships in the first release; P1 follows once P0 metrics are readable.
 | X2 | Next | Vouch spot hold: 1 spot for up to 2 h, at most 2 per booker, shipped only if sell-out loss passes 10% of vouch opens (D2). | P1 | Tunde, Zainab |
 | X3 | Next | Booker cancellation, shipped with the waitlist so a freed spot goes to people waiting first (D3). | P1 | Tunde |
 
+## Business rules
+
+These rules settle behavior the requirements above imply but do not state. All were confirmed on 2026-11-03; see Resolved questions.
+
+**Plans and membership**
+
+- A direct booking creates a new Plan owned by the booker.
+- Claiming an invite adds the guest to the Plan the invite came from. This holds for both rails, and for invites created by any Plan member, so Zainab's generation-2 invite fills Tunde's Plan.
+- A person is in at most one Plan per activity, because they hold at most one booking per activity (B2).
+- Any Plan member can create invites. There is no cap on vouch invites; public links are rate-limited (Q3).
+
+**Capacity and activities**
+
+- Capacity can be raised at any time. It can be lowered only down to the number of confirmed bookings.
+- Once an activity has a booking, only its title, description, photo and capacity can change. Date, time and location are locked in MVP, because there are no notifications to tell members about a change (Q2).
+- A host cannot cancel an activity that has bookings in MVP (Q1).
+- A host cannot book their own activity.
+- An activity is stored with its IANA time zone and currency. Times are shown in the activity's local time, labelled with the zone ("Sat 14 Dec, 06:00 Nairobi time"), so Tunde in London sees the time he will actually be there. Prices are shown in the activity's currency, with no conversion in MVP.
+- Bookings and claims close at the activity's start time.
+
+**Host removal**
+
+- A removed attendee's spot is freed immediately and goes to whoever books next. Hosts are told this before confirming. The race D3 avoids for self-serve cancellation is accepted here, because removals are rare and deliberate.
+- The removed person sees "The host removed this booking" on the Plan. Their attribution record is unchanged.
+
+**Identity**
+
+- A user can act as host and as booker. The role toggle switches the interface, not permissions. Host actions are allowed only on the user's own activities.
+- A guest who already has a Velio identity on the device is recognised at claim and skips the name and contact step.
+- An existing user who claims an invite does not count as a new user for K-factor, and keeps their original generation. The claim is still attributed to the inviter for invite-conversion metrics.
+
+## Lifecycles
+
+```mermaid
+stateDiagram-v2
+    direction LR
+    state "Activity" as A {
+        [*] --> Open
+        Open --> SoldOut: spots left = 0
+        SoldOut --> Open: host removes or raises capacity
+        Open --> Started: start time
+        SoldOut --> Started: start time
+        Started --> [*]
+    }
+```
+
+```mermaid
+stateDiagram-v2
+    direction LR
+    state "Booking" as B {
+        [*] --> Confirmed
+        Confirmed --> Removed: host removes
+        Confirmed --> Attended: host marks (H2)
+        Confirmed --> NoShow: host marks (H2)
+    }
+```
+
+```mermaid
+stateDiagram-v2
+    direction LR
+    state "Invite" as I {
+        [*] --> Created
+        Created --> Opened: first rendered view
+        Opened --> Claimed: guest books
+        Claimed --> Opened: public rail only, more claims
+        Created --> Expired: activity starts
+        Opened --> Expired: activity starts
+    }
+```
+
+A vouch is claimed at most once. A public link stays claimable until the activity starts or sells out. Sold out is not an invite state: the invite page shows it live, and the invite becomes claimable again if a spot frees up.
+
+## Notifications in MVP
+
+There are no push notifications, email or SMS sent by Velio in the first release; push is in Next. Every status change shows up live in the relevant view:
+
+- Tunde sees invites move from created to opened to claimed in the Plan.
+- Amara sees bookings land in the attendance view.
+- Guests see a "You're in" screen they can screenshot.
+
+Invite delivery uses the booker's own share sheet (WhatsApp, SMS, copy link). This keeps the vouch personal and means Velio sends nothing on the booker's behalf.
+
+## Operations and admin
+
+- **Kill switch per activity:** stops new bookings and claims, for R1's fallback.
+- **Public-link pause:** by the host, by the link's creator, or automatically under R7.
+- **Oversell check:** runs after every booking and every 5 minutes, and pages on any hit.
+- **Admin metrics page:** the five goals, funnel per rail, K-factor and the guardrail, with the holdout split.
+- **Attribution audit:** verifies the hash chain on demand and nightly.
+
 ## Edge cases and UX states
 
 Every failure ends with a next step, never a dead end or a raw error.
@@ -208,11 +316,14 @@ Every failure ends with a next step, never a dead end or a raw error.
 | Already booked | Tunde | "You're already going" with a link to the Plan. | Unique constraint on (activity, user). |
 | Live connection drops | All | Small "Reconnecting" pill; spots-left greys out until fresh. | Client re-fetches the snapshot on reconnect before trusting events. |
 | Server error on booking | Tunde | "We couldn't confirm your spot. Nothing was booked." Retry button. | Retry uses the same idempotency key, so a slow success is never booked twice. |
+| Activity already started | Anyone with a link | "This activity has started." Shows the host's other activities. | Bookings and claims are rejected after start time. |
+| Guest claims a vouch meant for someone else | Wrong recipient | Claim succeeds: the code is the credential in MVP. The Plan shows the name the guest entered, so Tunde can spot it and ask Amara to remove them. | No contact verification in MVP (non-goal). A contact-hash mismatch is logged for review. |
+| Host removed the booking | Removed guest | Plan shows "The host removed this booking," with the host's other dates. | Spot freed in the same transaction; attribution untouched. |
 
 ## Non-functional requirements
 
 - **Correctness under concurrency.** The spot count is enforced by the database, not the app: a conditional decrement (`UPDATE activities SET spots_left = spots_left - 1 WHERE id = $1 AND spots_left > 0`) inside the booking transaction, plus a unique constraint on (activity, user). An automated test fires truly parallel requests at the last spots and asserts exactly N succeed, the rest get `sold_out`, and bookings equal capacity.
-- **Live availability.** After commit, the API publishes the new count to Redis pub/sub; every API instance fans it out over WebSockets to clients viewing that activity. Each event carries a monotonically increasing version, so clients ignore stale or out-of-order updates. Target: p95 ≤ 2 s from commit to client render, measured by client acknowledgements.
+- **Live availability.** The booking transaction emits a Postgres `NOTIFY` with the new count, which Postgres delivers only if the transaction commits. Every API instance listens and fans it out over WebSockets to clients viewing that activity. (Decided 2026-11-03 over Redis pub/sub, which has a gap between commit and publish and needs another service. Redis remains the path if booking volume outgrows `NOTIFY`.) Each event carries a monotonically increasing version, so clients ignore stale or out-of-order updates. Target: p95 ≤ 2 s from commit to client render, measured by client acknowledgements.
 - **Immutable attribution.** Invites and attribution events live in append-only tables. The database role used by the API has no UPDATE or DELETE on them, and a trigger rejects changes. Each row stores a hash of the previous row for the activity, so tampering is detectable in an audit.
 - **Performance.** Activity page first content under 1.5 s on a mid-range Android over 3G, since Zainab and Kofi mostly arrive on mobile.
 - **Privacy.** A vouch stores the invitee's contact only to deliver and match the invite. Hosts see names, not phone numbers or emails. Contact details never appear in URLs.
@@ -261,21 +372,21 @@ Risks are ranked by harm to users, worst first. Each one has a signal that warns
 | # | Risk | Who it hurts | Early signal | Mitigation (built in) | Fallback if it happens |
 | --- | --- | --- | --- | --- | --- |
 | R1 | Concurrency bug oversells an activity | Amara, Tunde | Oversell check > 0 | Conditional decrement in the booking transaction; unique (activity, user) constraint; concurrent last-spot test runs in CI on every change | Kill switch pauses booking for that activity; host alerted; displaced guest gets priority on the host's next date |
-| R2 | Hot activity: row contention slows bookings at peak | Tunde | Booking latency p95; lock wait time | Single short transaction on one row; load test at 10× expected peak | Per-activity booking queue (Redis stream, one worker); correctness unchanged |
-| R3 | Redis or WebSocket outage leaves spot counts stale | Tunde, Kofi | `availability_rendered` p95; drop in open sockets | Versioned events; snapshot re-fetch on reconnect; clients poll every 10 s while the socket is down | Bookings still correct because the database decides; a stale screen ends in the kind sold-out state, never an oversell |
+| R2 | Hot activity: row contention slows bookings at peak | Tunde | Booking latency p95; lock wait time | Single short transaction on one row; load test at 10× expected peak (Q4: 500 bookers on one activity within 10 s, 5,000 concurrent viewers) | Per-activity booking queue (Redis stream, one worker); correctness unchanged |
+| R3 | Realtime listener or WebSocket outage leaves spot counts stale | Tunde, Kofi | `availability_rendered` p95; drop in open sockets | Versioned events; snapshot re-fetch on reconnect; clients poll every 10 s while the socket is down | Bookings still correct because the database decides; a stale screen ends in the kind sold-out state, never an oversell |
 | R4 | Activity sells out between invite and claim | Zainab, Tunde | Share of invite opens landing on sold out | Live spots on the invite page; sell-out loss tracked apart from friction loss | Vouch hold (D2) and waitlist (D3) |
 | R5 | Duplicate guest identities (one person, two devices) | Velio metrics | Same contact hash on several users | Match on a normalised phone or email hash at claim; first identity wins | Merges stored as append-only links; original attribution never rewritten |
 | R6 | Invite prompt feels pushy | Tunde, Zainab | Prompt dismiss rate; invited vs. organic cancellations | One prompt at confirmation, easy to dismiss, never repeated | Test a quieter prompt against the current one, both measured against the holdout |
 | R7 | Public links spread to spam channels | Amara, Kofi | Opens per link spike while claims stay under 2% | Links capped by spots left; per-link rate limits; host can switch public links off | Auto-pause a link that crosses the threshold and notify its owner |
 | R8 | No-shows from easy claims | Amara | No-show marks (H2) and host removals, invited vs. organic | Attendance marking and host removal in MVP; no-show rate tracked per rail from day one | 24 h reminders with one-tap "can't make it", shipped with cancellation (D3); ask vouched guests to reconfirm; review whether public claims need a deposit when payments arrive |
-| R9 | Link-preview bots and repeat opens inflate the funnel | Velio metrics | Opens with no rendered page | Bot user agents filtered; opens de-duplicated per invite and device | Count only opens confirmed by a client render event |
+| R9 | Link-preview bots and repeat opens inflate the funnel | Velio metrics | Page fetches far above rendered opens for a link | Opens counted only from a client render beacon, de-duplicated per invite and device; bot user agents filtered as a backup | Add a short dwell-time threshold before an open counts |
 | R10 | Invite codes guessed | Zainab, Amara | Invalid-code attempts per device | 6 characters from a 31-character alphabet (about 887 million codes); 10 attempts per device per hour; vouch codes single use | Lengthen codes and lock the device out for 24 h |
 | R11 | Attribution changed by hand | Velio metrics | Hash chain fails verification | Append-only tables; no UPDATE or DELETE grants; corrections as new rows | Restore from the hash-verified log and flag the affected period in reports |
 | R12 | Holdout contaminated by public links | Velio metrics | Holdout users appearing as claimers | Assignment and analysis at the booker level, intention-to-treat | Report the effect as a lower bound and note it in the readout |
 
 ### Decisions on open questions
 
-Each open question now has a recommended decision for the product owner to confirm. Every decision has a condition that would reopen it.
+The product owner confirmed all five decisions on 2026-11-03. Every decision has a condition that would reopen it.
 
 | # | Question | Decision | Why, in user terms | Reopen if |
 | --- | --- | --- | --- | --- |
@@ -284,3 +395,17 @@ Each open question now has a recommended decision for the product owner to confi
 | D3 | Is cancellation in this release? | **No. It ships with the waitlist (P1), as one change.** In MVP, the host can remove an attendee manually. | A freed spot should go first to someone already waiting, not to whoever refreshes fastest. Shipping cancellation alone would create a race that Tunde's friends lose. | Hosts remove more than 5% of bookings by hand, which shows bookers need self-serve cancellation sooner. |
 | D4 | A guest claims through a public link, then gets a vouch. Which sets generation? | **The first claim sets generation and inviter forever.** The later vouch is stored as its own append-only trust edge ("Tunde vouches for Kofi"). It counts toward Tunde's vouch activity but not toward K-factor. | Attribution stays immutable and auditable, and Velio keeps the trust signal. Tunde's vouch still means something to Kofi. | Product wants vouches to drive a trust score. That is out of scope now and would need its own model. |
 | D5 | Can hosts see who vouched for whom? | **Partly.** Amara sees each attendee's source and the inviter's display name ("via Tunde", "via public link"). She never sees contact details or personal notes on invites. Guests are told this at claim. | Amara needs to see groups to plan seating, boats or tables. The note Tunde wrote to Zainab is between friends. | Guests drop at the claim screen after the disclosure appears; test showing source without the inviter's name. |
+
+## Resolved questions
+
+Raised while writing the business rules and resolved by the product owner on 2026-11-03.
+
+| # | Question | Decision | Reopen if |
+| --- | --- | --- | --- |
+| Q1 | Can a host cancel an entire activity that has bookings? | **Not in MVP.** A host can remove attendees one by one. Activity cancellation ships with notifications, so members are told. | Hosts ask for it, or remove every attendee by hand. |
+| Q2 | Can a host edit an activity after bookings exist? | **Title, description, photo and capacity only**, with capacity no lower than confirmed bookings. Date, time and location are locked. | Notifications ship, so members can be told of a change. |
+| Q3 | Is there a limit on invites per booker? | **No cap on vouch invites.** Public links are rate-limited (R7). | The dismiss or spam signals in R6 or R7 fire. |
+| Q4 | What traffic should the prototype handle? | **Assumed expected peak:** 50 people booking one activity within 10 s, and 500 concurrent viewers. Load-tested at 10×: 500 bookers and 5,000 viewers. | Real traffic data exists. |
+| Q5 | Where do activity photos live? | **S3**, uploaded by the host through a signed URL. One photo per activity. | — |
+| Q6 | Standalone prototype, or built into Velio's product? | **Standalone**, with Velio's design language and seeded placeholder communities. Integration is a later step. | Velio's APIs and auth become available. |
+| Q7 | How long is a vouch invitee's contact kept? | **Until the activity ends plus 30 days.** After that the salted hash is kept and the raw contact deleted. | Legal or privacy review says otherwise. |
