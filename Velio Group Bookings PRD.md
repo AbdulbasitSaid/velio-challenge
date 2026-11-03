@@ -1,6 +1,6 @@
 # Velio Group Bookings PRD
 
-Nov 3, 2026 · Owner: @abdulbasit · Status: decisions D1–D5 and Q1–Q7 confirmed
+Nov 3, 2026 · Owner: @abdulbasit · Status: decisions D1–D5 and Q1–Q12 confirmed
 
 ## TL;DR
 
@@ -215,14 +215,14 @@ P0 ships in the first release; P1 follows once P0 metrics are readable.
 
 These rules settle behavior the requirements above imply but do not state. All were confirmed on 2026-11-03; see Resolved questions.
 
-**Plans and membership**
+### Plans and membership
 
 - A direct booking creates a new Plan owned by the booker.
 - Claiming an invite adds the guest to the Plan the invite came from. This holds for both rails, and for invites created by any Plan member, so Zainab's generation-2 invite fills Tunde's Plan.
 - A person is in at most one Plan per activity, because they hold at most one booking per activity (B2).
 - Any Plan member can create invites. There is no cap on vouch invites; public links are rate-limited (Q3).
 
-**Capacity and activities**
+### Capacity and activities
 
 - Capacity can be raised at any time. It can be lowered only down to the number of confirmed bookings.
 - Once an activity has a booking, only its title, description, photo and capacity can change. Date, time and location are locked in MVP, because there are no notifications to tell members about a change (Q2).
@@ -231,16 +231,36 @@ These rules settle behavior the requirements above imply but do not state. All w
 - An activity is stored with its IANA time zone and currency. Times are shown in the activity's local time, labelled with the zone ("Sat 14 Dec, 06:00 Nairobi time"), so Tunde in London sees the time he will actually be there. Prices are shown in the activity's currency, with no conversion in MVP.
 - Bookings and claims close at the activity's start time.
 
-**Host removal**
+### Payment and booking reference
+
+- Prices are shown as "{price} · pay the host on the day". Velio takes no payment and shows no checkout (Non-goals).
+- Every booking gets a short reference such as `VLO-48213`. The guest sees it on the success screen and in the Plan, so they can screenshot it, and the host sees it in the attendance list for check-in.
+
+### Host removal
 
 - A removed attendee's spot is freed immediately and goes to whoever books next. Hosts are told this before confirming. The race D3 avoids for self-serve cancellation is accepted here, because removals are rare and deliberate.
 - The removed person sees "The host removed this booking" on the Plan. Their attribution record is unchanged.
 
-**Identity**
+### Identity
 
 - A user can act as host and as booker. The role toggle switches the interface, not permissions. Host actions are allowed only on the user's own activities.
 - A guest who already has a Velio identity on the device is recognised at claim and skips the name and contact step.
 - An existing user who claims an invite does not count as a new user for K-factor, and keeps their original generation. The claim is still attributed to the inviter for invite-conversion metrics.
+
+### Communities, people and what is public
+
+- Communities are real records: name, slug, cover photo and a short blurb. Explore Kenya, The Tanzania Experience and The Medina Collective are seeded. Each community has a page listing its upcoming activities with spots left. Every activity belongs to one community. There is no posting or voting in MVP.
+- "More in [community]" means upcoming activities in the same community that still have spots, soonest first, excluding the current one.
+- Avatars are initials on a colour derived from the user's ID. There are no photo uploads for people in MVP.
+- **Names by audience:**
+
+  | Who is looking | What they see of other people |
+  | --- | --- |
+  | Anyone with an invite link, on public surfaces (invite page, activity page, profile, community page) | First name and last initial ("Tunde A.") |
+  | Plan members | Each other's full display names |
+  | The host | Full display names and sources (D5) |
+
+- **A profile page** shows a display name in the public form above, an initials avatar, "On Velio since [month year]", and upcoming activities the person hosts. It never shows bookings or Plans, because where and when someone will be is a safety concern.
 
 ## Lifecycles
 
@@ -307,10 +327,10 @@ Every failure ends with a next step, never a dead end or a raw error.
 
 | Situation | Who hits it | What they see | What happens underneath |
 | --- | --- | --- | --- |
-| Spot sells out mid-checkout | Tunde | Button reverts gently: "Someone just took the last spot. We didn't book or charge you." Options: join the waitlist (P1), see similar activities, follow the host. | Optimistic state rolled back; server returned a typed `sold_out`; sold-out rejection metric incremented. |
-| Invite opened for a full activity | Zainab, Kofi | "This one filled up before you got here." Shows who is going and lets them message the inviter or see the host's next dates. | Open is still recorded so the funnel shows sell-out loss separately from friction loss. |
+| Spot sells out mid-checkout | Tunde | Button reverts gently: "Someone just took the last spot. We didn't book or charge you." Options: the host's other dates, "More in [community]". (Join the waitlist arrives with P1.) | Optimistic state rolled back; server returned a typed `sold_out`; sold-out rejection metric incremented. |
+| Invite opened for a full activity | Zainab, Kofi | "This one filled up before you got here." Shows who is going, plus three next steps: "Tell [inviter]" opens the share sheet with a prefilled reply, the host's other dates, and "More in [community]". | Open is still recorded so the funnel shows sell-out loss separately from friction loss. |
 | Vouch code already used | Zainab | "This invite has already been claimed." If it was claimed by her own device, show her booking instead. | Single-use enforced in the same transaction as the booking. |
-| Expired code | Zainab, Kofi | "This invite expired when the activity started." Link to the inviter's profile. | Invites expire at activity start time. |
+| Expired code | Zainab, Kofi | "This invite expired when the activity started." Links to the inviter's profile page, the host's other dates and "More in [community]". | Invites expire at activity start time. |
 | Invalid or mistyped code | Zainab | Inline field error, code stays in the field to fix; no screen change. | Rate-limited per device to stop code guessing. |
 | Guest is offline | Zainab | Cached activity card with a "Last updated 10 min ago" label; Claim disabled with "Reconnect to claim". | Claims are never queued offline, because a queued claim could succeed after the activity sells out and confuse everyone. |
 | Already booked | Tunde | "You're already going" with a link to the Plan. | Unique constraint on (activity, user). |
@@ -409,3 +429,8 @@ Raised while writing the business rules and resolved by the product owner on 202
 | Q5 | Where do activity photos live? | **S3**, uploaded by the host through a signed URL. One photo per activity. | — |
 | Q6 | Standalone prototype, or built into Velio's product? | **Standalone**, with Velio's design language and seeded placeholder communities. Integration is a later step. | Velio's APIs and auth become available. |
 | Q7 | How long is a vouch invitee's contact kept? | **Until the activity ends plus 30 days.** After that the salted hash is kept and the raw contact deleted. | Legal or privacy review says otherwise. |
+| Q8 | What do avatars show, with no user photos? | **Initials** on a colour derived from the user's ID. | Users ask for photos. |
+| Q9 | The sold-out and expired screens offered messaging, following and "similar", none of which exist. What do they offer instead? | **"Tell [inviter]"** through the share sheet, **the host's other dates**, and **"More in [community]"**. Following is dropped. | A messaging or follow feature is scoped. |
+| Q10 | Do people have profiles? | **A minimal profile page:** public-form name, avatar, "On Velio since", and upcoming activities they host. Never bookings or Plans. | — |
+| Q11 | How real are communities? | **Seeded records with a page** listing upcoming activities. No posting or voting. | Integration with Velio's real communities (Q6). |
+| Q12 | What do public visitors see of members? | **First name and last initial.** Full names only inside the Plan and to the host. | Public-rail conversion suffers measurably from the reduced social proof. |

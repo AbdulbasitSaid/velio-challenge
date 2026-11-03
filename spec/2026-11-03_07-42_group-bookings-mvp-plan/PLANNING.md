@@ -2,7 +2,7 @@
 
 - **Spec ID:** 2026-11-03_07-42_group-bookings-mvp-plan
 - **Created:** 2026-11-03 07:42 (local)
-- **Status:** In review
+- **Status:** Approved (2026-11-03). Implementation authorized only per delivery spec.
 - **Source:** `Velio Group Bookings PRD.md` (all section and requirement IDs below refer to it)
 
 This is an umbrella plan. It fixes the architecture, stack and repo layout, and splits the MVP into delivery specs (S1–S9). Each delivery spec gets its own directory and authorization before any code is written.
@@ -106,9 +106,10 @@ erDiagram
 | --- | --- | --- |
 | `users` | id, display_name, contact_hash, invite_generation, created_at | generation set at insert, never updated (trigger) |
 | `sessions` | token_hash, user_id, device_id, created_at | |
-| `activities` | id, host_id, community, title, description, photo_key, starts_at, timezone, location, price_minor, currency, capacity, spots_left, version, bookings_paused | `CHECK (spots_left >= 0 AND spots_left <= capacity)` |
+| `communities` | id, slug, name, blurb, cover_photo_key | unique `slug`; seeded |
+| `activities` | id, host_id, community_id, title, description, photo_key, starts_at, timezone, location, price_minor, currency, capacity, spots_left, version, bookings_paused | `CHECK (spots_left >= 0 AND spots_left <= capacity)` |
 | `plans` | id, activity_id, owner_id | |
-| `bookings` | id, activity_id, user_id, plan_id, source (direct/vouch/public), invite_id, idempotency_key, status (confirmed/removed), created_at | partial unique `(activity_id, user_id) WHERE status='confirmed'`; unique `(user_id, idempotency_key)` |
+| `bookings` | id, ref, activity_id, user_id, plan_id, source (direct/vouch/public), invite_id, idempotency_key, status (confirmed/removed), created_at | partial unique `(activity_id, user_id) WHERE status='confirmed'`; unique `(user_id, idempotency_key)`; unique `ref` (`VLO-` + 5 characters from the invite-code alphabet, generated in the booking transaction, retried on collision) |
 | `invites` (AO) | id, code, rail, activity_id, plan_id, inviter_id, invitee_name, invitee_contact_hash, note, expires_at, prev_hash, row_hash | unique `code` |
 | `invite_controls` | invite_id, paused, paused_by, updated_at | mutable operational state, kept out of the AO table |
 | `invite_opens` | invite_id, device_id, first_rendered_at | unique `(invite_id, device_id)` |
@@ -186,7 +187,9 @@ COMMIT;
 | --- | --- | --- |
 | `POST /sessions` | Continue as (name, email or phone) | Non-goals |
 | `GET /activities/:id` | Snapshot: details, spots_left, version, member preview | A2 |
-| `GET /activities?community=` | List | — |
+| `GET /communities`, `GET /communities/:slug` | Community list; community page with upcoming activities with spots | Business rules (Q11) |
+| `GET /activities/:id/next-steps` | Host's other dates plus "More in [community]" for the sold-out and expired screens | Edge cases (Q9) |
+| `GET /users/:id/profile` | Public-form name, avatar seed, member since, upcoming hosted activities | Business rules (Q10) |
 | `POST /activities` / `PATCH /activities/:id` | Create, edit within business rules | A1 |
 | `POST /activities/:id/photo-upload` | Signed upload URL | A1, Q5 |
 | `POST /activities/:id/bookings` + `Idempotency-Key` | Direct booking | B1–B3 |
@@ -202,6 +205,12 @@ COMMIT;
 | `POST /events` | Client analytics events | Success metrics |
 | `GET /admin/metrics` | Goals, funnel, K-factor, guardrail, by arm | Release plan |
 | `WS /ws` | Realtime | A2, A3 |
+
+**Names by audience** (PRD Business rules, Q12): there are two contract types for a person.
+- `PublicPerson { id, shortName: "Tunde A.", avatarSeed }` is the only shape returned by public endpoints (activity, invite, profile, community).
+- `MemberPerson` adds `displayName` and is returned only by Plan endpoints to members, and by host endpoints to the activity's host.
+
+The server computes `shortName`; full names never reach a public response, so a client can't leak them by mistake. Avatars are initials on a colour from a fixed palette, chosen by a hash of `avatarSeed`. Web and Flutter share the palette through design tokens.
 
 The contract is defined once (§5, `packages/contracts`) and generated into the Dart client. In deployment all REST paths sit under `/api` and the socket at `/ws`, so CloudFront can route them to the API (§4.11).
 
@@ -461,13 +470,14 @@ Each step below becomes its own spec, needs authorization, and is ordered by ris
 
 | # | Delivery spec | Contents | PRD | Depends on | Size |
 | --- | --- | --- | --- | --- | --- |
-| S1 | Foundations | git and GitHub repo, Bun workspaces, local compose, migrations for all tables, AO grants and triggers, identity, contracts package, CI workflow, **telemetry base** (OTel SDK on Bun verified, JSON logs with redaction, local collector, HTTP and DB metrics) | — | — | M |
+| S1 | Foundations | `.gitignore` and CI workflow file (git itself is the user's), Bun workspaces, local compose, migrations for all tables, AO grants and triggers, identity, contracts package, CI workflow, **telemetry base** (OTel SDK on Bun verified, JSON logs with redaction, local collector, HTTP and DB metrics) | — | — | M |
 | S2 | Booking core | Booking transaction, typed errors, idempotency, removal, capacity edit, **concurrency test**, booking metrics, first k6 `last_spot_race` smoke run | B1–B3, I6 (engine), R1 | S1 | M |
 | S3 | Realtime | WS gateway, `NOTIFY` bridge, versioned events, snapshot and poll fallback, latency acks, realtime metrics | A2, A3, R3 | S2 | M |
 | S4 | Invites and attribution | Codes, opens beacon, claims, attribution, trust edges, hash chain, rate limits, pause | I1–I6, D4, R5, R7, R9–R11 | S2 | L |
-| S5 | Web: host and booker | Create activity and photo upload, activity page, book, Plan, invite step, attendance (H1, H2), role toggle | A1, W1, L1, H1, H2 | S3, S4 | L |
-| S6 | Web: invite and claim page | SSR `/i/[code]`, OG tags, deep-link files, claim flow, all edge-case states, performance budget | M1 (web fallback), edge cases | S4 | M |
-| S7 | Flutter app | Code entry, deep links, invite view, claim, live spots, offline cache, haptics, skeletons | M1–M3 | S3, S4, contracts | L |
+| UX | UX design (`spec/2026-11-03_09-09_ux-design/`) | Screen inventory, tokens, components, copy, clickable prototype, wireframes for remaining screens | All UI | — (runs alongside S1–S2) | M |
+| S5 | Web: host and booker | Create activity and photo upload, activity page, book, Plan, invite step, attendance (H1, H2), role toggle | A1, W1, L1, H1, H2 | S3, S4, UX | L |
+| S6 | Web: invite and claim page | SSR `/i/[code]`, OG tags, deep-link files, claim flow, all edge-case states, performance budget | M1 (web fallback), edge cases | S4, UX | M |
+| S7 | Flutter app | Code entry, deep links, invite view, claim, live spots, offline cache, haptics, skeletons | M1–M3 | S3, S4, contracts, UX | L |
 | S8 | Metrics, flags and admin | Events, SQL views, holdout, admin page, oversell job, audit job, purge, web vitals and mobile timings, Grafana dashboards and alerts | Success metrics, holdout | S4 | M |
 | S9 | Hardening | Full k6 suite (§4.13) at 10× the assumed peak (PRD Q4) from the load-runner stack, baseline recorded, Lighthouse, accessibility pass, Playwright and Flutter E2E | NFRs, R2 | S5–S8, S10 | M |
 | S10 | AWS deployment | CDK app stack, CloudFront behaviors, origin lockdown, prod compose with otel-collector, Grafana Cloud export, backups, deploy workflow, deep-link files on the live hostname, CDK load-runner stack | §4.11–§4.13 | S1 (start early, so deep links are testable on devices during S6 and S7) | M |
@@ -556,3 +566,11 @@ Each step below becomes its own spec, needs authorization, and is ordered by ris
   - **Structure:** `telemetry/`, collector config, `infra/grafana/` and the `load/` layout.
   - **Delivery plan:** telemetry base in S1, booking metrics and a k6 smoke run in S2, realtime metrics in S3, dashboards and alerts in S8, full k6 suite in S9, load-runner stack in S10.
   - **Risks:** four added.
+- 2026-11-03: UX gap decisions (PRD Q8–Q12) folded in.
+  - **Data model:** a `communities` table, and `activities.community_id` replaces the text field.
+  - **Endpoints:** communities, next-steps and profile added.
+  - **People in contracts:** `PublicPerson` and `MemberPerson` types enforce names by audience; initials avatars.
+  - **Next:** the UX design spec follows, alongside S1–S2.
+- 2026-11-03: UX decisions confirmed. `bookings.ref` was added (UX-2), and the payment line reads "pay the host on the day" (UX-1).
+- 2026-11-03: **approved by the product owner.** Approval covers the design; each delivery spec (S1–S10, UX) still needs its own authorization before implementation.
+- 2026-11-03: the user owns all git and GitHub work, and Claude never commits or pushes. S1 scope adjusted. Versions are the latest stable, pinned exactly.

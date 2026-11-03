@@ -35,7 +35,9 @@ Group activities on Velio are agreed socially but booked alone. Hosts cannot tru
 
 - ✅ PRD written, enriched and confirmed by the owner.
 - ✅ Development process established (`CLAUDE.md`, spec workflow, changelog).
-- 🔄 MVP plan (system design, stack, structure) in review.
+- ✅ MVP plan (system design, stack, structure) approved.
+- ✅ UX design spec and prototype approved.
+- 🔄 Phase 0 reopened (2026-11-03): Google Maps locations and a complete UI design in Claude Design, both in review.
 - No application code, repository (git) or infrastructure exists yet.
 
 ## Milestones
@@ -58,7 +60,7 @@ The PRD sizes this at 48 hours. That is an estimate, not a deadline.
 
 All PRD P0 requirements, plus the concurrent last-spot test, metrics endpoint and admin page, SQL views for invite rate, open-to-claim and K-factor by rail, and the `group_invites` flag with holdout assignment. (PRD: Release plan)
 
-Highest-risk items to prove first: no overselling, live counts, trustworthy attribution. The delivery order is S1 Foundations → S2 Booking core → S3 Realtime and S4 Invites → S5–S7 Web and mobile → S8 Metrics → S9 Hardening, with S10 AWS deployment alongside from S1 (see the MVP plan).
+Highest-risk items to prove first: no overselling, live counts, trustworthy attribution. Delivered through Phases 1–5 below (delivery specs S1–S10 from the MVP plan, §7).
 
 ### M2: Staged rollout 📋
 
@@ -72,6 +74,25 @@ In PRD order:
 2. 🔍 Vouch spot hold (X2), only if sell-out loss exceeds 10% of vouch opens (D2).
 3. 📋 Push notifications when a friend claims.
 4. 🔍 Host payouts, once payments are in scope.
+
+## Phases
+
+Phases group the delivery specs from the [MVP plan](spec/2026-11-03_07-42_group-bookings-mvp-plan/PLANNING.md), §7, by risk: correctness first, polish last. A phase starts when the previous phase meets its exit criteria. Each delivery spec inside a phase still needs its own authorization before implementation.
+
+| Phase | Milestone | Delivery specs | Goal | Exit criteria | Status |
+| --- | --- | --- | --- | --- | --- |
+| 0. Decide and design | M0 | PRD, constitution, MVP plan, UX, Google Maps, complete UI design | Agree what to build and how, and design all of it | PRD confirmed with the Google Maps amendments; MVP plan, UX and Google Maps specs approved; Velio design system and every screen and state designed at high fidelity in Claude Design and approved | 🔄 Reopened 2026-11-03 |
+| 1. Foundations | M1 | S1, S10 (app stack) | A tested, deployable, observable empty system | CI green; all migrations apply (including the location columns from the Google Maps spec); append-only grants and triggers enforced; contracts package generates the Dart client; telemetry reaches Grafana Cloud; a health endpoint serves through the `cloudfront.net` hostname | 🔄 S1 in review; schema waits on the Google Maps spec |
+| 2. Correctness core | M1 | S2 | Prove overselling is impossible (R1) | Concurrency test passes in CI against real Postgres; k6 `last_spot_race` smoke returns exactly N successes; idempotent retries, removal and capacity edit covered | 📋 |
+| 3. Realtime and invites | M1 | S3, S4 (in parallel) | Live counts and trustworthy attribution | Versioned events with snapshot and poll fallback; commit-to-render latency measured; vouch double-claim race never double-claims; attribution and hash chain are append-only and audit clean; rate limits and pause work | 📋 |
+| 4. Clients | M1 | S5, S6, S7 (in parallel) | Every P0 flow usable on web and mobile | **Gate:** complete UI design approved (Phase 0). **Exit:** host, booker and guest flows work end to end against the deployed stack; deep links open the app on iOS and Android with the web fallback otherwise | 📋 |
+| 5. Measure and harden | M1 | S8, S9, S10 (load-runner stack) | Prototype complete and verified | Admin page shows the five PRD goals; holdout assignment and exposures recorded; dashboards and alerts live; full k6 suite at 10× assumed peak passes with a recorded baseline; Lighthouse invite-page budget met; accessibility pass; Playwright and Flutter E2E green | 📋 |
+| 6. Staged rollout | M2 | Not yet specified | Earn a keep / iterate / remove decision | PRD release-plan exits: internal → Explore Kenya → GA with 10% holdout → decide. **Before GA:** real authentication (SEC-008) and an encrypted origin hop (SEC-009) | 📋 |
+| 7. Next | M3 | Not yet specified | Growth levers, in PRD order | Waitlist and cancellation (X1, X3); vouch hold (X2) only if D2's trigger fires; push notifications; host payouts | 📋 / 🔍 |
+
+**Deployment track:** S10 starts in Phase 1 so deep links can be tested on real devices during Phase 4, and finishes with the load-runner stack in Phase 5.
+
+**Critical path:** S1 → S2 → S3 / S4 → S5 / S6 / S7 → S8 → S9.
 
 ## Constraints and risks
 
@@ -95,4 +116,8 @@ None blocking. The remaining assumptions are listed in the MVP plan, §10: the a
 | Spec | Milestone | Status |
 | --- | --- | --- |
 | [2026-11-03_07-25_establish-sdd-constitution](spec/2026-11-03_07-25_establish-sdd-constitution/) | Process | Implemented |
-| [2026-11-03_07-42_group-bookings-mvp-plan](spec/2026-11-03_07-42_group-bookings-mvp-plan/) | M0, M1 | In review |
+| [2026-11-03_07-42_group-bookings-mvp-plan](spec/2026-11-03_07-42_group-bookings-mvp-plan/) | M0, M1 | Approved |
+| [2026-11-03_09-09_ux-design](spec/2026-11-03_09-09_ux-design/) ([prototype](https://claude.ai/artifact/NirxnmSocq3eaLLrAwxjBe)) | M1 (before S5–S7) | Approved |
+| [2026-11-03_09-29_s1-foundations](spec/2026-11-03_09-29_s1-foundations/) | M1 · S1 | In review |
+| [2026-11-03_10-34_google-maps-locations](spec/2026-11-03_10-34_google-maps-locations/) | Phase 0 | In review |
+| [2026-11-03_10-34_complete-ui-design](spec/2026-11-03_10-34_complete-ui-design/) | Phase 0 | In review |

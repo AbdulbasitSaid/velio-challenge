@@ -8,7 +8,8 @@ This file is the authoritative source of development rules for this project. If 
 
 - **Product:** Velio Group Bookings. Hosts list activities with fixed spots, bookers reserve and invite friends into a shared Plan, guests claim spots from a link or code. Source of truth for product intent: `Velio Group Bookings PRD.md`.
 - **Code:** none yet. No application, tests, build tooling or dependencies exist.
-- **Version control:** the directory is not a git repository.
+- **Version control:** the user owns git entirely. **Never run `git commit`, `git push`, `git init`, branch or remote commands, or create GitHub repositories.** Implement and leave changes in the working tree for the user to review and commit. Read-only git commands (`status`, `diff`, `log`) are fine.
+- **Versions:** use the latest stable release of every runtime, image and library, checked at implementation time and pinned exactly (lockfile, image tag).
 - **Stack (decided 2026-11-03):** Bun + Hono API, Next.js web (run on Node), Flutter mobile, PostgreSQL with `NOTIFY` for realtime, S3 for photos. Bun workspaces monorepo; git + GitHub + Actions.
 - **Hosting (decided 2026-11-03):** AWS eu-west-2, a single EC2 instance with Docker Compose behind CloudFront, using the free `cloudfront.net` hostname.
 - **Observability and load (decided 2026-11-03):** OpenTelemetry → Grafana Cloud free tier; k6 from a temporary spot EC2. Never put personal data, codes or tokens in telemetry, and never label metrics by entity IDs.

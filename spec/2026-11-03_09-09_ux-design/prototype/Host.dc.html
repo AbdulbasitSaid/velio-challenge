@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Host live attendance</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&amp;family=Sora:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#173600}a:hover{color:#0A0A0A}
+button:focus-visible,a:focus-visible{outline:3px solid #173600;outline-offset:2px}
+</style>
+</helmet>
+<div style="box-sizing: border-box; min-height: 844px; background: #F5F3EC; color: #0A0A0A; font-family: 'DM Sans', system-ui, sans-serif">
+
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 16px clamp(16px, 4vw, 40px); border-bottom: 1px solid #E2DFD4">
+<span style="font-family: Sora, sans-serif; font-weight: 700; font-size: 22px; color: #173600; letter-spacing: -0.02em">velio</span>
+<div style="display: flex; align-items: center; gap: 12px">
+<span style="display: flex; padding: 3px; border-radius: 999px; background: #FFFFFF; font-size: 13px; font-weight: 700">
+<span style="padding: 6px 12px; color: #4A4A4A">Booker</span>
+<span style="padding: 6px 12px; border-radius: 999px; background: #173600; color: #FFFFFF">Host</span>
+</span>
+<a href="#create" style="padding: 10px 18px; border-radius: 999px; background: #C8FC7C; color: #173600; font-weight: 700; font-size: 14px; text-decoration: none">Create activity</a>
+</div>
+</div>
+
+<div style="max-width: 1200px; margin: 0 auto; padding: 28px clamp(16px, 4vw, 40px) 40px; display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start">
+
+<div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 14px; color: #4A4A4A">Explore Kenya · Sat 14 Dec · 17:30 Nairobi time</span>
+<h1 style="margin: 0; font-family: Sora, sans-serif; font-weight: 700; font-size: clamp(28px, 4vw, 40px); letter-spacing: -0.02em">Sunset Kayaking</h1>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px">
+<div style="{{spotsTile}}">
+<span style="font-size: 13px; font-weight: 700">Spots left</span>
+<span style="font-family: Sora, sans-serif; font-weight: 700; font-size: 44px; line-height: 1">{{spotsLeft}}</span>
+<span style="font-size: 13px">of 14</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 16px; border-radius: 18px; background: #FFFFFF"><span style="font-size: 13px; color: #4A4A4A; font-weight: 700">Direct</span><span style="font-family: Sora, sans-serif; font-weight: 700; font-size: 32px">{{nDirect}}</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 16px; border-radius: 18px; background: #FFFFFF"><span style="font-size: 13px; color: #4A4A4A; font-weight: 700">Via a friend</span><span style="font-family: Sora, sans-serif; font-weight: 700; font-size: 32px">{{nVouch}}</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 16px; border-radius: 18px; background: #FFFFFF"><span style="font-size: 13px; color: #4A4A4A; font-weight: 700">Public link</span><span style="font-family: Sora, sans-serif; font-weight: 700; font-size: 32px">{{nPublic}}</span></div>
+</div>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{ false }}">
+<div role="status" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 14px; background: #173600; color: #FFFFFF; font-size: 15px">
+<span style="width: 10px; height: 10px; border-radius: 50%; background: #C8FC7C"></span>{{toast}}
+</div>
+</sc-if>
+
+<sc-if value="{{confirming}}" hint-placeholder-val="{{ false }}">
+<div role="alertdialog" aria-label="Confirm removal" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 16px; border-radius: 14px; background: #FFFFFF; border: 1.5px solid #BE1E1E">
+<span style="font-size: 15px">Remove <strong>{{confirmName}}</strong>? Their spot opens to whoever books next, and they'll see that you removed them.</span>
+<span style="display: flex; gap: 8px">
+<button type="button" onClick="{{cancelRemove}}" style="min-height: 44px; padding: 0 16px; border-radius: 999px; border: 2px solid #173600; background: #FFFFFF; color: #173600; font-family: inherit; font-weight: 700; cursor: pointer">Keep</button>
+<button type="button" onClick="{{doRemove}}" style="min-height: 44px; padding: 0 16px; border-radius: 999px; border: 0; background: #BE1E1E; color: #FFFFFF; font-family: inherit; font-weight: 700; cursor: pointer">Remove</button>
+</span>
+</div>
+</sc-if>
+
+<div style="overflow-x: auto; background: #FFFFFF; border-radius: 18px">
+<table style="width: 100%; min-width: 620px; border-collapse: collapse; font-size: 15px">
+<caption style="text-align: left; padding: 16px 18px 6px; font-weight: 700; font-size: 17px">Attendees · updates live</caption>
+<thead>
+<tr style="text-align: left; color: #4A4A4A; font-size: 13px">
+<th scope="col" style="padding: 10px 18px; font-weight: 700">Name</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 700">Booked</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 700">Came from</th>
+<th scope="col" style="padding: 10px 18px; font-weight: 700; text-align: right">{{actionHeader}}</th>
+</tr>
+</thead>
+<tbody>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="6">
+<tr style="{{r.rowStyle}}">
+<td style="padding: 12px 18px"><span style="display: flex; align-items: center; gap: 10px"><span style="{{r.avatar}}">{{r.initials}}</span><span style="font-weight: 700">{{r.name}}</span></span></td>
+<td style="padding: 12px; color: #4A4A4A">{{r.when}}</td>
+<td style="padding: 12px"><span style="{{r.chip}}">{{r.source}}</span></td>
+<td style="padding: 12px 18px; text-align: right">
+<sc-if value="{{beforeStart}}" hint-placeholder-val="{{ true }}">
+<button type="button" onClick="{{r.ask}}" aria-label="{{r.removeLabel}}" style="min-height: 44px; padding: 0 14px; border: 0; background: none; color: #BE1E1E; font-family: inherit; font-weight: 700; cursor: pointer">Remove</button>
+</sc-if>
+<sc-if value="{{afterStart}}" hint-placeholder-val="{{ false }}">
+<span style="display: inline-flex; gap: 6px">
+<button type="button" onClick="{{r.markIn}}" aria-pressed="{{r.inPressed}}" style="{{r.inStyle}}">Attended</button>
+<button type="button" onClick="{{r.markNo}}" aria-pressed="{{r.noPressed}}" style="{{r.noStyle}}">No-show</button>
+</span>
+</sc-if>
+</td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<p style="margin: 0; font-size: 13px; color: #4A4A4A">You see names and how people found you. Phone numbers, emails and invite notes stay private.</p>
+</div>
+
+<div style="flex: 1 1 280px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 18px; border-radius: 18px; background: #FFFFFF">
+<h2 style="margin: 0; font-size: 16px; font-weight: 700">Public links</h2>
+<p style="margin: 0; font-size: 14px; color: #2A2A2A">Let guests share open links to this activity.</p>
+<button type="button" onClick="{{togglePublic}}" aria-pressed="{{publicOn}}" style="{{publicStyle}}">{{publicLabel}}</button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 18px; border-radius: 18px; background: #FFFFFF">
+<h2 style="margin: 0; font-size: 16px; font-weight: 700">Groups</h2>
+<p style="margin: 0; font-size: 14px; color: #2A2A2A">Tunde's group: 4 people. Wanjiru's group: 3 people. Useful for seating and boats.</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 18px; border-radius: 18px; background: #FFFFFF">
+<h2 style="margin: 0; font-size: 16px; font-weight: 700">Editing</h2>
+<p style="margin: 0; font-size: 14px; color: #2A2A2A">Date, time and place are locked now that people have booked. You can still change the title, description, photo and number of spots (not below {{booked}}).</p>
+</div>
+</div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"phase":{"editor":"enum","options":["before start","after start"],"default":"before start","section":"Scenario"},"$preview":{"width":1280,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      rows: [
+        { id: 1, name: 'Tunde Adeyemi', initials: 'TA', when: '3 Nov, 09:12', source: 'Direct', bg: '#C8FC7C' },
+        { id: 2, name: 'Imani Kamau', initials: 'IK', when: '3 Nov, 09:20', source: 'Via Tunde', bg: '#CDE7FF' },
+        { id: 3, name: 'Ola Martins', initials: 'OM', when: '3 Nov, 09:41', source: 'Public link', bg: '#FFE58A' },
+        { id: 4, name: 'Wanjiru Njoroge', initials: 'WN', when: '3 Nov, 10:05', source: 'Direct', bg: '#F2D4FF' },
+        { id: 5, name: 'Lucas Ndege', initials: 'LN', when: '3 Nov, 10:06', source: 'Via Wanjiru', bg: '#FFD6BA' },
+        { id: 6, name: 'Zainab Okafor', initials: 'ZO', when: '3 Nov, 10:30', source: 'Via Tunde', bg: '#C8FC7C' }
+      ],
+      capacity: 14, extraBooked: 6, toast: '', fresh: 0, confirmId: 0, marks: {}, publicOn: true
+    };
+    this.timers = [];
+  }
+  componentDidMount() {
+    this.timers.push(setTimeout(() => {
+      const row = { id: 7, name: 'Kofi Mensah', initials: 'KM', when: 'Just now', source: 'Public link', bg: '#CDE7FF' };
+      this.setState({ rows: [row].concat(this.state.rows), toast: 'Kofi Mensah just booked through a public link', fresh: 7 });
+      this.timers.push(setTimeout(() => this.setState({ toast: '', fresh: 0 }), 3500));
+    }, 4000));
+  }
+  componentWillUnmount() { this.timers.forEach((t) => clearTimeout(t)); }
+  chip(source) {
+    const bg = source === 'Direct' ? '#ECEAE2' : (source === 'Public link' ? '#CDE7FF' : '#C8FC7C');
+    return 'display: inline-block; padding: 5px 10px; border-radius: 999px; font-size: 13px; font-weight: 700; color: #173600; background: ' + bg;
+  }
+  markStyle(on, danger) {
+    const base = 'min-height: 40px; padding: 0 12px; border-radius: 999px; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; ';
+    if (!on) return base + 'border: 1.5px solid #8A8A8A; background: #FFFFFF; color: #2A2A2A';
+    return base + (danger ? 'border: 1.5px solid #BE1E1E; background: #BE1E1E; color: #FFFFFF' : 'border: 1.5px solid #173600; background: #173600; color: #FFFFFF');
+  }
+  renderVals() {
+    const s = this.state;
+    const after = (this.props.phase ?? 'before start') === 'after start';
+    const booked = s.rows.length + s.extraBooked;
+    const spotsLeft = s.capacity - booked;
+    const count = (f) => s.rows.filter(f).length;
+    const confirmRow = s.rows.find((r) => r.id === s.confirmId);
+    const rows = s.rows.map((r) => {
+      const mark = s.marks[r.id];
+      return {
+        ...r,
+        rowStyle: 'border-top: 1px solid #ECEAE2; transition: background 400ms; background: ' + (s.fresh === r.id ? '#F1FDE0' : '#FFFFFF'),
+        avatar: 'flex: none; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #173600; background: ' + r.bg,
+        chip: this.chip(r.source),
+        removeLabel: 'Remove ' + r.name,
+        ask: () => this.setState({ confirmId: r.id }),
+        inPressed: mark === 'in' ? 'true' : 'false',
+        noPressed: mark === 'no' ? 'true' : 'false',
+        inStyle: this.markStyle(mark === 'in', false),
+        noStyle: this.markStyle(mark === 'no', true),
+        markIn: () => this.setState({ marks: { ...s.marks, [r.id]: 'in' } }),
+        markNo: () => this.setState({ marks: { ...s.marks, [r.id]: 'no' } })
+      };
+    });
+    return {
+      rows, booked,
+      spotsLeft: spotsLeft === 0 ? 'Sold out' : String(spotsLeft),
+      spotsTile: 'display: flex; flex-direction: column; gap: 6px; padding: 16px; border-radius: 18px; color: #173600; background: ' + (spotsLeft <= 2 ? '#C8FC7C' : '#FFFFFF'),
+      nDirect: count((r) => r.source === 'Direct') + s.extraBooked,
+      nVouch: count((r) => r.source.indexOf('Via ') === 0),
+      nPublic: count((r) => r.source === 'Public link'),
+      toast: s.toast,
+      beforeStart: !after, afterStart: after,
+      actionHeader: after ? 'Attendance' : '',
+      confirming: !!confirmRow, confirmName: confirmRow ? confirmRow.name : '',
+      cancelRemove: () => this.setState({ confirmId: 0 }),
+      doRemove: () => {
+        const name = confirmRow ? confirmRow.name : '';
+        this.setState({ rows: s.rows.filter((r) => r.id !== s.confirmId), confirmId: 0, toast: name + ' removed. 1 spot reopened.' });
+        this.timers.push(setTimeout(() => this.setState({ toast: '' }), 3500));
+      },
+      publicOn: s.publicOn ? 'true' : 'false',
+      publicLabel: s.publicOn ? 'On · tap to pause' : 'Paused · tap to resume',
+      publicStyle: 'min-height: 44px; border-radius: 999px; font-family: inherit; font-weight: 700; cursor: pointer; border: 2px solid #173600; ' + (s.publicOn ? 'background: #173600; color: #FFFFFF' : 'background: #FFFFFF; color: #173600'),
+      togglePublic: () => this.setState({ publicOn: !s.publicOn })
+    };
+  }
+}
+</script>
+</body>
+</html>

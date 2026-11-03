@@ -41,6 +41,12 @@ The verifiable requirements for the MVP (PRD P0 plus its metrics, flag and rollo
 | FR-026 | The funnel events and technical events listed in the PRD are emitted with user, activity, invite, rail, generation, platform and timestamp. | Success metrics |
 | FR-027 | 10% of users are assigned to the holdout by a stable hash of user ID, recorded at first exposure. The API returns no invite tools to them. | Holdout design |
 | FR-028 | An admin page shows each PRD goal metric, per-rail funnel, K-factor and the guardrail, split by arm. | Release plan |
+| FR-029 | Communities exist as seeded records (name, slug, blurb, cover photo). Every activity belongs to one. A community page lists its upcoming activities with spots left. | Q11 |
+| FR-030 | The sold-out and expired screens offer "Tell [inviter]" (share sheet, prefilled), the host's other upcoming dates, and "More in [community]": up to 3 upcoming activities in the same community with spots, soonest first. Each block is hidden when empty. | Q9, Edge cases |
+| FR-031 | A profile page shows the public-form name, initials avatar, "On Velio since [month year]" and upcoming hosted activities, and never bookings or Plans. | Q10 |
+| FR-032 | Avatars render initials on a colour picked deterministically from a fixed palette, identically on web and Flutter. | Q8 |
+| FR-033 | Every confirmed booking has a unique reference `VLO-XXXXX`, shown on the guest's success card and Plan and in the host's attendance list. It is never part of a public URL. | UX-2 |
+| FR-034 | Wherever a price is shown it reads "{price} · pay the host on the day". There is no checkout step. | UX-1, Non-goals |
 
 ## Non-functional requirements
 
@@ -76,6 +82,7 @@ The verifiable requirements for the MVP (PRD P0 plus its metrics, flag and rollo
 | SEC-009 | The origin accepts traffic only from CloudFront (managed prefix list plus a secret origin header). There is no SSH. Known limitation: CloudFront reaches the origin over HTTP, which must be fixed before real users. | §4.11 |
 | SEC-010 | Postgres is not reachable from outside the instance. EBS volumes and S3 buckets are encrypted, and S3 buckets are private (CloudFront OAC only). | §4.11 |
 | SEC-011 | No contact details, invite notes, session tokens or invite codes appear in any metric, span attribute or log line; codes in logged paths are redacted. Grafana Cloud credentials are stored as secrets, never in the repository. | §4.12 |
+| SEC-012 | Public endpoints (activity, invite, profile, community, next-steps) return people only as `PublicPerson` ("First L."). Full display names are returned only to Plan members and to the activity's host. | Q12, D5 |
 
 ## Acceptance criteria
 

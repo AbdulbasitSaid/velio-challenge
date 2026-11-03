@@ -31,6 +31,11 @@
 | FR-024 | INT-OPS-1 | S4, S8 |
 | FR-025 | E2E-5, MAN-EDGE-1 | S5–S7 |
 | FR-026–FR-028 | INT-MET-1, INT-FLAG-1, MAN-ADMIN-1 | S8 |
+| FR-029–FR-031 | INT-COMM-1, E2E-5 | S4, S5, S6 |
+| FR-032 | U-AVATAR-1 (same seed → same colour and initials in TS and Dart) | S5, S7 |
+| FR-033 | CONC-1 extended: every confirmed booking has a unique `ref`; E2E-1 shows it on success, Plan and attendance | S2, S5–S7 |
+| FR-034 | E2E-1 copy check on the activity, invite and success screens | S5–S7 |
+| SEC-012 | INT-PRIV-2: contract test that no public endpoint schema contains `displayName`, plus a response scan | S1, S4 |
 | NFR-002 | LOAD-3, LOAD-4 | S9 |
 | NFR-003 | INT-RT-2 | S3 |
 | NFR-004 | PERF-1 | S6 |

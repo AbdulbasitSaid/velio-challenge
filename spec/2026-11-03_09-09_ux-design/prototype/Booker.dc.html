@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Booker book and invite flow</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&amp;family=Sora:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#173600}a:hover{color:#0A0A0A}
+input:focus,textarea:focus{outline:3px solid #97E565;outline-offset:1px}
+button:focus-visible,a:focus-visible{outline:3px solid #173600;outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F5F3EC; color: #0A0A0A; font-family: 'DM Sans', system-ui, sans-serif; overflow-y: auto; display: flex; flex-direction: column">
+
+<div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 20px">
+<span style="font-family: Sora, sans-serif; font-weight: 700; font-size: 20px; color: #173600; letter-spacing: -0.02em">velio</span>
+<span style="display: flex; padding: 3px; border-radius: 999px; background: #FFFFFF; font-size: 13px; font-weight: 700">
+<span style="padding: 6px 12px; border-radius: 999px; background: #173600; color: #FFFFFF">Booker</span>
+<span style="padding: 6px 12px; color: #4A4A4A">Host</span>
+</span>
+</div>
+
+<!-- ============ ACTIVITY ============ -->
+<sc-if value="{{showActivity}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 16px; padding: 0 20px 24px">
+<span style="align-self: flex-start; padding: 6px 12px; border-radius: 999px; background: #FFFFFF; font-size: 13px; color: #173600; font-weight: 500">Explore Kenya</span>
+<div style="position: relative; height: 210px; border-radius: 20px; background: #173600; overflow: hidden">
+<svg width="350" height="210" viewBox="0 0 350 210" fill="none" aria-hidden="true"><circle cx="250" cy="100" r="34" stroke="#C8FC7C" stroke-width="3"></circle><path d="M0 140c30-10 58-10 88 0s58 10 88 0 58-10 88 0 58 10 86 0" stroke="#97E565" stroke-width="3"></path><path d="M0 164c30-10 58-10 88 0s58 10 88 0 58-10 88 0 58 10 86 0" stroke="#97E565" stroke-width="3" opacity="0.6"></path></svg>
+<span style="position: absolute; left: 14px; bottom: 12px; font-size: 12px; color: #C8FC7C">[Activity photo]</span>
+<span style="position: absolute; right: 12px; top: 12px; display: flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px; background: #FFFFFF; font-size: 14px; font-weight: 700; color: #173600"><span style="width: 8px; height: 8px; border-radius: 50%; background: #2F8F00"></span>{{spotsLabel}}</span>
+</div>
+<h1 style="margin: 0; font-family: Sora, sans-serif; font-weight: 700; font-size: 30px; line-height: 1.1; letter-spacing: -0.02em">Sunset Kayaking</h1>
+<p style="margin: 0; font-size: 15px; line-height: 1.5; color: #2A2A2A">Two hours on Lake Naivasha as the sun drops, with hippos at a respectful distance. Kayaks, life jackets and a guide included.</p>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+<div style="padding: 12px 14px; background: #FFFFFF; border-radius: 14px"><div style="font-size: 12px; color: #4A4A4A">When</div><div style="font-weight: 700; font-size: 15px">Sat 14 Dec, 17:30</div><div style="font-size: 12px; color: #4A4A4A">Nairobi time</div></div>
+<div style="padding: 12px 14px; background: #FFFFFF; border-radius: 14px"><div style="font-size: 12px; color: #4A4A4A">Price</div><div style="font-weight: 700; font-size: 15px">KES 4,500</div><div style="font-size: 12px; color: #4A4A4A">Paid to host</div></div>
+</div>
+<div style="display: flex; align-items: center; gap: 12px">
+<div style="display: flex">
+<sc-for list="{{going}}" as="p" hint-placeholder-count="4"><span style="{{p.style}}">{{p.initials}}</span></sc-for>
+</div>
+<span style="font-size: 14px; color: #173600">11 going · hosted by Amara W.</span>
+</div>
+
+<sc-if value="{{soldOutMsg}}" hint-placeholder-val="{{ false }}">
+<div role="status" style="display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 14px; background: #FFFFFF; border: 1.5px solid #BE1E1E">
+<span style="font-weight: 700; color: #BE1E1E">Someone just took the last spot.</span>
+<span style="font-size: 14px; color: #2A2A2A">We didn't book or charge you.</span>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<a href="#dates" style="padding: 10px 14px; border-radius: 999px; border: 2px solid #173600; color: #173600; font-size: 14px; font-weight: 700; text-decoration: none">Amara's other dates</a>
+<a href="#more" style="padding: 10px 14px; border-radius: 999px; border: 2px solid #173600; color: #173600; font-size: 14px; font-weight: 700; text-decoration: none">More in Explore Kenya</a>
+</div>
+</div>
+</sc-if>
+
+<button type="button" onClick="{{book}}" disabled="{{bookDisabled}}" style="{{bookStyle}}">{{bookLabel}}</button>
+</div>
+</sc-if>
+
+<!-- ============ YOU'RE GOING + INVITE PROMPT ============ -->
+<sc-if value="{{showGoing}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 18px; padding: 8px 20px 24px">
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 20px; border-radius: 22px; background: #173600">
+<span style="font-size: 13px; color: #C8FC7C; font-weight: 700">Booked</span>
+<h1 style="margin: 0; font-family: Sora, sans-serif; font-weight: 700; font-size: 28px; line-height: 1.1; letter-spacing: -0.02em; color: #FFFFFF">You're going to Sunset Kayaking</h1>
+<p style="margin: 0; font-size: 15px; color: #E8F5D8">Sat 14 Dec · 17:30 Nairobi time · 2 spots left</p>
+</div>
+<h2 style="margin: 0; font-family: Sora, sans-serif; font-weight: 700; font-size: 22px; letter-spacing: -0.01em">Who's coming with you?</h2>
+<p style="margin: 0; font-size: 15px; color: #2A2A2A">Only 2 spots left. Invites don't hold a spot, so tell friends now.</p>
+<button type="button" onClick="{{goVouch}}" style="display: flex; align-items: center; gap: 14px; padding: 16px; border: 0; border-radius: 18px; background: #C8FC7C; color: #173600; font-family: inherit; text-align: left; cursor: pointer">
+<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="4"></circle><path d="M2 21a7 7 0 0 1 14 0"></path><path d="M19 8v6M16 11h6"></path></svg>
+<span style="display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 700; font-size: 17px">Invite a friend</span><span style="font-size: 14px">Put your name on it. Sent from your WhatsApp or SMS.</span></span>
+</button>
+<button type="button" onClick="{{share}}" style="display: flex; align-items: center; gap: 14px; padding: 16px; border: 2px solid #173600; border-radius: 18px; background: #FFFFFF; color: #173600; font-family: inherit; text-align: left; cursor: pointer">
+<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"></path><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"></path></svg>
+<span style="display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 700; font-size: 17px">{{shareLabel}}</span><span style="font-size: 14px">Anyone with the link can join. Good for the community thread.</span></span>
+</button>
+<button type="button" onClick="{{goPlan}}" style="align-self: center; min-height: 44px; border: 0; background: none; color: #173600; font-family: inherit; font-size: 15px; text-decoration: underline; cursor: pointer">Not now, see my Plan</button>
+</div>
+</sc-if>
+
+<!-- ============ VOUCH FORM ============ -->
+<sc-if value="{{showVouch}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 16px; padding: 8px 20px 24px">
+<button type="button" onClick="{{backGoing}}" style="align-self: flex-start; display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 0; border: 0; background: none; color: #173600; font-family: inherit; font-size: 15px; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>Back</button>
+<h1 style="margin: 0; font-family: Sora, sans-serif; font-weight: 700; font-size: 26px; letter-spacing: -0.02em">Vouch for a friend</h1>
+<p style="margin: 0; font-size: 15px; color: #2A2A2A">One invite, one person. It shows your name, so they know it's from you.</p>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="v-name" style="font-size: 14px; font-weight: 700">Their name</label>
+<input id="v-name" type="text" value="{{vName}}" onChange="{{onVName}}" placeholder="Zainab" style="height: 52px; padding: 0 16px; border: 1.5px solid #8A8A8A; border-radius: 14px; background: #FFFFFF; font-family: inherit; font-size: 16px">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="v-note" style="font-size: 14px; font-weight: 700">A note <span style="font-weight: 400; color: #4A4A4A">(optional, only they see it)</span></label>
+<textarea id="v-note" rows="3" placeholder="Sunset on the lake, then food after. Come with us." style="padding: 12px 16px; border: 1.5px solid #8A8A8A; border-radius: 14px; background: #FFFFFF; font-family: inherit; font-size: 16px; resize: none"></textarea>
+</div>
+<button type="button" onClick="{{sendVouch}}" style="height: 56px; border: 0; border-radius: 999px; background: #C8FC7C; color: #173600; font-family: inherit; font-size: 17px; font-weight: 700; cursor: pointer">Send via WhatsApp</button>
+<span style="font-size: 13px; color: #4A4A4A; text-align: center">Opens your share sheet with the link and code.</span>
+</div>
+</sc-if>
+
+<!-- ============ PLAN ============ -->
+<sc-if value="{{showPlan}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 16px; padding: 8px 20px 24px">
+<h1 style="margin: 0; font-family: Sora, sans-serif; font-weight: 700; font-size: 26px; letter-spacing: -0.02em">Your Plan</h1>
+<p style="margin: 0; font-size: 15px; color: #4A4A4A">Sunset Kayaking · Sat 14 Dec · <span style="color: #173600; font-weight: 700">{{spotsLabel}}</span></p>
+<div style="display: flex; flex-direction: column; background: #FFFFFF; border-radius: 18px; padding: 6px 16px">
+<div style="display: flex; align-items: center; gap: 12px; padding: 12px 0">
+<span style="{{me}}">TA</span>
+<span style="display: flex; flex-direction: column"><span style="font-weight: 700">Tunde Adeyemi (you)</span><span style="font-size: 13px; color: #4A4A4A">Booked</span></span>
+</div>
+<sc-for list="{{invites}}" as="i" hint-placeholder-count="2">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-top: 1px solid #ECEAE2">
+<span style="display: flex; flex-direction: column"><span style="font-weight: 700">{{i.who}}</span><span style="font-size: 13px; color: #4A4A4A">{{i.rail}}</span></span>
+<span style="{{i.chip}}">{{i.status}}</span>
+</div>
+</sc-for>
+</div>
+<p style="margin: 0; font-size: 13px; color: #4A4A4A">Statuses update live. "Created" means the link exists; we can't see whether it was sent.</p>
+<button type="button" onClick="{{restart}}" style="align-self: center; min-height: 44px; border: 0; background: none; color: #4A4A4A; font-family: inherit; font-size: 13px; text-decoration: underline; cursor: pointer">Restart prototype</button>
+</div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"outcome":{"editor":"enum","options":["booking succeeds","sold out mid-checkout"],"default":"booking succeeds","section":"Scenario"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { screen: 'activity', booking: false, soldOut: false, copied: false, vName: '', vouched: false, spots: 3 };
+    this.timers = [];
+  }
+  componentWillUnmount() { this.timers.forEach((t) => clearTimeout(t)); }
+  componentDidUpdate(prev) {
+    if (prev.outcome !== this.props.outcome) this.reset();
+  }
+  reset() {
+    this.timers.forEach((t) => clearTimeout(t));
+    this.timers = [];
+    this.setState({ screen: 'activity', booking: false, soldOut: false, copied: false, vName: '', vouched: false, spots: 3 });
+  }
+  avatar(bg, i) {
+    return 'flex: none; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #173600; border: 2px solid #F5F3EC; background: ' + bg + (i > 0 ? '; margin-left: -10px' : '');
+  }
+  chip(kind) {
+    const map = { Claimed: '#C8FC7C', Opened: '#CDE7FF', Created: '#ECEAE2' };
+    return 'flex: none; padding: 5px 10px; border-radius: 999px; font-size: 13px; font-weight: 700; color: #173600; background: ' + map[kind];
+  }
+  renderVals() {
+    const s = this.state;
+    const fails = (this.props.outcome ?? 'booking succeeds') === 'sold out mid-checkout';
+    const going = ['#CDE7FF', '#FFE58A', '#F2D4FF', '#FFD6BA'].map((bg, i) => ({ initials: ['IK', 'OM', 'KW', 'LN'][i], style: this.avatar(bg, i) }));
+    const invites = [];
+    if (s.vouched) invites.push({ who: (s.vName.trim() || 'Zainab'), rail: 'Vouch', status: 'Opened', chip: this.chip('Opened') });
+    if (s.copied) invites.push({ who: 'Public link', rail: '1 claimed so far', status: 'Claimed', chip: this.chip('Claimed') });
+    if (!invites.length) invites.push({ who: 'No invites yet', rail: 'Invite from the Plan any time', status: 'Created', chip: 'display: none' });
+    const bookBase = 'height: 56px; border: 0; border-radius: 999px; font-family: inherit; font-size: 17px; font-weight: 700; cursor: pointer; color: #173600; background: ';
+    return {
+      showActivity: s.screen === 'activity', showGoing: s.screen === 'going', showVouch: s.screen === 'vouch', showPlan: s.screen === 'plan',
+      spotsLabel: (s.soldOut ? 0 : s.spots) === 0 ? 'Sold out' : (s.spots + ' spots left'),
+      going, soldOutMsg: s.soldOut,
+      bookLabel: s.soldOut ? 'Sold out' : (s.booking ? 'Booking your spot…' : 'Book a spot'),
+      bookDisabled: s.booking || s.soldOut,
+      bookStyle: bookBase + (s.soldOut ? '#E5E5E5; color: #4A4A4A; cursor: default' : (s.booking ? '#B8EC6C' : '#C8FC7C')),
+      shareLabel: s.copied ? 'Link copied' : 'Share link',
+      vName: s.vName,
+      me: this.avatar('#C8FC7C', 0),
+      invites,
+      book: () => {
+        this.setState({ booking: true });
+        this.timers.push(setTimeout(() => {
+          if (fails) this.setState({ booking: false, soldOut: true, spots: 0 });
+          else this.setState({ booking: false, screen: 'going', spots: 2 });
+        }, 900));
+      },
+      goVouch: () => this.setState({ screen: 'vouch' }),
+      backGoing: () => this.setState({ screen: 'going' }),
+      onVName: (e) => this.setState({ vName: e.target.value }),
+      sendVouch: () => this.setState({ vouched: true, screen: 'plan' }),
+      share: () => this.setState({ copied: true }),
+      goPlan: () => this.setState({ screen: 'plan' }),
+      restart: () => this.reset()
+    };
+  }
+}
+</script>
+</body>
+</html>

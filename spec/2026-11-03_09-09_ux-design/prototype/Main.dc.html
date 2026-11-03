@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Guest claim flow</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&amp;family=Sora:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#173600}a:hover{color:#0A0A0A}
+input:focus{outline:3px solid #97E565;outline-offset:1px}
+button:focus-visible,a:focus-visible{outline:3px solid #173600;outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F5F3EC; color: #0A0A0A; font-family: 'DM Sans', system-ui, sans-serif; overflow-y: auto; display: flex; flex-direction: column">
+
+<sc-if value="{{offlineBanner}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: #0A0A0A; color: #F5F3EC; font-size: 14px">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M2 2l20 20"></path><path d="M8.5 16.5a5 5 0 0 1 7 0"></path><path d="M5 12.9a10 10 0 0 1 5.2-2.8"></path><path d="M19 12.9a10 10 0 0 0-2.4-1.6"></path><circle cx="12" cy="20" r="0.8"></circle></svg>
+<span>You're offline · Last updated 10 min ago</span>
+</div>
+</sc-if>
+
+<div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 20px">
+<span style="font-family: Sora, sans-serif; font-weight: 700; font-size: 20px; color: #173600; letter-spacing: -0.02em">velio</span>
+<sc-if value="{{showCode}}" hint-placeholder-val="{{ true }}">
+<span style="font-size: 13px; color: #4A4A4A">Code <span style="font-weight: 700; letter-spacing: 0.08em; color: #0A0A0A">K7PQ2M</span></span>
+</sc-if>
+</div>
+
+<!-- ============ INVITE (available / offline) ============ -->
+<sc-if value="{{showInvite}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 16px; padding: 0 20px 24px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<sc-if value="{{isVouch}}" hint-placeholder-val="{{ true }}">
+<p style="margin: 0; font-size: 16px; color: #173600; font-weight: 500">Tunde wants you on</p>
+</sc-if>
+<sc-if value="{{isPublic}}" hint-placeholder-val="{{ false }}">
+<p style="margin: 0; font-size: 16px; color: #173600; font-weight: 500">Join the group going to</p>
+</sc-if>
+<h1 style="margin: 0; font-family: Sora, sans-serif; font-weight: 700; font-size: 32px; line-height: 1.1; letter-spacing: -0.02em; color: #0A0A0A">Sunset Kayaking</h1>
+</div>
+
+<div style="position: relative; height: 196px; border-radius: 20px; background: #173600; overflow: hidden">
+<svg width="350" height="196" viewBox="0 0 350 196" fill="none" aria-hidden="true"><circle cx="250" cy="96" r="34" stroke="#C8FC7C" stroke-width="3"></circle><path d="M0 132c30-10 58-10 88 0s58 10 88 0 58-10 88 0 58 10 86 0" stroke="#97E565" stroke-width="3"></path><path d="M0 156c30-10 58-10 88 0s58 10 88 0 58-10 88 0 58 10 86 0" stroke="#97E565" stroke-width="3" opacity="0.6"></path><path d="M40 118l40-14 40 14" stroke="#C8FC7C" stroke-width="3" stroke-linecap="round"></path></svg>
+<span style="position: absolute; left: 14px; bottom: 12px; font-size: 12px; color: #C8FC7C">[Activity photo]</span>
+<span style="{{badgeStyle}}">
+<span style="width: 8px; height: 8px; border-radius: 50%; background: #2F8F00"></span>
+<span>{{spotsLabel}}</span>
+</span>
+</div>
+
+<sc-if value="{{isVouch}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; gap: 12px; align-items: flex-start; padding: 14px; background: #FFFFFF; border-radius: 16px">
+<span style="flex: none; width: 36px; height: 36px; border-radius: 50%; background: #C8FC7C; color: #173600; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px">TA</span>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 15px; line-height: 1.4">“Sunset on the lake, then food after. Come with us.”</span>
+<span style="font-size: 13px; color: #4A4A4A">Tunde · vouched for you</span>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{isPublic}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<span style="padding: 6px 12px; border-radius: 999px; background: #FFFFFF; font-size: 13px; color: #173600; font-weight: 500">From Explore Kenya</span>
+<span style="padding: 6px 12px; border-radius: 999px; background: #FFFFFF; font-size: 13px; color: #4A4A4A">Shared by Tunde A.</span>
+</div>
+</sc-if>
+
+<div style="display: flex; flex-direction: column; gap: 10px; font-size: 15px">
+<div style="display: flex; gap: 10px; align-items: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#173600" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg><span>Sat 14 Dec · 17:30 <span style="color: #4A4A4A">Nairobi time</span></span></div>
+<div style="display: flex; gap: 10px; align-items: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#173600" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"></path><circle cx="12" cy="9" r="2.5"></circle></svg><span>Lake Naivasha jetty</span></div>
+<div style="display: flex; gap: 10px; align-items: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#173600" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M20 12l-8 8-9-9V3h8z"></path><circle cx="7.5" cy="7.5" r="1.5"></circle></svg><span>KES 4,500 <span style="color: #4A4A4A">· pay the host on the day</span></span></div>
+<div style="display: flex; gap: 10px; align-items: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#173600" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg><span>Hosted by Amara W.</span></div>
+</div>
+
+<div style="display: flex; align-items: center; gap: 12px">
+<div style="display: flex">
+<sc-for list="{{going}}" as="p" hint-placeholder-count="4">
+<span style="{{p.style}}">{{p.initials}}</span>
+</sc-for>
+</div>
+<span style="font-size: 14px; color: #173600">Tunde A., Imani K. and 4 others are going</span>
+</div>
+
+<p style="margin: 0; font-size: 13px; color: #4A4A4A">Spots aren't held. Claim while they last.</p>
+
+<sc-if value="{{canClaim}}" hint-placeholder-val="{{ true }}">
+<button type="button" onClick="{{goClaim}}" style="height: 56px; border: 0; border-radius: 999px; background: #C8FC7C; color: #173600; font-family: inherit; font-size: 17px; font-weight: 700; cursor: pointer">Claim my spot</button>
+</sc-if>
+<sc-if value="{{offlineBanner}}" hint-placeholder-val="{{ false }}">
+<button type="button" disabled="disabled" style="height: 56px; border: 0; border-radius: 999px; background: #E5E5E5; color: #4A4A4A; font-family: inherit; font-size: 17px; font-weight: 700">Reconnect to claim</button>
+</sc-if>
+</div>
+</sc-if>
+
+<!-- ============ SOLD OUT ============ -->
+<sc-if value="{{showSoldOut}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 18px; padding: 8px 20px 24px">
+<span style="align-self: flex-start; padding: 6px 12px; border-radius: 999px; background: #0A0A0A; color: #F5F3EC; font-size: 13px; font-weight: 700">Sold out</span>
+<h1 style="margin: 0; font-family: Sora, sans-serif; font-weight: 700; font-size: 28px; line-height: 1.15; letter-spacing: -0.02em">This one filled up before you got here.</h1>
+<p style="margin: 0; font-size: 15px; color: #4A4A4A">Sunset Kayaking · Sat 14 Dec · 14 people going</p>
+<a href="#tell" style="display: flex; align-items: center; justify-content: center; gap: 8px; height: 52px; border-radius: 999px; border: 2px solid #173600; color: #173600; font-weight: 700; text-decoration: none">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 12v8h16v-8"></path><path d="M12 3v12M7 8l5-5 5 5"></path></svg>Tell Tunde</a>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<h2 style="margin: 0; font-size: 16px; font-weight: 700">Amara's other dates</h2>
+<sc-for list="{{otherDates}}" as="d" hint-placeholder-count="2">
+<a href="#date" style="display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: #FFFFFF; border-radius: 14px; color: #0A0A0A; text-decoration: none; font-size: 15px"><span>{{d.when}}</span><span style="font-weight: 700; color: #173600">{{d.spots}}</span></a>
+</sc-for>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<h2 style="margin: 0; font-size: 16px; font-weight: 700">More in Explore Kenya</h2>
+<sc-for list="{{more}}" as="m" hint-placeholder-count="2">
+<a href="#more" style="display: flex; flex-direction: column; gap: 2px; padding: 14px 16px; background: #FFFFFF; border-radius: 14px; color: #0A0A0A; text-decoration: none"><span style="font-weight: 700; font-size: 15px">{{m.title}}</span><span style="font-size: 14px; color: #4A4A4A">{{m.meta}}</span></a>
+</sc-for>
+</div>
+</div>
+</sc-if>
+
+<!-- ============ EXPIRED ============ -->
+<sc-if value="{{showExpired}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 18px; padding: 8px 20px 24px">
+<h1 style="margin: 0; font-family: Sora, sans-serif; font-weight: 700; font-size: 28px; line-height: 1.15; letter-spacing: -0.02em">This invite expired when the activity started.</h1>
+<p style="margin: 0; font-size: 15px; color: #4A4A4A">Sunset Kayaking was on Sat 14 Dec.</p>
+<a href="#profile" style="display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: #FFFFFF; border-radius: 14px; color: #0A0A0A; text-decoration: none">
+<span style="flex: none; width: 36px; height: 36px; border-radius: 50%; background: #C8FC7C; color: #173600; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px">TA</span>
+<span style="display: flex; flex-direction: column"><span style="font-weight: 700">Tunde A.</span><span style="font-size: 14px; color: #4A4A4A">See profile</span></span></a>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<h2 style="margin: 0; font-size: 16px; font-weight: 700">Amara's other dates</h2>
+<sc-for list="{{otherDates}}" as="d" hint-placeholder-count="2">
+<a href="#date" style="display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: #FFFFFF; border-radius: 14px; color: #0A0A0A; text-decoration: none; font-size: 15px"><span>{{d.when}}</span><span style="font-weight: 700; color: #173600">{{d.spots}}</span></a>
+</sc-for>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<h2 style="margin: 0; font-size: 16px; font-weight: 700">More in Explore Kenya</h2>
+<sc-for list="{{more}}" as="m" hint-placeholder-count="2">
+<a href="#more" style="display: flex; flex-direction: column; gap: 2px; padding: 14px 16px; background: #FFFFFF; border-radius: 14px; color: #0A0A0A; text-decoration: none"><span style="font-weight: 700; font-size: 15px">{{m.title}}</span><span style="font-size: 14px; color: #4A4A4A">{{m.meta}}</span></a>
+</sc-for>
+</div>
+</div>
+</sc-if>
+
+<!-- ============ CLAIM FORM ============ -->
+<sc-if value="{{showClaim}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 18px; padding: 8px 20px 24px">
+<button type="button" onClick="{{goBack}}" style="align-self: flex-start; display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 0; border: 0; background: none; color: #173600; font-family: inherit; font-size: 15px; font-weight: 500; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>Sunset Kayaking</button>
+<h1 style="margin: 0; font-family: Sora, sans-serif; font-weight: 700; font-size: 28px; letter-spacing: -0.02em">Almost there</h1>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="g-name" style="font-size: 14px; font-weight: 700">Your name</label>
+<input id="g-name" type="text" value="{{name}}" onChange="{{onName}}" placeholder="Zainab Okafor" autocomplete="name" style="height: 52px; padding: 0 16px; border: 1.5px solid #8A8A8A; border-radius: 14px; background: #FFFFFF; font-family: inherit; font-size: 16px; color: #0A0A0A">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="g-contact" style="font-size: 14px; font-weight: 700">Phone or email</label>
+<input id="g-contact" type="text" value="{{contact}}" onChange="{{onContact}}" placeholder="+234 801 234 5678" autocomplete="tel" style="height: 52px; padding: 0 16px; border: 1.5px solid #8A8A8A; border-radius: 14px; background: #FFFFFF; font-family: inherit; font-size: 16px; color: #0A0A0A">
+<span style="font-size: 13px; color: #4A4A4A">So you can find this booking again. We don't message you.</span>
+</div>
+<p style="margin: 0; padding: 12px 14px; background: #EDF4FC; border-radius: 12px; font-size: 14px; line-height: 1.45; color: #0A0A0A">{{disclosure}}</p>
+<button type="button" onClick="{{confirm}}" disabled="{{submitting}}" style="{{confirmStyle}}">{{confirmLabel}}</button>
+</div>
+</sc-if>
+
+<!-- ============ YOU'RE IN ============ -->
+<sc-if value="{{showIn}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 18px; padding: 8px 20px 24px">
+<div style="display: flex; flex-direction: column; align-items: flex-start; gap: 14px; padding: 22px; border-radius: 22px; background: #173600; color: #F5F3EC">
+<span style="width: 52px; height: 52px; border-radius: 50%; background: #C8FC7C; display: flex; align-items: center; justify-content: center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#173600" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+<h1 style="margin: 0; font-family: Sora, sans-serif; font-weight: 700; font-size: 30px; letter-spacing: -0.02em; color: #FFFFFF">You're in, {{firstName}}.</h1>
+<p style="margin: 0; font-size: 16px; line-height: 1.45; color: #E8F5D8">Sunset Kayaking · Sat 14 Dec · 17:30 Nairobi time · Lake Naivasha jetty</p>
+<span style="font-size: 13px; color: #C8FC7C">Booking ref VLO-48213</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h2 style="margin: 0 0 6px; font-size: 16px; font-weight: 700">Your Plan · 4 of you</h2>
+<sc-for list="{{plan}}" as="m" hint-placeholder-count="4">
+<div style="display: flex; align-items: center; gap: 12px; padding: 10px 0">
+<span style="{{m.style}}">{{m.initials}}</span>
+<span style="display: flex; flex-direction: column"><span style="font-weight: 700; font-size: 15px">{{m.name}}</span><span style="font-size: 13px; color: #4A4A4A">{{m.how}}</span></span>
+</div>
+</sc-for>
+</div>
+<div style="display: flex; gap: 10px">
+<a href="#invite" style="flex: 1; display: flex; align-items: center; justify-content: center; height: 52px; border-radius: 999px; background: #C8FC7C; color: #173600; font-weight: 700; text-decoration: none">Invite a friend</a>
+<a href="#share" style="flex: 1; display: flex; align-items: center; justify-content: center; height: 52px; border-radius: 999px; border: 2px solid #173600; color: #173600; font-weight: 700; text-decoration: none">Share link</a>
+</div>
+<button type="button" onClick="{{restart}}" style="align-self: center; min-height: 44px; border: 0; background: none; color: #4A4A4A; font-family: inherit; font-size: 13px; text-decoration: underline; cursor: pointer">Restart prototype</button>
+</div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"rail":{"editor":"enum","options":["vouch","public"],"default":"vouch","section":"Scenario"},"scenario":{"editor":"enum","options":["available","sold out","offline","expired"],"default":"available","section":"Scenario"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { screen: 'invite', spots: 3, pulse: false, submitting: false, name: '', contact: '' };
+    this.timers = [];
+  }
+  componentDidMount() { this.startLive(); }
+  componentWillUnmount() { this.clear(); }
+  componentDidUpdate(prev) {
+    if (prev.rail !== this.props.rail || prev.scenario !== this.props.scenario) {
+      this.clear();
+      this.setState({ screen: 'invite', spots: 3, pulse: false, submitting: false });
+      this.startLive();
+    }
+  }
+  clear() { this.timers.forEach((t) => clearTimeout(t)); this.timers = []; }
+  startLive() {
+    this.timers.push(setTimeout(() => {
+      if (this.state.screen === 'invite') this.setState({ spots: 2, pulse: true });
+      this.timers.push(setTimeout(() => this.setState({ pulse: false }), 1400));
+    }, 5000));
+  }
+  avatar(initials, bg, i) {
+    return 'flex: none; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #173600; border: 2px solid #F5F3EC; background: ' + bg + (i > 0 ? '; margin-left: -10px' : '');
+  }
+  renderVals() {
+    const rail = this.props.rail ?? 'vouch';
+    const scenario = this.props.scenario ?? 'available';
+    const s = this.state;
+    const isVouch = rail === 'vouch';
+    const onInvite = s.screen === 'invite';
+    const palette = ['#C8FC7C', '#CDE7FF', '#FFE58A', '#F2D4FF', '#FFD6BA'];
+    const going = [['TA', 0], ['IK', 1], ['OM', 2], ['KW', 3]].map(([ini, c], i) => ({ initials: ini, style: this.avatar(ini, palette[c], i) }));
+    going.push({ initials: '+2', style: this.avatar('+2', '#FFFFFF', 4) });
+    const firstName = (s.name.trim().split(/\s+/)[0]) || 'Zainab';
+    const plan = [
+      { initials: 'TA', name: 'Tunde Adeyemi', how: 'Booked the Plan', bg: palette[0] },
+      { initials: 'IK', name: 'Imani Kamau', how: 'Via Tunde', bg: palette[1] },
+      { initials: 'OM', name: 'Ola Martins', how: 'Via public link', bg: palette[2] },
+      { initials: firstName.slice(0, 1).toUpperCase() + 'O', name: firstName + ' (you)', how: isVouch ? 'Via Tunde' : 'Via public link', bg: palette[4] }
+    ].map((m) => ({ ...m, style: this.avatar(m.initials, m.bg, 0) }));
+    const badgeBase = 'position: absolute; right: 12px; top: 12px; display: flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px; font-size: 14px; font-weight: 700; color: #173600; transition: background 300ms; background: ';
+    return {
+      isVouch, isPublic: !isVouch,
+      showCode: onInvite && scenario !== 'expired',
+      offlineBanner: onInvite && scenario === 'offline',
+      showInvite: onInvite && (scenario === 'available' || scenario === 'offline'),
+      showSoldOut: onInvite && scenario === 'sold out',
+      showExpired: onInvite && scenario === 'expired',
+      showClaim: s.screen === 'claim',
+      showIn: s.screen === 'in',
+      canClaim: scenario === 'available',
+      spotsLabel: s.spots + ' spots left',
+      badgeStyle: badgeBase + (s.pulse ? '#C8FC7C' : '#FFFFFF'),
+      going, plan, firstName,
+      name: s.name, contact: s.contact, submitting: s.submitting,
+      disclosure: isVouch
+        ? 'Amara (the host) will see your name and that Tunde invited you. Your phone or email stays private.'
+        : 'Amara (the host) will see your name and that you joined from a shared link. Your phone or email stays private.',
+      confirmLabel: s.submitting ? 'Confirming…' : 'Confirm my spot',
+      confirmStyle: 'height: 56px; border: 0; border-radius: 999px; font-family: inherit; font-size: 17px; font-weight: 700; cursor: pointer; color: #173600; background: ' + (s.submitting ? '#B8EC6C' : '#C8FC7C'),
+      otherDates: [{ when: 'Sun 15 Dec · 17:30', spots: '4 spots' }, { when: 'Sat 21 Dec · 17:30', spots: '9 spots' }],
+      more: [{ title: 'Karura Forest bike ride', meta: 'Sat 14 Dec · 07:00 · 6 spots' }, { title: 'Coffee farm sunrise walk', meta: 'Sun 15 Dec · 05:45 · 2 spots' }],
+      goClaim: () => this.setState({ screen: 'claim' }),
+      goBack: () => this.setState({ screen: 'invite' }),
+      onName: (e) => this.setState({ name: e.target.value }),
+      onContact: (e) => this.setState({ contact: e.target.value }),
+      confirm: () => {
+        this.setState({ submitting: true });
+        this.timers.push(setTimeout(() => {
+          try { if (navigator.vibrate) navigator.vibrate(20); } catch (err) {}
+          this.setState({ submitting: false, screen: 'in' });
+        }, 900));
+      },
+      restart: () => { this.clear(); this.setState({ screen: 'invite', spots: 3, pulse: false, submitting: false, name: '', contact: '' }); this.startLive(); }
+    };
+  }
+}
+</script>
+</body>
+</html>

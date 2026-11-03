@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tokens and components</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&amp;family=Sora:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 1280px; height: 980px; box-sizing: border-box; padding: 48px; background: #F5F3EC; color: #0A0A0A; font-family: 'DM Sans', system-ui, sans-serif; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px">
+
+<div style="display: flex; flex-direction: column; gap: 28px">
+<div style="display: flex; flex-direction: column; gap: 14px">
+<h2 style="margin: 0; font-family: Sora, sans-serif; font-weight: 700; font-size: 22px">Colour · from velio.app</h2>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+<div style="display: flex; gap: 12px; align-items: center; padding: 10px; background: #FFFFFF; border-radius: 14px"><span style="width: 48px; height: 48px; border-radius: 10px; background: #F5F3EC; border: 1px solid #D8D5CA"></span><span style="display: flex; flex-direction: column; font-size: 13px"><strong>cream · #F5F3EC</strong><span style="color: #4A4A4A">Page ground</span></span></div>
+<div style="display: flex; gap: 12px; align-items: center; padding: 10px; background: #FFFFFF; border-radius: 14px"><span style="width: 48px; height: 48px; border-radius: 10px; background: #173600"></span><span style="display: flex; flex-direction: column; font-size: 13px"><strong>forest · #173600</strong><span style="color: #4A4A4A">Brand ink, CTA text · 12.1:1 on cream</span></span></div>
+<div style="display: flex; gap: 12px; align-items: center; padding: 10px; background: #FFFFFF; border-radius: 14px"><span style="width: 48px; height: 48px; border-radius: 10px; background: #C8FC7C"></span><span style="display: flex; flex-direction: column; font-size: 13px"><strong>lime · #C8FC7C</strong><span style="color: #4A4A4A">CTA fill only · never text on cream (1.07:1)</span></span></div>
+<div style="display: flex; gap: 12px; align-items: center; padding: 10px; background: #FFFFFF; border-radius: 14px"><span style="width: 48px; height: 48px; border-radius: 10px; background: #B8EC6C"></span><span style="display: flex; flex-direction: column; font-size: 13px"><strong>lime-press · #B8EC6C</strong><span style="color: #4A4A4A">Pressed and loading CTA</span></span></div>
+<div style="display: flex; gap: 12px; align-items: center; padding: 10px; background: #FFFFFF; border-radius: 14px"><span style="width: 48px; height: 48px; border-radius: 10px; background: #0A0A0A"></span><span style="display: flex; flex-direction: column; font-size: 13px"><strong>ink · #0A0A0A</strong><span style="color: #4A4A4A">Body text · 17.8:1</span></span></div>
+<div style="display: flex; gap: 12px; align-items: center; padding: 10px; background: #FFFFFF; border-radius: 14px"><span style="width: 48px; height: 48px; border-radius: 10px; background: #4A4A4A"></span><span style="display: flex; flex-direction: column; font-size: 13px"><strong>muted · #4A4A4A</strong><span style="color: #4A4A4A">Secondary text · 8.0:1 (site's #818181 fails at 3.5:1)</span></span></div>
+<div style="display: flex; gap: 12px; align-items: center; padding: 10px; background: #FFFFFF; border-radius: 14px"><span style="width: 48px; height: 48px; border-radius: 10px; background: #BE1E1E"></span><span style="display: flex; flex-direction: column; font-size: 13px"><strong>danger · #BE1E1E</strong><span style="color: #4A4A4A">Errors, remove · 5.6:1</span></span></div>
+<div style="display: flex; gap: 12px; align-items: center; padding: 10px; background: #FFFFFF; border-radius: 14px"><span style="width: 48px; height: 48px; border-radius: 10px; background: #EDF4FC"></span><span style="display: flex; flex-direction: column; font-size: 13px"><strong>info · #EDF4FC</strong><span style="color: #4A4A4A">Disclosure panels</span></span></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 13px; font-weight: 700">Avatar palette · forest initials, all ≥ 9.9:1</span>
+<div style="display: flex; gap: 8px">
+<span style="width: 40px; height: 40px; border-radius: 50%; background: #C8FC7C; color: #173600; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px">TA</span>
+<span style="width: 40px; height: 40px; border-radius: 50%; background: #CDE7FF; color: #173600; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px">IK</span>
+<span style="width: 40px; height: 40px; border-radius: 50%; background: #FFE58A; color: #173600; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px">OM</span>
+<span style="width: 40px; height: 40px; border-radius: 50%; background: #F2D4FF; color: #173600; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px">WN</span>
+<span style="width: 40px; height: 40px; border-radius: 50%; background: #FFD6BA; color: #173600; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px">LN</span>
+</div>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 12px">
+<h2 style="margin: 0; font-family: Sora, sans-serif; font-weight: 700; font-size: 22px">Type</h2>
+<span style="font-size: 13px; color: #4A4A4A">Production: Nohemi display (licence permitting) + Satoshi body. Prototype stand-ins: Sora + DM Sans.</span>
+<span style="font-family: Sora, sans-serif; font-weight: 700; font-size: 40px; letter-spacing: -0.02em; line-height: 1.1">Display 40 · Sunset Kayaking</span>
+<span style="font-family: Sora, sans-serif; font-weight: 700; font-size: 28px; letter-spacing: -0.02em">Title 28 · You're in, Zainab.</span>
+<span style="font-family: Sora, sans-serif; font-weight: 700; font-size: 22px">Heading 22 · Who's coming with you?</span>
+<span style="font-size: 17px; font-weight: 700">Button 17 bold · Claim my spot</span>
+<span style="font-size: 15px">Body 15 · Two hours on Lake Naivasha as the sun drops.</span>
+<span style="font-size: 13px; color: #4A4A4A">Caption 13 · Nairobi time</span>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 24px">
+<h2 style="margin: 0; font-family: Sora, sans-serif; font-weight: 700; font-size: 22px">Components</h2>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 13px; font-weight: 700">Primary pill · default, loading, disabled</span>
+<div style="display: flex; gap: 10px; flex-wrap: wrap">
+<span style="display: flex; align-items: center; height: 52px; padding: 0 24px; border-radius: 999px; background: #C8FC7C; color: #173600; font-weight: 700; font-size: 17px">Claim my spot</span>
+<span style="display: flex; align-items: center; height: 52px; padding: 0 24px; border-radius: 999px; background: #B8EC6C; color: #173600; font-weight: 700; font-size: 17px">Confirming…</span>
+<span style="display: flex; align-items: center; height: 52px; padding: 0 24px; border-radius: 999px; background: #E5E5E5; color: #4A4A4A; font-weight: 700; font-size: 17px">Reconnect to claim</span>
+</div>
+<span style="font-size: 13px; font-weight: 700">Secondary pill · destructive text button</span>
+<div style="display: flex; gap: 10px; align-items: center">
+<span style="display: flex; align-items: center; height: 48px; padding: 0 22px; border-radius: 999px; border: 2px solid #173600; color: #173600; font-weight: 700">Share link</span>
+<span style="color: #BE1E1E; font-weight: 700; padding: 0 12px">Remove</span>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 13px; font-weight: 700">Spots badge · normal, just changed (lime flash 1.4 s), last spots, sold out, stale</span>
+<div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center">
+<span style="display: flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px; background: #FFFFFF; font-size: 14px; font-weight: 700; color: #173600"><span style="width: 8px; height: 8px; border-radius: 50%; background: #2F8F00"></span>6 spots left</span>
+<span style="display: flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px; background: #C8FC7C; font-size: 14px; font-weight: 700; color: #173600"><span style="width: 8px; height: 8px; border-radius: 50%; background: #2F8F00"></span>5 spots left</span>
+<span style="display: flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px; background: #173600; font-size: 14px; font-weight: 700; color: #C8FC7C">Last 2 spots</span>
+<span style="padding: 7px 12px; border-radius: 999px; background: #0A0A0A; font-size: 14px; font-weight: 700; color: #F5F3EC">Sold out</span>
+<span style="padding: 7px 12px; border-radius: 999px; background: #E5E5E5; font-size: 14px; font-weight: 700; color: #4A4A4A">Reconnecting…</span>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 13px; font-weight: 700">Avatar stack · public form (First L.)</span>
+<div style="display: flex; align-items: center; gap: 12px">
+<div style="display: flex">
+<span style="width: 34px; height: 34px; border-radius: 50%; border: 2px solid #F5F3EC; background: #C8FC7C; color: #173600; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px">TA</span>
+<span style="width: 34px; height: 34px; margin-left: -10px; border-radius: 50%; border: 2px solid #F5F3EC; background: #CDE7FF; color: #173600; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px">IK</span>
+<span style="width: 34px; height: 34px; margin-left: -10px; border-radius: 50%; border: 2px solid #F5F3EC; background: #FFE58A; color: #173600; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px">OM</span>
+<span style="width: 34px; height: 34px; margin-left: -10px; border-radius: 50%; border: 2px solid #F5F3EC; background: #FFFFFF; color: #173600; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px">+6</span>
+</div>
+<span style="font-size: 14px; color: #173600">Tunde A., Imani K. and 7 others are going</span>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 13px; font-weight: 700">Invite status and source chips</span>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<span style="padding: 5px 10px; border-radius: 999px; background: #ECEAE2; color: #173600; font-size: 13px; font-weight: 700">Created</span>
+<span style="padding: 5px 10px; border-radius: 999px; background: #CDE7FF; color: #173600; font-size: 13px; font-weight: 700">Opened</span>
+<span style="padding: 5px 10px; border-radius: 999px; background: #C8FC7C; color: #173600; font-size: 13px; font-weight: 700">Claimed</span>
+<span style="padding: 5px 10px; border-radius: 999px; background: #ECEAE2; color: #173600; font-size: 13px; font-weight: 700">Direct</span>
+<span style="padding: 5px 10px; border-radius: 999px; background: #C8FC7C; color: #173600; font-size: 13px; font-weight: 700">Via Tunde</span>
+<span style="padding: 5px 10px; border-radius: 999px; background: #CDE7FF; color: #173600; font-size: 13px; font-weight: 700">Public link</span>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 13px; font-weight: 700">Text field · default, error (code entry)</span>
+<div style="display: flex; gap: 12px">
+<span style="flex: 1; display: flex; align-items: center; height: 52px; padding: 0 16px; border: 1.5px solid #8A8A8A; border-radius: 14px; background: #FFFFFF; font-size: 16px; color: #4A4A4A">Zainab Okafor</span>
+<span style="flex: 1; display: flex; flex-direction: column; gap: 4px"><span style="display: flex; align-items: center; height: 52px; padding: 0 16px; border: 2px solid #BE1E1E; border-radius: 14px; background: #FFFFFF; font-size: 18px; font-weight: 700; letter-spacing: 0.12em">K7PQ2N</span><span style="font-size: 13px; color: #BE1E1E">That code doesn't match an invite. Check the letters.</span></span>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 14px; border-radius: 14px; background: #FFFFFF; font-size: 13px; line-height: 1.5">
+<strong>Spacing and shape</strong>
+<span>4-pt grid · page gutter 20 (phone) / 40 (desktop) · radius 999 pills, 20–22 hero cards, 14–18 cards and fields · touch targets ≥ 44 px · lime flash for live changes, motion off under reduced-motion.</span>
+</div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":980}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
