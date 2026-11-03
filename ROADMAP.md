@@ -38,7 +38,7 @@ Group activities on Velio are agreed socially but booked alone. Hosts cannot tru
 - ✅ Development process established (`CLAUDE.md`, spec workflow, changelog).
 - ✅ MVP plan (system design, stack, structure) approved.
 - ✅ UX design spec and prototype approved.
-- 🔄 Phase 0 reopened (2026-11-03): Google Maps locations and a complete UI design in Claude Design. Both specs approved and the PRD amended; the designs are not built yet.
+- ✅ Phase 0 done (2026-11-03): Google Maps locations specified and the PRD amended; Velio design system and all 42 screens designed in Claude Design, responsive rules set, and approved.
 - No application code, repository (git) or infrastructure exists yet.
 
 ## Milestones
@@ -82,11 +82,11 @@ Phases group the delivery specs from the [MVP plan](spec/2026-11-03_07-42_group-
 
 | Phase | Milestone | Delivery specs | Goal | Exit criteria | Status |
 | --- | --- | --- | --- | --- | --- |
-| 0. Decide and design | M0 | PRD, constitution, MVP plan, UX, Google Maps, complete UI design | Agree what to build and how, and design all of it | PRD confirmed with the Google Maps amendments; MVP plan, UX and Google Maps specs approved; Velio design system and every screen and state designed at high fidelity in Claude Design and approved | 🔄 Reopened 2026-11-03 |
+| 0. Decide and design | M0 | PRD, constitution, MVP plan, UX, Google Maps, complete UI design | Agree what to build and how, and design all of it | PRD confirmed with the Google Maps amendments; MVP plan, UX and Google Maps specs approved; Velio design system and every screen and state designed at high fidelity in Claude Design and approved | ✅ Done 2026-11-03 |
 | 1. Foundations | M1 | S1, S10 (app stack) | A tested, deployable, observable empty system | CI green; all migrations apply (including the location columns from the Google Maps spec); append-only grants and triggers enforced; contracts package generates the Dart client; telemetry reaches Grafana Cloud; a health endpoint serves through the `cloudfront.net` hostname | 🔄 S1 in review (schema aligned with the Google Maps spec) |
 | 2. Correctness core | M1 | S2 | Prove overselling is impossible (R1) | Concurrency test passes in CI against real Postgres; k6 `last_spot_race` smoke returns exactly N successes; idempotent retries, removal and capacity edit covered | 📋 |
 | 3. Realtime and invites | M1 | S3, S4 (in parallel) | Live counts and trustworthy attribution | Versioned events with snapshot and poll fallback; commit-to-render latency measured; vouch double-claim race never double-claims; attribution and hash chain are append-only and audit clean; rate limits and pause work | 📋 |
-| 4. Clients | M1 | S5, S6, S7 (in parallel) | Every P0 flow usable on web and mobile | **Gate:** complete UI design approved (Phase 0). **Exit:** host, booker and guest flows work end to end against the deployed stack; deep links open the app on iOS and Android with the web fallback otherwise | 📋 |
+| 4. Clients | M1 | S5, S6, S7 (in parallel) | Every P0 flow usable on web and mobile | **Gate:** complete UI design approved (Phase 0) ✅. **Exit:** host, booker and guest flows work end to end against the deployed stack; deep links open the app on iOS and Android with the web fallback otherwise | 📋 |
 | 5. Measure and harden | M1 | S8, S9, S10 (load-runner stack) | Prototype complete and verified | Admin page shows the five PRD goals; holdout assignment and exposures recorded; dashboards and alerts live; full k6 suite at 10× assumed peak passes with a recorded baseline; Lighthouse invite-page budget met; accessibility pass; Playwright and Flutter E2E green | 📋 |
 | 6. Staged rollout | M2 | Not yet specified | Earn a keep / iterate / remove decision | PRD release-plan exits: internal → Explore Kenya → GA with 10% holdout → decide. **Before GA:** real authentication (SEC-008) and an encrypted origin hop (SEC-009) | 📋 |
 | 7. Next | M3 | Not yet specified | Growth levers, in PRD order | Waitlist and cancellation (X1, X3); vouch hold (X2) only if D2's trigger fires; push notifications; host payouts | 📋 / 🔍 |
@@ -118,7 +118,7 @@ None blocking. The remaining assumptions are listed in the MVP plan, §10: the a
 | --- | --- | --- |
 | [2026-11-03_07-25_establish-sdd-constitution](spec/2026-11-03_07-25_establish-sdd-constitution/) | Process | Implemented |
 | [2026-11-03_07-42_group-bookings-mvp-plan](spec/2026-11-03_07-42_group-bookings-mvp-plan/) | M0, M1 | Approved |
-| [2026-11-03_09-09_ux-design](spec/2026-11-03_09-09_ux-design/) ([prototype](https://claude.ai/artifact/NirxnmSocq3eaLLrAwxjBe)) | M1 (before S5–S7) | Approved |
+| [2026-11-03_09-09_ux-design](spec/2026-11-03_09-09_ux-design/) ([archived prototype](https://claude.ai/artifact/NirxnmSocq3eaLLrAwxjBe)) | Phase 0 | Approved; screens superseded by the complete UI design |
 | [2026-11-03_09-29_s1-foundations](spec/2026-11-03_09-29_s1-foundations/) | M1 · S1 | In review |
 | [2026-11-03_10-34_google-maps-locations](spec/2026-11-03_10-34_google-maps-locations/) | Phase 0 | Approved |
-| [2026-11-03_10-34_complete-ui-design](spec/2026-11-03_10-34_complete-ui-design/) | Phase 0 | Approved |
+| [2026-11-03_10-34_complete-ui-design](spec/2026-11-03_10-34_complete-ui-design/) ([design system](https://claude.ai/artifact/HVyi155enP8ug5BVzdg8qz), [screens](https://claude.ai/artifact/9hFK2e2AhKVGMsrwPMei48)) | Phase 0 | Implemented |
