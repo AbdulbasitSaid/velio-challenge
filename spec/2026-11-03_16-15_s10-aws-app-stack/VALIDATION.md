@@ -78,4 +78,28 @@ Not yet run: V-AWS-1 to 3, V-SEC-1, V-SEC-2, V-OBS-1, V-CI-1, V-BAK-1, V-ALM-1, 
 
 2026-11-03: deployment deferred at the user's request (see PLANNING change log). The AWS checks above stay not run until it resumes. After the `AWS_DEPLOY_ROLE_ARN` guard was added to `deploy.yml`, `bun run format:check` and `bun run lint` passed. actionlint (V-SEC-3) wasn't rerun because Docker was down; rerun it with gitleaks.
 
-**Final validation status:** Not run (paused; local checks pass, AWS checks deferred).
+2026-11-03, deployment resumed:
+
+| Check | Command or procedure | Result | Covers |
+| --- | --- | --- | --- |
+| T4 bootstrap | `cdk bootstrap aws://<account>/eu-west-2` as the root user | Pass: `CDKToolkit` created | — |
+| V-AWS-1 | `cdk diff` reviewed (52 resources, all additions, none modified or removed), then `bun run aws:deploy -c alertEmail=…` | Pass: `VelioApp` `CREATE_COMPLETE` in 386 s. Outputs: distribution `depimls1pcvv4.cloudfront.net`, instance `i-053cf33042f6be633`, role `velio-deploy` | FR-001, NFR-003 |
+| SSM | `aws ssm describe-instance-information` | Pass: instance `Online` | FR-004 (partly) |
+| V-SEC-1 (laptop part) | `curl --max-time 5 http://<eip>:3001/api/healthz` | Pass: timed out | SEC-001 (partly) |
+| V-AWS-3 (redirect part) | `curl http://<domain>/api/healthz` | Pass: `301` to HTTPS | FR-003 (partly) |
+| Pre-app | `curl https://<domain>/api/healthz` | `504`, as expected: no release is on the instance until the first Deploy run (T5) | — |
+| T5 / V-CI-1 (first part) | Deploy workflow run 41729508359 (after the OIDC trust fix, triggered by CI run 41728945517) | Pass: success in 1 m 50 s | FR-002, FR-004 (partly) |
+| V-AWS-2 | `curl https://<domain>/api/healthz` and `/api/readyz` | Pass: `200 {"status":"ok"}` for both | FR-002, AC-001 |
+| V-AWS-3 | `curl https://<domain>/api/nope`; `curl https://<domain>/photos/x` | Pass: `404` error envelope from the API; `403` with `server: AmazonS3` for photos | FR-003 |
+
+2026-11-03, follow-ups:
+
+| Check | Command or procedure | Result | Covers |
+| --- | --- | --- | --- |
+| T10 / V-BUD-1 | AWS Budgets `CreateBudget`, then `DescribeBudget` and `DescribeNotificationsForBudget` | Pass: `velio-monthly`, COST, MONTHLY, 20 USD. Email alerts to the account address at ACTUAL > 80% and FORECASTED > 100%, both state `OK` | FR-011 |
+| V-BAK-1 (snapshot part) | `ec2 DescribeSnapshots` (owner self), `dlm GetLifecyclePolicies` | Not yet: policy `Velio daily EBS snapshots` is `ENABLED`, and no snapshot exists yet. The first runs at 03:00 UTC after the stack was created (about 22:00 UTC). Recheck tomorrow | FR-006 (partly) |
+| T8 / V-BAK-1 (dump and restore), V-SEC-1 (on-instance part) | One SSM `SendCommand`: run `backup.sh`, restore the newest dump into a scratch `velio_restore_check`, compare row counts, drop it; then `curl localhost:3001/api/readyz` with and without the origin header, and `ss -ltn` | **Not run:** the command was blocked by the session's permission policy before it was sent. It needs the user's permission (or the user runs it through Session Manager) | FR-006, AC-004, SEC-001, SEC-002 |
+
+Still not run: T8 / V-BAK-1 and V-SEC-1 (on-instance part), both blocked as above; V-SEC-2 (the off-`master` deploy needs a branch, which only the user creates; the trust-policy inspection part can run without one); V-OBS-1 (T6: the user stores the Grafana secret, then a redeploy); V-CI-1 (timed deploy and rollback, after the user's next push); V-ALM-1 (confirm the SNS subscription email and publish a test message).
+
+**Final validation status:** Not run (in progress: stack deployed and serving; budget in place; T6 and T8 outstanding).

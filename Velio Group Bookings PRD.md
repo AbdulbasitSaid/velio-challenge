@@ -246,6 +246,7 @@ These rules settle behavior the requirements above imply but do not state. All w
 
 - A removed attendee's spot is freed immediately and goes to whoever books next. Hosts are told this before confirming. The race D3 avoids for self-serve cancellation is accepted here, because removals are rare and deliberate.
 - The removed person sees "The host removed this booking" on the Plan. Their attribution record is unchanged.
+- A removed person can't book the same activity again, so the host's removal sticks (for example, when a vouch reached the wrong person). The host's other dates stay open to them (amended 2026-11-03, owner decision in the S2 booking-core spec).
 
 ### Identity
 

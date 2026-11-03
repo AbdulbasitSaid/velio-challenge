@@ -1,5 +1,6 @@
 import { timingSafeEqual } from 'node:crypto';
 import { OpenAPIHono, type Hook } from '@hono/zod-openapi';
+import type { MeterProvider } from '@opentelemetry/api';
 import type { Env } from 'hono';
 import { createMiddleware } from 'hono/factory';
 import { HTTPException } from 'hono/http-exception';
@@ -7,6 +8,10 @@ import { requestId, type RequestIdVariables } from 'hono/request-id';
 import type { Config } from './config';
 import type { Db } from './db/client';
 import { ApiError, envelope, fromPostgresError } from './errors';
+import { activityRoutes } from './modules/activities/routes';
+import { createBookingEngine } from './modules/bookings/engine';
+import { createBookingMetrics } from './modules/bookings/metrics';
+import { bookingRoutes } from './modules/bookings/routes';
 import { healthRoutes } from './modules/health/routes';
 import { identityRoutes } from './modules/identity/routes';
 import type { User } from './modules/identity/sessions';
@@ -20,6 +25,8 @@ export interface AppDeps {
   logger: Logger;
   /** Injected so tests can move time (session expiry). */
   clock: () => Date;
+  /** Booking metrics bind to this provider; defaults to the global one. Tests inject a reader. */
+  meterProvider?: MeterProvider;
 }
 
 export interface AppEnv extends Env {
@@ -75,6 +82,13 @@ export function createApp(deps: AppDeps) {
 
   app.route('/', healthRoutes(deps));
   app.route('/', identityRoutes(deps));
+  app.route('/', activityRoutes(deps));
+  const bookings = createBookingEngine({
+    db: deps.db,
+    logger: deps.logger,
+    metrics: createBookingMetrics(deps.meterProvider),
+  });
+  app.route('/', bookingRoutes(bookings));
 
   app.openAPIRegistry.registerComponent('securitySchemes', 'cookieAuth', {
     type: 'apiKey',

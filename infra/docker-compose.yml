@@ -79,6 +79,17 @@ services:
       postgres:
         condition: service_healthy
 
+  # k6 load tests: `bun run load:smoke` (S2). Not started by `up`. Reaches the API on the host.
+  k6:
+    image: grafana/k6:2.3.0
+    profiles: ['load']
+    environment:
+      API_URL: ${LOAD_API_URL:-http://host.docker.internal:3001}
+    volumes:
+      - ../load:/load
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+
 volumes:
   pgdata:
   miniodata:

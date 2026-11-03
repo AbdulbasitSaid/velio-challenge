@@ -11,7 +11,10 @@ const STATUS: Record<ErrorCode, ContentfulStatusCode> = {
   bookings_paused: 409,
   invalid_code: 404,
   rate_limited: 429,
+  idempotency_conflict: 409,
+  booking_removed: 409,
   location_locked: 409,
+  capacity_below_bookings: 409,
   invalid_contact: 400,
   validation_failed: 400,
   unauthenticated: 401,
@@ -25,6 +28,14 @@ const DEFAULT_MESSAGE: Partial<Record<ErrorCode, string>> = {
   forbidden: 'Not allowed.',
   not_found: 'Not found.',
   internal: 'Something went wrong.',
+  sold_out: 'No spots left.',
+  already_booked: 'You already have a spot on this activity.',
+  activity_started: 'This activity has already started.',
+  bookings_paused: 'Bookings are paused for this activity.',
+  idempotency_conflict: 'This Idempotency-Key was already used for another activity.',
+  booking_removed: 'The host removed your booking for this activity.',
+  location_locked: 'Date, time zone and location are locked once someone has booked.',
+  capacity_below_bookings: 'Capacity cannot go below the number of confirmed bookings.',
 };
 
 /** A typed API error. Thrown anywhere; `app.onError` turns it into the envelope. */
@@ -43,12 +54,14 @@ export class ApiError extends Error {
 /** Postgres SQLSTATEs raised by our triggers (see migrations) that map to API codes. */
 const PG_CODES: Record<string, ErrorCode> = {
   VL001: 'location_locked',
+  VL004: 'validation_failed',
 };
 
 export function fromPostgresError(err: unknown): ApiError | undefined {
   const code = (err as { code?: unknown } | null)?.code;
   if (typeof code !== 'string') return undefined;
   const apiCode = PG_CODES[code];
+  if (apiCode === 'validation_failed') return new ApiError(apiCode, 'Invalid request: timezone.');
   return apiCode ? new ApiError(apiCode) : undefined;
 }
 

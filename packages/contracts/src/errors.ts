@@ -15,8 +15,12 @@ export const ERROR_CODES = [
   'bookings_paused',
   'invalid_code',
   'rate_limited',
+  // Booking engine (S2)
+  'idempotency_conflict',
+  'booking_removed',
   // Activity edits (Google Maps spec)
   'location_locked',
+  'capacity_below_bookings',
   // Generic
   'invalid_contact',
   'validation_failed',

@@ -2,7 +2,7 @@
 
 Hosts list activities with fixed spots, bookers reserve and invite friends into a shared Plan, and guests claim spots from a link or code. Product intent: [`Velio Group Bookings PRD.md`](Velio%20Group%20Bookings%20PRD.md). Development rules: [`CLAUDE.md`](CLAUDE.md). Status: [`ROADMAP.md`](ROADMAP.md).
 
-This is the S1 foundation ([spec](spec/2026-11-03_09-29_s1-foundations/)): the workspace, database schema, lightweight identity, contracts, telemetry base and CI. It has no booking, invite, realtime or UI behaviour yet.
+Built so far: the S1 foundation ([spec](spec/2026-11-03_09-29_s1-foundations/)), which covers the workspace, database schema, lightweight identity, contracts, telemetry base and CI; and the S2 booking core ([spec](spec/2026-11-03_22-30_s2-booking-core/)), which covers the activity create and edit API, direct booking, host removal and capacity changes, all of which cannot oversell. It has no invite, realtime or UI behaviour yet.
 
 ## Setup
 
@@ -29,6 +29,7 @@ bun run dev        # http://localhost:3001/api/healthz
 | `apps/api/migrations`    | Forward-only SQL migrations, run by dbmate.                                 |
 | `apps/api/src/db/types.ts` | Kysely types, generated from the migrated database. Do not edit.          |
 | `packages/contracts`     | Zod schemas shared by API and clients, and the generated `openapi.json`.    |
+| `load`                   | k6 load tests: `seed.ts` and `check.ts` (Bun), `scenarios/` (k6). Results go to `load/results/` (git-ignored). |
 | `infra`                  | Local Docker Compose (Postgres, MinIO, OpenTelemetry Collector), and the production Compose and collector configs. |
 | `infra/aws`              | CDK app for the AWS stack (`VelioApp`), its tests, and the instance scripts (`scripts/`). |
 | `.github/workflows/ci.yml` | Format, lint, types, migrations, codegen drift, tests, OpenAPI drift.     |
@@ -45,6 +46,7 @@ bun run dev        # http://localhost:3001/api/healthz
 | `bun run typecheck`         | `tsc --noEmit` for every workspace.                                      |
 | `bun run lint` · `bun run format` · `bun run format:check` | ESLint and Prettier.                      |
 | `bun run dev`               | API with reload.                                                         |
+| `bun run load:smoke`        | k6 `last_spot_race` smoke against the local API (needs `bun run dev` running). |
 | `bun run aws:synth` · `aws:diff` · `aws:deploy` · `aws:destroy` | CDK for the `VelioApp` stack in eu-west-2. Each needs `-c alertEmail=…`. |
 
 After changing a migration or a route, run `db:codegen` or `contracts:openapi` and commit the result; CI fails on drift.
@@ -68,6 +70,14 @@ All variables are documented in [`.env.example`](.env.example). The API refuses 
 - Roles: `velio_owner` owns the schema (migrations switch to it), `velio_api` is the runtime role, `velio_readonly` is for metrics views. Locally they have no passwords: the Compose Postgres uses trust auth on `127.0.0.1` only.
 - Insert-only tables (`invites`, `invite_claims`, `attributions`, `trust_edges`, `attendance_marks`, `booking_removals`) reject `UPDATE` and `DELETE` twice: `velio_api` lacks the grants, and a trigger rejects them for every role.
 - Trigger errors use SQLSTATE class `VL`: `VL001` location locked, `VL002` insert-only, `VL003` immutable column, `VL004` invalid time zone.
+
+## Booking engine
+
+`apps/api/src/modules/bookings/engine.ts` is the only code that writes `activities.spots_left`. A booking takes its spot with one conditional `UPDATE … WHERE spots_left > 0`, inside the transaction that creates the Plan and the booking, so the last spot can be taken only once. The `CHECK` constraint is the backstop. Retries send the same `Idempotency-Key` header and get the original booking back with `200`. Every committed change to `spots_left` bumps `activities.version` and sends `pg_notify('activity_spots', …)`.
+
+- `bun test` includes `apps/api/test/concurrency/last-spot.test.ts`: 200 parallel HTTP bookers for 1, 5 and 14 spots, exactly N succeed. It also covers same-key retries, removal and capacity races.
+- `bun run load:smoke` runs the same race through k6 (25 VUs per activity, the `grafana/k6` image under the Compose `load` profile), then checks the database for oversold activities. Seeded data stays in the development database, named `Load <runId> …`.
+- The kill switch is `activities.bookings_paused`. Until S8 adds the admin endpoint, set it in SQL.
 
 ## Telemetry
 

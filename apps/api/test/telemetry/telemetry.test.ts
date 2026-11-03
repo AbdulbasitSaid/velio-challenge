@@ -13,6 +13,7 @@ import { createApp } from '../../src/app';
 import { loadConfig } from '../../src/config';
 import { createLogger, redactPath } from '../../src/telemetry/logger';
 import { TEST_PEPPER, json } from '../helpers/app';
+import { activityBody } from '../helpers/api';
 import { createTestDatabase, type TestDatabase } from '../helpers/db';
 
 class TestReader extends MetricReader {
@@ -148,6 +149,47 @@ describe('redaction', () => {
     expect(spanText).not.toContain('K7M2QX');
     expect(rawLog.join('')).not.toContain('K7M2QX');
     expect(spanText).toContain('/api/invites/:code');
+  });
+
+  // S2 V-OBS-1 (SEC-002): booking spans and logs carry the activity ID only.
+  test('a booking span has outcome, path and activity ID; no user, key or ref reaches spans or logs', async () => {
+    const signIn = async (name: string) => {
+      const res = await app.request(
+        '/api/sessions',
+        json({ displayName: name, contact: `${crypto.randomUUID()}@example.com` }, { 'x-client': 'mobile' }),
+      );
+      const body = (await res.json()) as { user: { id: string }; token: string };
+      return { id: body.user.id, auth: { authorization: `Bearer ${body.token}` } };
+    };
+    const host = await signIn('Span Host');
+    const guest = await signIn('Span Guest');
+    const created = await app.request('/api/activities', json(activityBody(), host.auth));
+    const activity = (await created.json()) as { id: string };
+
+    spans.reset();
+    rawLog.length = 0;
+    const key = crypto.randomUUID();
+    const res = await app.request(`/api/activities/${activity.id}/bookings`, {
+      method: 'POST',
+      headers: { ...guest.auth, 'idempotency-key': key },
+    });
+    expect(res.status).toBe(201);
+    const { booking } = (await res.json()) as { booking: { id: string; ref: string } };
+
+    const span = spans.getFinishedSpans().find((s) => s.name === 'booking.transaction');
+    expect(span!.attributes).toEqual({
+      'activity.id': activity.id,
+      'booking.path': 'direct',
+      'booking.outcome': 'success',
+    });
+    const spanText = JSON.stringify(
+      spans.getFinishedSpans().map((s) => ({ attributes: s.attributes, events: s.events })),
+    );
+    const logText = rawLog.join('');
+    for (const secret of [guest.id, key, booking.ref]) {
+      expect(spanText).not.toContain(secret);
+      expect(logText).not.toContain(secret);
+    }
   });
 
   test('redactPath', () => {
