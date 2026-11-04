@@ -165,4 +165,56 @@ class Api {
   }
 
   Future<void> resumeInvite(String code) => _call(() => _api.apiInvitesCodePauseDelete(code: code));
+
+  // ---- Booker and host (S7b §4.6) ----
+
+  Future<CommunityList> communities() => _call(() => _api.apiCommunitiesGet());
+
+  Future<CommunityPage> community(String slug) => _call(() => _api.apiCommunitiesSlugGet(slug: slug));
+
+  /// B1: one key per attempt, reused on retry (S7b FR-005).
+  Future<BookingResponse> book(String activityId, {required String idempotencyKey}) =>
+      _call(() => _api.apiActivitiesIdBookingsPost(id: activityId, idempotencyKey: idempotencyKey, xClient: 'mobile'));
+
+  Future<HostActivityList> hostActivities() => _call(() => _api.apiHostActivitiesGet());
+
+  Future<Attendance> attendance(String activityId) =>
+      _call(() => _api.apiHostActivitiesIdAttendanceGet(id: activityId));
+
+  Future<Attendee> mark(String bookingId, AttendanceMark mark) => _call(
+    () => _api.apiHostBookingsIdAttendancePost(
+      id: bookingId,
+      attendanceMarkCreate: AttendanceMarkCreate(mark: mark),
+    ),
+  );
+
+  Future<void> removeBooking(String bookingId) async {
+    await _call(() => _api.apiHostBookingsIdRemovalPost(id: bookingId));
+  }
+
+  /// Hand-built bodies, like [createInvite]: the generated models would send unset fields as null.
+  Future<String> createActivity(Map<String, Object?> body) => _json('POST', '/api/activities', body);
+
+  Future<void> patchActivity(String id, Map<String, Object?> body) async {
+    await _json('PATCH', '/api/activities/$id', body);
+  }
+
+  Future<String> _json(String method, String path, Map<String, Object?> body) async {
+    try {
+      final res = await dio.request<Map<String, dynamic>>(
+        path,
+        data: body,
+        options: Options(method: method),
+      );
+      return res.data!['id'] as String;
+    } catch (e) {
+      throw ApiException.from(e);
+    }
+  }
+
+  Future<PhotoUploadResponse> photoUpload() => _call(
+    () => _api.apiUploadsPhotosPost(
+      photoUploadRequest: PhotoUploadRequest(contentType: PhotoUploadRequestContentTypeEnum.imageSlashJpeg),
+    ),
+  );
 }

@@ -9,7 +9,7 @@ import '../core/api.dart';
 import '../ui/art.dart';
 import '../ui/components.dart';
 
-/// Pages the app doesn't have (activities, communities, hosting) live on the web (PRD W1).
+/// X4's "Open in the browser instead" for links the app doesn't know.
 Future<void> openInBrowser(String path) =>
     launchUrl(Uri.parse(path.startsWith('http') ? path : '$apiBaseUrl$path'), mode: LaunchMode.externalApplication);
 

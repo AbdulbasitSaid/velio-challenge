@@ -1,25 +1,10 @@
 // V-WID-1, V-CMP-1, V-INV-1 (widget part), V-CLM-1, V-PLAN-1, V-MY-1, V-PROF-1, V-ERR-1, V-OFF-1:
 // every screen's designed states at 360 px, and at 390 px with text at 200% (UI-D5, AC-005). A layout
 // overflow throws in tests, so each pump also checks there is none.
-import 'dart:async';
 
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
-import 'package:intl/date_symbol_data_local.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
-import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
-import 'package:timezone/data/latest.dart' as tzdata;
-import 'package:velio/app/theme.dart';
 import 'package:velio/core/api.dart';
-import 'package:velio/core/cache.dart';
-import 'package:velio/core/identity.dart';
-import 'package:velio/core/online.dart';
-import 'package:velio/core/providers.dart';
-import 'package:velio/core/realtime.dart';
 import 'package:velio/features/claim.dart';
 import 'package:velio/features/code_entry.dart';
 import 'package:velio/features/errors.dart';
@@ -32,160 +17,10 @@ import 'package:velio/ui/components.dart';
 import 'package:velio_api/velio_api.dart';
 
 import 'fixtures.dart';
-
-class FakeApi extends Api {
-  FakeApi(Identity identity) : super(Dio(), identity);
-  InviteView? inviteResult;
-  ApiException? inviteError;
-  PlanView? planResult;
-  MyPlans? plansResult;
-  ApiException? plansError;
-  Profile? profileResult;
-  final opens = <String>[];
-  final claims = <String>[];
-  ApiException? claimError;
-
-  @override
-  Future<InviteView> invite(String code) async =>
-      inviteError != null ? throw inviteError! : inviteResult ?? inviteView();
-  @override
-  Future<void> open(String code, String platform) async => opens.add('$code/$platform');
-  @override
-  Future<NextSteps> nextSteps(String activityId) async => NextSteps(
-    hostOtherDates: [
-      ActivityCard.fromJson({...activityJson(spotsLeft: 4), 'location': _cardLoc}),
-    ],
-    moreInCommunity: const [],
-  );
-  @override
-  Future<PublicActivity> activity(String id) async => PublicActivity.fromJson(activityJson());
-  @override
-  Future<PlanView> plan(String id) async => planResult ?? PlanView.fromJson(planJson());
-  @override
-  Future<MyPlans> myPlans() async => plansError != null ? throw plansError! : plansResult!;
-  @override
-  Future<Profile> profile(String userId) async => profileResult!;
-  @override
-  Future<ClaimResponse> claim(
-    String code, {
-    required String idempotencyKey,
-    required String platform,
-    String? displayName,
-    String? contact,
-  }) async {
-    claims.add(idempotencyKey);
-    throw claimError ?? const ApiException(message: 'network');
-  }
-}
-
-const _cardLoc = {'venueName': 'Lake Naivasha Boat Club', 'lat': -0.7667, 'lng': 36.4333};
-
-MyPlan _myPlan({String status = 'confirmed'}) => MyPlan.fromJson({
-  'planId': planId,
-  'activity': {...activityJson(), 'location': _cardLoc},
-  'booking': {'id': planId, 'ref': 'VLO-48213', 'status': status},
-  'members': {
-    'count': 3,
-    'preview': [member('0190a6f2-0000-7000-8000-000000000002', 'Tunde A.', 'Tunde Adeyemi')],
-  },
-});
-
-/// The socket never opens: screens show their reconnecting state, as on a slow network.
-RealtimeClient _quietRealtime() =>
-    RealtimeClient(url: Uri.parse('wss://x.test/api/ws'), platform: 'android', createSocket: (_) => _NeverSocket());
-
-class _NeverSocket implements RealtimeSocket {
-  @override
-  Stream<dynamic> get messages => const Stream.empty();
-  @override
-  Future<void> get ready => Completer<void>().future;
-  @override
-  void send(String data) {}
-  @override
-  void close() {}
-}
-
-late Identity identity;
-late FakeApi api;
-late OfflineCache cache;
-late SharedPreferencesAsync prefs;
-bool online = true;
-
-Future<void> pumpScreen(
-  WidgetTester tester,
-  Widget screen, {
-  Size size = const Size(360, 800),
-  double scale = 1,
-}) async {
-  tester.view.physicalSize = size * 3;
-  tester.view.devicePixelRatio = 3;
-  addTearDown(tester.view.reset);
-  final router = GoRouter(
-    initialLocation: '/test',
-    routes: [GoRoute(path: '/test', builder: (_, _) => screen)],
-    errorBuilder: (_, _) => const SizedBox.shrink(),
-  );
-  await tester.pumpWidget(
-    ProviderScope(
-      overrides: [
-        identityProvider.overrideWithValue(identity),
-        apiProvider.overrideWithValue(api),
-        cacheProvider.overrideWithValue(cache),
-        realtimeProvider.overrideWithValue(_quietRealtime()),
-        platformProvider.overrideWithValue('android'),
-        clockProvider.overrideWithValue(() => DateTime.utc(2026, 11, 4, 12, 10)),
-        onlineProvider.overrideWith((ref) => Stream.value(online)),
-        attemptKeysProvider.overrideWithValue(AttemptKeys(prefs)),
-      ],
-      child: MediaQuery(
-        data: MediaQueryData(size: size, textScaler: TextScaler.linear(scale), disableAnimations: true),
-        child: MaterialApp.router(theme: velioTheme(), routerConfig: router),
-      ),
-    ),
-  );
-  await tester.pumpAndSettle();
-}
-
-/// Scrolls the control into view, as a person would, then taps it.
-Future<void> tapText(WidgetTester t, String text) async {
-  await t.ensureVisible(find.text(text).first);
-  await t.pumpAndSettle();
-  await t.tap(find.text(text).first);
-  await t.pumpAndSettle();
-}
-
-String fieldText(WidgetTester t) => t.widget<TextField>(find.byType(TextField)).controller!.text;
-
-/// Each case runs at 360 px and at 390 px with 200% text.
-void screenTest(String name, Future<void> Function(WidgetTester tester, {Size size, double scale}) body) {
-  testWidgets('$name · 360 px', (t) => body(t, size: const Size(360, 800), scale: 1));
-  testWidgets('$name · 390 px, 200% text', (t) => body(t, size: const Size(390, 844), scale: 2));
-}
-
-Future<void> signedIn() => identity.signIn(
-  'tok',
-  const LocalProfile(
-    userId: '0190a6f2-0000-7000-8000-000000000009',
-    displayName: 'Zainab Okafor',
-    maskedContact: '+254 712 •••',
-  ),
-);
+import 'harness.dart';
 
 void main() {
-  setUpAll(() async {
-    tzdata.initializeTimeZones();
-    await initializeDateFormatting('en_GB');
-  });
-
-  setUp(() async {
-    SharedPreferencesAsyncPlatform.instance = InMemorySharedPreferencesAsync.empty();
-    prefs = SharedPreferencesAsync();
-    identity = Identity(MemorySecretStore(), prefs);
-    await identity.load();
-    api = FakeApi(identity);
-    cache = OfflineCache(prefs);
-    online = true;
-  });
+  setUpHarness();
 
   group('components (V-CMP-1)', () {
     testWidgets('spots badge: five states', (t) async {
@@ -449,8 +284,8 @@ void main() {
       await signedIn();
       api.plansResult = MyPlans(
         upcoming: [
-          _myPlan(),
-          _myPlan(status: 'removed'),
+          myPlan(),
+          myPlan(status: 'removed'),
         ],
         past: const [],
       );
@@ -470,7 +305,7 @@ void main() {
     });
     screenTest('offline from the saved list', (t, {size = const Size(360, 800), scale = 1}) async {
       await signedIn();
-      await cache.saveMyPlans(MyPlans(upcoming: [_myPlan()], past: const []), DateTime.utc(2026, 11, 4, 11, 45));
+      await cache.saveMyPlans(MyPlans(upcoming: [myPlan()], past: const []), DateTime.utc(2026, 11, 4, 11, 45));
       api.plansError = const ApiException(message: 'network');
       await pumpScreen(t, const MyPlansScreen(), size: size, scale: scale);
       expect(find.text('You’re offline · Last updated 25 min ago'), findsOneWidget);

@@ -11,6 +11,7 @@ import '../core/format.dart';
 import '../core/providers.dart';
 import '../ui/components.dart';
 import 'errors.dart';
+import 'shell.dart';
 
 class MyPlansScreen extends ConsumerStatefulWidget {
   const MyPlansScreen({super.key});
@@ -81,10 +82,7 @@ class _MyPlansState extends ConsumerState<MyPlansScreen> {
     final now = ref.read(clockProvider)();
 
     return Scaffold(
-      appBar: VAppBar(
-        wordmark: true,
-        trailing: VButton('Enter a code', variant: ButtonVariant.quiet, small: true, onPressed: () => context.go('/')),
-      ),
+      appBar: const VAppBar(wordmark: true, trailing: RoleToggle()),
       body: SafeArea(
         top: false,
         child: RefreshIndicator(

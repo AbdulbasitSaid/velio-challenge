@@ -1089,12 +1089,14 @@ class SectionHeading extends StatelessWidget {
 
 /// Screen padding and a centred phone-width column (tablets show the phone layout: UI-D5).
 class ScreenBody extends StatelessWidget {
-  const ScreenBody({super.key, required this.children, this.gap = VelioSpace.s5});
+  const ScreenBody({super.key, required this.children, this.gap = VelioSpace.s5, this.controller});
   final List<Widget> children;
   final double gap;
+  final ScrollController? controller;
 
   @override
   Widget build(BuildContext context) => SingleChildScrollView(
+    controller: controller,
     padding: const EdgeInsets.fromLTRB(VelioSpace.s5, VelioSpace.s2, VelioSpace.s5, VelioSpace.s8),
     child: Center(
       child: ConstrainedBox(

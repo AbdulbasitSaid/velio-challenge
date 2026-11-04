@@ -38,10 +38,13 @@ String zoneLabel(String zone) => '${zone.split('/').last.replaceAll('_', ' ')} t
 
 const _zeroDecimal = {'JPY', 'KRW', 'UGX', 'RWF', 'XOF', 'XAF', 'VND', 'CLP', 'ISK'};
 
+/// Minor-unit digits of a currency, as formatMoney and the host form's price use them.
+int currencyDigits(String currency) => _zeroDecimal.contains(currency) ? 0 : 2;
+
 /// "KES 3,500", or "Free".
 String formatMoney(int minor, String currency) {
   if (minor == 0) return 'Free';
-  final digits = _zeroDecimal.contains(currency) ? 0 : 2;
+  final digits = currencyDigits(currency);
   final amount = minor / _pow10(digits);
   final whole = amount % 1 == 0;
   final f = NumberFormat.decimalPatternDigits(locale: 'en', decimalDigits: whole ? 0 : digits);

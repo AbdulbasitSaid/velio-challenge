@@ -8,6 +8,8 @@
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
 	<string>Velio</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Choose a photo for an activity you host.</string>
 	<key>MapsApiKey</key>
 	<string>$(MAPS_IOS_KEY)</string>
 	<key>FlutterDeepLinkingEnabled</key>

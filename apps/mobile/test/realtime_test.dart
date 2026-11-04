@@ -95,6 +95,44 @@ void main() {
     });
   });
 
+  test('V-RT-3: attendance reaches only the watch on host:<id>', () {
+    fakeAsync((async) {
+      final rt = client();
+      final host = <String>[];
+      final guest = <String>[];
+      rt.watch(Watch(topics: ['activity:$id', 'host:$id'], refresh: () async {}, onAttendance: host.add));
+      rt.watch(Watch(topics: ['activity:$id'], refresh: () async {}, onAttendance: guest.add));
+      sockets.single.open();
+      async.flushMicrotasks();
+      sockets.single.push({'type': 'attendance', 'activityId': id});
+      sockets.single.push({'type': 'attendance', 'activityId': 'other'});
+      async.flushMicrotasks();
+      expect(host, [id]);
+      expect(guest, isEmpty);
+    });
+  });
+
+  test('reconnect after a session change: a new socket with resume=1 and a refetch', () {
+    fakeAsync((async) {
+      final rt = client();
+      var fetches = 0;
+      rt.watch(Watch(topics: ['host:$id'], refresh: () async => fetches++));
+      sockets.single.open();
+      async.flushMicrotasks();
+      expect(fetches, 1);
+      rt.reconnect();
+      expect(sockets.first.closed, isTrue);
+      expect(sockets.last.uri.queryParameters['resume'], '1');
+      sockets.last.open();
+      async.flushMicrotasks();
+      expect(sockets.last.sent.last, {
+        'type': 'subscribe',
+        'topics': ['host:$id'],
+      });
+      expect(fetches, 2);
+    });
+  });
+
   test('rule 3: disconnected, it polls every 10 s and reconnects with resume=1', () {
     fakeAsync((async) {
       final rt = client();

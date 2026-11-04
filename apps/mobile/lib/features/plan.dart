@@ -426,7 +426,7 @@ class _PlanState extends ConsumerState<PlanScreen> with _PlanLoader {
                     title: 'See other dates',
                     meta: '${a.host.shortName} · ${a.community.name}',
                     photoUrl: a.photoUrl,
-                    onTap: () => openInBrowser('/activities/${a.id}'),
+                    onTap: () => context.push('/activities/${a.id}'),
                   ),
                 ]),
               ],

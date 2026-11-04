@@ -12,6 +12,7 @@ import '../core/format.dart';
 import '../core/providers.dart';
 import '../ui/art.dart';
 import '../ui/components.dart';
+import 'shell.dart';
 
 const invalidCodeError = 'That code doesn’t match an invite. Check the letters.';
 const rateLimitedError = 'Too many attempts from this device. Try again in an hour.';
@@ -81,15 +82,8 @@ class _CodeEntryState extends ConsumerState<CodeEntryScreen> {
   Widget build(BuildContext context) {
     final complete = normaliseCode(_field.text) != null;
     return Scaffold(
-      appBar: VAppBar(
-        wordmark: true,
-        trailing: VButton(
-          'My plans',
-          variant: ButtonVariant.quiet,
-          small: true,
-          onPressed: () => context.push('/me/plans'),
-        ),
-      ),
+      // My plans is a tab now (S7b FR-002); the bar carries the role toggle.
+      appBar: const VAppBar(wordmark: true, trailing: RoleToggle()),
       body: SafeArea(
         top: false,
         child: LayoutBuilder(

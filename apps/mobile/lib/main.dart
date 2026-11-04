@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:go_router/go_router.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,30 +15,48 @@ import 'app/theme.dart';
 import 'core/api.dart';
 import 'core/cache.dart';
 import 'core/identity.dart';
+import 'core/photo.dart';
 import 'core/providers.dart';
 import 'core/realtime.dart';
+import 'core/role.dart';
 
-Future<void> main() async {
+Future<void> main() => run();
+
+/// [overrides] let integration tests swap a platform service, such as the photo picker (S7b V-MAN-1).
+Future<void> run({List<Override> overrides = const []}) async {
   WidgetsFlutterBinding.ensureInitialized();
   tzdata.initializeTimeZones();
   await initializeDateFormatting('en_GB');
   final prefs = SharedPreferencesAsync();
   final identity = Identity(const PlatformSecretStore(), prefs);
   await identity.load();
-  final router = createRouter();
+  final role = await loadRole(prefs);
+  final router = createRouter(initialLocation: role == Role.host ? '/host' : '/');
   final container = ProviderContainer();
   final dio = createDio(identity, onUnauthorized: () => container.read(sessionVersionProvider.notifier).state++);
+  final api = Api(dio, identity);
   final scoped = ProviderContainer(
     parent: container,
     overrides: [
       identityProvider.overrideWithValue(identity),
-      apiProvider.overrideWithValue(Api(dio, identity)),
+      prefsProvider.overrideWithValue(prefs),
+      roleProvider.overrideWith((ref) => role),
+      apiProvider.overrideWithValue(api),
+      // Overridden here, not derived: a provider that isn't overridden resolves in the root
+      // container, where the API isn't (S7b V-MAN-1 found this).
+      photoUploaderProvider.overrideWithValue(PhotoUploader(api)),
       cacheProvider.overrideWithValue(OfflineCache(prefs)),
       realtimeProvider.overrideWith(
-        (ref) => RealtimeClient(url: realtimeUrl(apiBaseUrl), platform: ref.read(platformProvider)),
+        (ref) => RealtimeClient(
+          url: realtimeUrl(apiBaseUrl),
+          platform: ref.read(platformProvider),
+          token: () => identity.token,
+        ),
       ),
+      ...overrides,
     ],
   );
+  container.listen(sessionVersionProvider, (_, _) => scoped.read(realtimeProvider).reconnect());
   runApp(
     UncontrolledProviderScope(
       container: scoped,

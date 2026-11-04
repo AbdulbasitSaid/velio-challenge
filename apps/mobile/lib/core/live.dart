@@ -20,6 +20,8 @@ class LiveSpots extends ChangeNotifier {
     required this.refresh,
     this.planId,
     this.onPlan,
+    this.extraTopics = const [],
+    this.onAttendance,
     this.view,
     this.announceEvery = const Duration(seconds: 5),
   }) : _spots = spotsLeft,
@@ -27,10 +29,11 @@ class LiveSpots extends ChangeNotifier {
     _statusSub = realtime.statusChanges.listen((_) => notifyListeners());
     _stop = realtime.watch(
       Watch(
-        topics: ['activity:$activityId', if (planId != null) 'plan:$planId'],
+        topics: ['activity:$activityId', if (planId != null) 'plan:$planId', ...extraTopics],
         refresh: refresh,
         onSpots: (e) => apply(e.spotsLeft, e.version, fromEvent: true),
         onPlan: onPlan == null ? null : (_) => onPlan!(),
+        onAttendance: onAttendance == null ? null : (_) => onAttendance!(),
       ),
     );
   }
@@ -42,6 +45,10 @@ class LiveSpots extends ChangeNotifier {
   /// Fetches the screen's snapshots and passes the activity's count to [apply].
   final Future<void> Function() refresh;
   final void Function()? onPlan;
+
+  /// More topics, such as `host:<id>` for attendance (S7b FR-011).
+  final List<String> extraTopics;
+  final void Function()? onAttendance;
 
   /// For announcements; null in tests without a view.
   final FlutterView? view;
@@ -99,6 +106,56 @@ class LiveSpots extends ChangeNotifier {
   @override
   void dispose() {
     _pendingAnnounce?.cancel();
+    _statusSub.cancel();
+    _stop();
+    super.dispose();
+  }
+}
+
+/// Live spots for a list of activities (C1, S7b FR-003): the version gate per activity, no
+/// announcements (the web's community page makes none).
+class LiveCounts extends ChangeNotifier {
+  LiveCounts({
+    required this.realtime,
+    required Map<String, ({int spotsLeft, int version})> initial,
+    required this.refresh,
+  }) : _counts = {
+         for (final e in initial.entries)
+           e.key: (spotsLeft: e.value.spotsLeft, version: e.value.version, changed: false),
+       } {
+    _statusSub = realtime.statusChanges.listen((_) => notifyListeners());
+    _stop = realtime.watch(
+      Watch(
+        topics: [for (final id in initial.keys) 'activity:$id'],
+        refresh: refresh,
+        onSpots: (e) => apply(e.activityId, e.spotsLeft, e.version, fromEvent: true),
+      ),
+    );
+  }
+
+  final RealtimeClient realtime;
+
+  /// Fetches the list again and passes each count to [apply].
+  final Future<void> Function() refresh;
+
+  final Map<String, ({int spotsLeft, int version, bool changed})> _counts;
+  late final StreamSubscription<RealtimeStatus> _statusSub;
+  late final void Function() _stop;
+
+  int? spotsOf(String id) => _counts[id]?.spotsLeft;
+  bool changed(String id) => _counts[id]?.changed ?? false;
+  RealtimeStatus get status => realtime.status;
+
+  void apply(String id, int spotsLeft, int version, {bool fromEvent = false}) {
+    final c = _counts[id];
+    if (c == null || version <= c.version) return;
+    _counts[id] = (spotsLeft: spotsLeft, version: version, changed: fromEvent && spotsLeft != c.spotsLeft);
+    notifyListeners();
+    if (fromEvent) SchedulerBinding.instance.addPostFrameCallback((_) => realtime.rendered(id, version));
+  }
+
+  @override
+  void dispose() {
     _statusSub.cancel();
     _stop();
     super.dispose();

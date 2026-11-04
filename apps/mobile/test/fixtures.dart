@@ -112,3 +112,77 @@ Map<String, dynamic> planJson({String bookingStatus = 'confirmed', bool canInvit
     },
   ],
 };
+
+// ---- S7b: communities, host lists and attendance ----
+
+Map<String, dynamic> communityJson() => {
+  'slug': 'explore-kenya',
+  'name': 'Explore Kenya',
+  'blurb': 'Weekend trips around Nairobi.',
+  'coverPhotoUrl': null,
+  'upcomingCount': 2,
+};
+
+Map<String, dynamic> cardJson({String id = activityId, int spotsLeft = 6, String status = 'open'}) => {
+  ...activityJson(spotsLeft: spotsLeft, status: status),
+  'id': id,
+  'location': {'venueName': 'Lake Naivasha Boat Club', 'lat': -0.7667, 'lng': 36.4333},
+};
+
+Map<String, dynamic> communityPageJson({bool empty = false}) => {
+  'community': communityJson(),
+  'activities': empty
+      ? <Object>[]
+      : [cardJson(), cardJson(id: '0190a6f2-1f2b-7c3d-8e4f-5a6b7c8d9e10', spotsLeft: 0, status: 'sold_out')],
+};
+
+Map<String, dynamic> hostItemJson({int booked = 8, int marked = 0, int attended = 0, int spotsLeft = 6}) => {
+  ...cardJson(spotsLeft: spotsLeft),
+  'bookedCount': booked,
+  'markedCount': marked,
+  'attendedCount': attended,
+};
+
+Map<String, dynamic> hostListJson({bool empty = false}) => {
+  'upcoming': empty ? <Object>[] : [hostItemJson(), hostItemJson(booked: 0, spotsLeft: 14)],
+  'past': empty ? <Object>[] : [hostItemJson(marked: 5, attended: 5)],
+};
+
+Map<String, dynamic> attendeeJson(
+  String n, {
+  String source = 'direct',
+  String status = 'confirmed',
+  String? mark,
+  String bookedAt = '2026-12-02T10:00:00.000Z',
+  String planId = planId,
+}) => {
+  'bookingId': '0190a6f2-0000-7000-8000-0000000000a$n',
+  'ref': 'VLO-1000$n',
+  'status': status,
+  'person': member('0190a6f2-0000-7000-8000-00000000010$n', 'Guest$n G.', 'Guest$n Gathoni'),
+  'bookedAt': bookedAt,
+  'source': source,
+  'invitedBy': source == 'vouch' ? member('0190a6f2-0000-7000-8000-000000000002', 'Tunde A.', 'Tunde Adeyemi') : null,
+  'planId': planId,
+  'mark': mark,
+  'markedAt': null,
+};
+
+Map<String, dynamic> attendanceJson({bool started = false, bool empty = false}) => {
+  'activity': {
+    'id': activityId,
+    'capacity': 14,
+    'spotsLeft': 11,
+    'version': 3,
+    'startsAt': started ? '2026-11-04T10:00:00.000Z' : '2026-12-14T14:30:00.000Z',
+    'timezone': 'Africa/Nairobi',
+    'started': started,
+  },
+  'attendees': empty
+      ? <Object>[]
+      : [
+          attendeeJson('1'),
+          attendeeJson('2', source: 'vouch', bookedAt: '2026-12-03T10:00:00.000Z'),
+          attendeeJson('3', source: 'public', status: 'removed', bookedAt: '2026-12-04T10:00:00.000Z'),
+        ],
+};

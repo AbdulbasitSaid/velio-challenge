@@ -7,6 +7,11 @@ import 'package:velio_tokens/velio_tokens.dart';
 import '../core/api.dart';
 
 const _paths = {
+  'plus': 'M12 5v14M5 12h14',
+  'minus': 'M5 12h14',
+  'list': 'M8.5 6.5h12M8.5 12h12M8.5 17.5h12M4 6.5h.01M4 12h.01M4 17.5h.01',
+  'clock': 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7.5V12l3 2',
+  'target': 'M12 19.5a7.5 7.5 0 1 0 0-15 7.5 7.5 0 0 0 0 15zM12 2v3M12 19v3M2 12h3M19 12h3M12 13.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z',
   'calendar': 'M4 6.5h16v13H4zM4 10h16M8 4v4M16 4v4',
   'pin':
       'M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0C18.5 15.4 12 21 12 21zM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z',

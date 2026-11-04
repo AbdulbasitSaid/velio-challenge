@@ -521,10 +521,10 @@ class _Outcome extends ConsumerWidget {
   }
 }
 
-/// Activity pages are web-only (PRD W1), so these open the browser.
+/// Opens the activity page in the app (S7b FR-013).
 NextStep cardStep(BuildContext context, ActivityCard c) => NextStep(
   title: c.title,
   meta: '${formatWhen(c.startsAt, c.timezone)} · ${spotsLabel(c.spotsLeft)}',
   photoUrl: c.photoUrl,
-  onTap: () => openInBrowser('/activities/${c.id}'),
+  onTap: () => context.push('/activities/${c.id}'),
 );

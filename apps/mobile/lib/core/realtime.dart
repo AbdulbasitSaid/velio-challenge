@@ -5,6 +5,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 enum RealtimeStatus { connecting, live, reconnecting }
@@ -17,7 +18,7 @@ class SpotsEvent {
 }
 
 class Watch {
-  Watch({required this.topics, required this.refresh, this.onSpots, this.onPlan});
+  Watch({required this.topics, required this.refresh, this.onSpots, this.onPlan, this.onAttendance});
   final List<String> topics;
 
   /// Fetch every snapshot the screen shows: after `subscribe` on each (re)connect (rule 1), on
@@ -27,6 +28,9 @@ class Watch {
 
   /// Rule 5: the Plan changed; fetch it again.
   final void Function(String planId)? onPlan;
+
+  /// Rule 5: a booking on the host's activity changed; fetch the attendance list again.
+  final void Function(String activityId)? onAttendance;
 }
 
 /// The socket, behind an interface so tests drive it by hand.
@@ -38,7 +42,9 @@ abstract interface class RealtimeSocket {
 }
 
 class ChannelSocket implements RealtimeSocket {
-  ChannelSocket(Uri uri) : _channel = WebSocketChannel.connect(uri);
+  /// [headers] carry the bearer token: without it the socket is anonymous and only `activity:`
+  /// topics are allowed (S7b V-MAN-1 found `plan:` and `host:` refused).
+  ChannelSocket(Uri uri, {Map<String, String>? headers}) : _channel = IOWebSocketChannel.connect(uri, headers: headers);
   final WebSocketChannel _channel;
   @override
   Stream<dynamic> get messages => _channel.stream;
@@ -55,9 +61,15 @@ class RealtimeClient {
     required this.url,
     required this.platform,
     RealtimeSocket Function(Uri uri)? createSocket,
+    String? Function()? token,
     Random? random,
     this.pollInterval = const Duration(seconds: 10),
-  }) : _createSocket = createSocket ?? ChannelSocket.new,
+  }) : _createSocket =
+           createSocket ??
+           ((uri) {
+             final t = token?.call();
+             return ChannelSocket(uri, headers: t == null ? null : {'authorization': 'Bearer $t'});
+           }),
        _random = random ?? Random();
 
   /// `wss://<host>/api/ws`, without the query.
@@ -125,6 +137,14 @@ class RealtimeClient {
     }
   }
 
+  /// Sign-in or sign-out: the socket's identity is fixed at connect, so connect again (resume=1, then
+  /// a refetch) for `plan:` and `host:` topics to follow the new session.
+  void reconnect() {
+    if (_paused || _watches.isEmpty) return;
+    _teardown();
+    _connect();
+  }
+
   void _connect() {
     _reconnect = null;
     final query = {'platform': platform, if (_everConnected) 'resume': '1'};
@@ -184,6 +204,11 @@ class RealtimeClient {
         final id = msg['planId'];
         for (final w in _watches.toList()) {
           if (w.topics.contains('plan:$id')) w.onPlan?.call('$id');
+        }
+      case 'attendance':
+        final id = msg['activityId'];
+        for (final w in _watches.toList()) {
+          if (w.topics.contains('host:$id')) w.onAttendance?.call('$id');
         }
       case 'resync':
         _refreshAll();
