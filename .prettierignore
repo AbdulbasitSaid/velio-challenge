@@ -3,6 +3,9 @@ apps/api/src/db/types.ts
 packages/contracts/openapi.json
 packages/design-tokens/css/theme.css
 packages/design-tokens/dart/
+packages/api-client-dart/
+# Flutter app: dart format checks it (CI mobile job)
+apps/mobile/
 bun.lock
 # Docs and specs are maintained by hand
 *.md

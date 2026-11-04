@@ -30,7 +30,9 @@ bun run web:dev    # http://localhost:3000 (Next.js; proxies /api/* to :3001, th
 | `apps/api/migrations`    | Forward-only SQL migrations, run by dbmate.                                 |
 | `apps/api/src/db/types.ts` | Kysely types, generated from the migrated database. Do not edit.          |
 | `apps/web`               | Next.js web app (App Router, run on Node): pages, design-system components, API and realtime clients. Vitest tests in `test/`. |
+| `apps/mobile`            | Flutter app for iOS and Android (S7): code entry, invite, claim, Plan, My plans, offline cache, native map, App Links. Not a Bun workspace member. |
 | `packages/contracts`     | Zod schemas shared by API and clients, and the generated `openapi.json`.    |
+| `packages/api-client-dart` | Dart client `velio_api`, generated from `openapi.json`. Do not edit `lib/`. |
 | `packages/design-tokens` | The approved `tokens.json` and its generated outputs: `css/theme.css` (Tailwind 4 theme) and `dart/` (the `velio_tokens` Flutter package). Shared avatar hash fixtures. |
 | `load`                   | k6 load tests: `seed.ts` and `check.ts` (Bun), `scenarios/` (k6). Results go to `load/results/` (git-ignored). |
 | `infra`                  | Local Docker Compose (Postgres, MinIO, OpenTelemetry Collector), and the production Compose and collector configs. |
@@ -45,6 +47,7 @@ bun run web:dev    # http://localhost:3000 (Next.js; proxies /api/* to :3001, th
 | `bun run db:migrate`        | Applies pending migrations to `velio` and `velio_test`.                  |
 | `bun run db:codegen`        | Regenerates `apps/api/src/db/types.ts`. Add `--verify` to check only.    |
 | `bun run contracts:openapi` | Regenerates `packages/contracts/openapi.json` from the mounted routes.   |
+| `bun run contracts:dart`    | Regenerates the Dart client from `openapi.json` (Docker and Flutter). CI fails on drift. |
 | `bun test`                  | Unit and integration tests, against the Compose Postgres.                |
 | `bun run typecheck`         | `tsc --noEmit` for every workspace.                                      |
 | `bun run lint` · `bun run format` · `bun run format:check` | ESLint and Prettier.                      |
@@ -56,7 +59,25 @@ bun run web:dev    # http://localhost:3000 (Next.js; proxies /api/* to :3001, th
 | `bun run load:viewers`      | k6 `viewers` smoke: 250 sockets watch a `last_spot_race` (needs `bun run dev` running). |
 | `bun run aws:synth` · `aws:diff` · `aws:deploy` · `aws:destroy` | CDK for the `VelioApp` stack in eu-west-2. Each needs `-c alertEmail=…`. |
 
-After changing a migration or a route, run `db:codegen` or `contracts:openapi` and commit the result; CI fails on drift.
+After changing a migration or a route, run `db:codegen` or `contracts:openapi` (then `contracts:dart`) and commit the result; CI fails on drift.
+
+## Mobile app
+
+Flutter 3.47.9 (pinned in `.fvmrc`; `fvm` or a matching `flutter` on PATH). iOS 15+ and Android 8 (API 26)+. Design and checks: [`spec/2026-11-04_12-50_s7-flutter-app/`](spec/2026-11-04_12-50_s7-flutter-app/).
+
+```bash
+cd apps/mobile
+flutter pub get
+flutter test                                  # unit and widget tests (360 px and 200% text)
+flutter run                                   # against the deployed stack
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3001   # Android emulator → local Compose
+flutter run --dart-define=API_BASE_URL=http://localhost:3001  # iOS simulator → local Compose
+flutter test integration_test --dart-define=SMOKE_CODE=<claimable vouch code>   # books a spot
+```
+
+- **Maps:** without keys the app shows the address and directions instead of a map. To show native maps, put `MAPS_ANDROID_KEY=…` in `apps/mobile/android/secrets.properties` and `MAPS_IOS_KEY = …` in `apps/mobile/ios/Flutter/Secrets.xcconfig` (both git-ignored), and add `--dart-define=MAPS=1`.
+- **App Links (Android):** links to `https://<host>/i/<code>` open the app when the host's `/.well-known/assetlinks.json` lists the package and the SHA-256 of the keystore that signed the build (`ANDROID_PACKAGE`, `ANDROID_CERT_SHA256` on the web container). Builds are signed with the local debug keystore. iOS opens the web page; the app is reached by code entry (no Apple Developer account).
+- The app isn't distributed: run it from here on a simulator, emulator or cabled phone.
 
 ## Environment
 

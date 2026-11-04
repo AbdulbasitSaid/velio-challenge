@@ -93,9 +93,11 @@ services:
       API_INTERNAL_URL: http://api:3001
       # Absolute URLs in link previews (S6 Open Graph).
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-https://depimls1pcvv4.cloudfront.net}
-      # App Links (S6 §4.7, S7). Unset → /.well-known files return 404.
-      ANDROID_PACKAGE: ${ANDROID_PACKAGE:-}
-      ANDROID_CERT_SHA256: ${ANDROID_CERT_SHA256:-}
+      # App Links (S6 §4.7, S7). Unset → /.well-known files return 404. The package and the SHA-256 of the
+      # debug keystore that signs the demo build (public values; the app isn't distributed, S7 §12 Q2).
+      # iOS stays empty: no Apple team (S7 §12 Q1).
+      ANDROID_PACKAGE: ${ANDROID_PACKAGE:-io.github.abdulbasitsaid.velio}
+      ANDROID_CERT_SHA256: ${ANDROID_CERT_SHA256:-B8:4B:AE:6E:41:10:08:00:C7:2D:B2:73:39:BC:CD:BB:4D:16:22:2A:AC:83:19:D5:A7:36:1E:26:F7:DA:4A:02}
       APPLE_APP_IDS: ${APPLE_APP_IDS:-}
       ORIGIN_VERIFY_SECRET: ${ORIGIN_VERIFY_SECRET:?}
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318

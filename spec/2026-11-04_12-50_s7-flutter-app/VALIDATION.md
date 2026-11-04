@@ -93,4 +93,63 @@
 
 ## Part B: Executed checks
 
-Not run. Filled in after implementation.
+### V-VER-1: versions (looked up 2026-11-04 on pub.dev, Flutter's release feed, Docker Hub and GitHub)
+
+All pinned exactly in `apps/mobile/pubspec.yaml` and `pubspec.lock` (and `.fvmrc`, the CI job, `generate.sh`); every one is the latest stable unless noted.
+
+| Item | Pinned | Note |
+| --- | --- | --- |
+| Flutter / Dart | 3.47.9 (2026-10-29) / 3.13.7 | `.fvmrc`, CI `subosito/flutter-action` v2.23.0 by commit |
+| flutter_riverpod, go_router, dio | 3.4.3, 18.1.3, 5.11.1 | |
+| app_links, web_socket_channel, connectivity_plus | 7.2.2, 3.0.3, 7.3.2 | |
+| shared_preferences, flutter_secure_storage | 2.5.6, 11.2.0 | |
+| google_maps_flutter (ios 2.18.7, android 2.21.0; GoogleMaps SDK 9.4.0) | 2.19.0 | |
+| url_launcher, share_plus, intl, timezone, uuid | 6.3.3, 13.3.1, 0.20.3, 0.11.2, 4.6.0 | |
+| path_parsing | 1.1.0 | Added (PLANNING change log) |
+| flutter_lints, fake_async, shared_preferences_platform_interface (dev) | 6.0.0, 1.3.3, 2.4.2 | |
+| Dart client: openapi-generator image | v7.27.0 `sha256:949efd0d…` | |
+| Dart client: dio, json_annotation, copy_with_extension(_gen), json_serializable | 5.11.1, 4.12.0, 18.0.0, 6.15.2 | |
+| Dart client: build_runner | 2.11.1 | **Exception**: 2.17.1 is incompatible with copy_with_extension_gen 18 (PLANNING change log) |
+| Fonts | Sora 700, DM Sans 400 and 700 (Google Fonts static TTFs, OFL, licences bundled) | Same families as the web |
+| Platform minimums (NFR-004) | iOS 15.0, Android API 26 | Flutter needs iOS 13 / API 24, `google_maps_flutter_ios` iOS 14; the iOS simulator build with GoogleMaps 9.4.0 at 15.0 passes |
+
+### Automated checks
+
+| Check | Command or procedure | Date | Result | Covers |
+| --- | --- | --- | --- | --- |
+| V-API-1 | `bun run contracts:dart` twice, hash of `lib/`; then `git diff` (also the CI step) | 2026-11-04 | Pass: identical output on both runs (deterministic). The CI step runs on the next push | FR-001, AC-006 |
+| V-API-1 (shape) | `test/core_test.dart`: the generated models parse real responses from the deployed API (invite public and as a member, activity, Plan, My plans, next steps, two profiles; names replaced) | 2026-11-04 | Pass, after the `invitedBy` fix (PLANNING change log): before it, a Plan with a direct member threw | FR-001 |
+| V-CODE-1 | `test/core_test.dart` (normalise, reject 0/O/1/I/L and lengths, typing filter) and `test/widgets_test.dart` (G8 typed code upper-cased, unknown code inline with the code kept, rate limited) | 2026-11-04 | Pass | FR-004 |
+| V-INV-1 (unit, widget) | Screen selection for every S6 §4.3 row and the live count; widgets: G1 vouch (short names only), G2 public, G5 with "Tell Tunde" and the host's other dates, G6, G7 other, paused | 2026-11-04 | Pass | FR-006, FR-007, SEC-003 |
+| V-INV-2 (unit) | Widget test: one beacon `K7PQ2N/android` after G1's first frame; none for a cached offline view | 2026-11-04 | Pass | FR-009 |
+| V-ERR-1 | Every claim error code → field, banner (retry or not), done or back; network and unknown → retry | 2026-11-04 | Pass | FR-010, FR-017 |
+| V-RT-1 | `test/realtime_test.dart` (fake socket, fake timers): subscribe then fetch, `platform` in the URL; spots and plan routing; drop → refetch, 10 s polling, reconnect with `resume=1`, polling stops; resync refetches all; `rendered`; background closes and foreground resumes with a refetch; last unwatch closes | 2026-11-04 | Pass (one test bug fixed: it read the count after the refetch) | FR-008 |
+| V-ID-1 | `test/services_test.dart`: device ID created once, in secure storage, never in shared_preferences; device ID, `X-Client`, `traceparent` on every request, bearer only when signed in; a 401 clears token and profile | 2026-11-04 | Pass | FR-003, SEC-001 |
+| V-CACHE-1 | Same file: invite and My plans saved with fetch time, only the asked code returned, unreadable cache dropped; widget tests: offline invite "Last updated 10 min ago", "Reconnect to claim", "Map unavailable offline"; offline My plans "Showing your saved plans." | 2026-11-04 | Pass | FR-015, FR-016 |
+| V-CLM-1 (unit, widget) | One key per code, reused until cleared; a failed claim's retry sends the same key; sold out shows the banner with no retry; offline claim sends nothing; "Claiming as … / +254 712 ••• · saved on this phone / Not you?" | 2026-11-04 | Pass | FR-010, FR-016, SEC-002 |
+| V-PLAN-1, V-MY-1, V-PROF-1 (widget) | G4 (ref, group, See the plan, Invite a friend); B4 members with "(you)", Via / Direct, invite "Opened"; removed; invite sheet → vouch form → name error; B6 upcoming with removed chip, empty, signed out, offline; P1; X1 empty submit; X4 all four kinds | 2026-11-04 | Pass | FR-011, FR-013, FR-014, FR-017 |
+| V-CMP-1 | Spots badge five states; "who's going" label | 2026-11-04 | Pass (avatar colours: `velio_tokens`' own fixture test) | FR-002 |
+| V-WID-1 | Every widget case above at 360 × 800 and at 390 × 844 with `TextScaler.linear(2.0)`; an overflow fails the test | 2026-11-04 | Pass after three fixes (PLANNING change log: app bar, "Not you?", Upcoming / Past) | NFR-001, AC-005 |
+| V-CI-1 (local) | `dart format --output=none --set-exit-if-changed lib test`, `flutter analyze`, `flutter test` in `apps/mobile`; `bun run format:check` at the root (Flutter paths added to `.prettierignore`) | 2026-11-04 | Pass: no issues, 87 tests. The CI `mobile` job runs on the next push | NFR-005 |
+| iOS build | `flutter build ios --simulator --debug` | 2026-11-04 | Pass (first CocoaPods run, 16 min) | NFR-004 |
+| V-SEC-2 (repo) | `grep -rE "AIza[0-9A-Za-z_-]{20,}"` over `apps/mobile`, `packages/api-client-dart` and `spec/` (untracked files included); key files git-ignored | 2026-11-04 | Pass after a fix: the captured API samples carried the server key inside signed `staticMapUrl`s; key and signature replaced with placeholders. `android/secrets.properties` and `ios/Flutter/Secrets.xcconfig` are ignored | SEC-004 |
+| V-SEC-1 (config) | Release manifest `usesCleartextTraffic="false"` (debug manifest overrides for local Compose); no logging interceptor | 2026-11-04 | Pass by inspection | NFR-006 |
+
+### Device checks (T12)
+
+| Check | Command or procedure | Date | Result | Covers |
+| --- | --- | --- | --- | --- |
+| V-E2E-1 (iOS, automated) | `flutter test integration_test/smoke_test.dart -d <iPhone 17 simulator, iOS 26> --dart-define=SMOKE_CODE=<fresh vouch>` against the deployed stack (`https://depimls1pcvv4.cloudfront.net`), real storage, network and socket: G8 code typed in lower case → G1 "wants you on" and the **Live** pill (socket open through CloudFront) → Claim → G3 new guest, two fields → Confirm → G4 "You’re in, E2E." with a `VLO-` ref → See the plan → B4 "(you)" and "Via …" → back → B6 lists the activity | 2026-11-04 | **Pass** (8 s), on the fourth run. Run 1: the claim went through (the keyboard's Done submitted it) but the test then looked for a button that had already turned into "Confirming…" (test bug). Run 2: the simulator was signed in as that guest, so a vouch for the same activity correctly showed "You’re already going" (test data). Run 3: found an **app bug**: iOS keeps the keychain token after a reinstall but not the saved profile, so the guest saw the two-field form while the API booked them as the previous session, and G4 had no name. Fixed: the first launch after an install drops a keychain token (`Identity.load`, unit test added). Run 4: pass; the API shows the vouch claimed and 4 of 6 spots left | FR-004, FR-006–FR-011, FR-013, FR-014, AC-001 (iOS) |
+| V-INV-2 (deployed, part) | Run 4's invite open: the API's invite status before the claim | 2026-11-04 | Not checked separately: `invite_opens` rows need database access (the AWS tool was disconnected); the beacon is covered by the widget test | FR-009 |
+
+### Not run yet
+
+- **Android** (V-E2E-1 Android, V-DL-1, V-HAP-1 Android): no emulator image is set up, and a phone is connected (`adb devices`), but installing on the owner's personal phone waits for their go-ahead.
+- **V-DL-1 App Links:** needs `ANDROID_PACKAGE=io.github.abdulbasitsaid.velio` and `ANDROID_CERT_SHA256=B8:4B:AE:6E:41:10:08:00:C7:2D:B2:73:39:BC:CD:BB:4D:16:22:2A:AC:83:19:D5:A7:36:1E:26:F7:DA:4A:02` (this machine's debug keystore) on the web container. Editing `infra/docker-compose.prod.yml` was blocked by the session's production-change guard; the owner applies it and deploys. `/.well-known/assetlinks.json` answers `404` until then.
+- **V-MAP-1 with a key:** the owner's Android and iOS Maps keys don't exist yet; every run used the address-block fallback (FR-018), which the widget tests and the smoke exercise.
+- **V-HAP-1, V-A11Y-1 (VoiceOver, TalkBack), V-OFF-1 (airplane mode), V-RT-2 / AC-004 (app and browser side by side, background and foreground), V-CLM-2 (Apple / Google Maps sheet), V-PLAN-1 (share into WhatsApp):** need a person with a real phone; the logic is unit- and widget-tested.
+- **CI `mobile` job and the Dart client drift step on GitHub:** run on the next push.
+
+### Final validation status
+
+**Passed with exceptions** (2026-11-04): all automated checks pass (88 tests, analyze, format, deterministic client generation) and the iOS app completes the claim flow against the deployed stack. Exceptions: Android, App Links, native maps with keys and the real-device checks above are not run yet.

@@ -121,11 +121,11 @@ Run 2026-11-04 against `https://depimls1pcvv4.cloudfront.net`. Test data was mad
 | V-PERF-1 | `npx lighthouse@13.6.0` (latest, published 2026-10-27), default mobile preset (412 px, DPR 1.75, simulated throttling), performance and accessibility, three runs each on G1 `/i/J6SRZG` and G2 `/i/U3K6CE` (signed out, the photo activity) | 2026-11-04 | Pass. Median G1: FCP 939 ms, LCP 1723 ms, TBT 24 ms, CLS 0.000, 300 kB total. G2: FCP 793 ms, LCP 1372 ms, TBT 20 ms, CLS 0.005, 389 kB. Performance and accessibility scores 1.00 on all six | NFR-001 |
 | V-PERF-2 (deployed) | Lighthouse network items (G2 run 1); `curl` of a real photo's variants | 2026-11-04 | JS: 180 kB script transfer (≤ 200 kB, NFR-002 as amended): pass. Hero: the test photo (synthetic) is 8.9 kB, but a real upload on the stack (`c7f317a0…`) is 332 kB at 1280 px and 125 kB at 640 px; at DPR 1.75 a phone picks the 1280 px file. **Fails** the ~60 kB hero target for real photos (finding D4) | NFR-002 |
 
-**Findings (open; owner to decide):**
+**Findings:**
 
 - **F1.** Open beacon `503` on full page loads (V-OPEN-1 above). Needs CloudFront access logs or the API's logs for one of those requests.
-- **D3.** G1/G2's "{Name} is going" line and avatar stack stay as the server rendered them: a live `spots` event changes only the count (`components/invite/invite-live.tsx`, `activity.members`). Same defect and fix as S5's D1.
-- **D4.** Real photos are far over the invite hero budget: S5's browser encoder writes WebP at quality 0.8, which gives 332 kB / 125 kB for a real 1280 / 640 px photo. Options: lower quality, a smaller large variant, or a `sizes` that lets phones take 640 px. A design change to S5 §4.9 and S6's hero, so not changed here.
+- **D3.** G1/G2's "{Name} is going" line and avatar stack stay as the server rendered them: a live `spots` event changes only the count (`components/invite/invite-live.tsx`, `activity.members`). Same defect and fix as S5's D1. **Fixed 2026-11-04** (owner's go-ahead): the invite page refetches the members after a live spots change (random 0–2 s delay; a newer version cancels the pending fetch), G1/G2 and G5 render them; regression test in `test/invite-live.test.tsx`. Not yet deployed.
+- **D4.** Real photos are far over the invite hero budget: S5's browser encoder writes WebP at quality 0.8, which gives 332 kB / 125 kB for a real 1280 / 640 px photo. Options: lower quality, a smaller large variant, or a `sizes` that lets phones take 640 px. A design change to S5 §4.9 and S6's hero, so not changed here. **Fixed 2026-11-04** (owner chose crop + q70): the browser crops each new upload to 16:10 around the centre (what every screen shows) and encodes WebP at 0.7 (JPEG 0.72); phones' heroes take the 640 px file (web `sizes` `(min-width: 768px) 60vw, 45vw`; the app's hero uses the 640 px file). Measured with `cwebp` on the real photo: 640 px **45 kB** (was 110 kB), 1280 px 128 kB (was 327 kB). Applies to new uploads; existing photos keep their files. Not yet deployed.
 
 **Test data added on the deployed stack:** "E2E Invite check"; invites `VVD5CQ`, `K4B4AJ`, `U3K6CE`, `J6SRZG`; user "E2E Guest Three" and their removed booking; the owner's booking on "E2E Invite check"; Guest Two's booking on "E2E Sunset walk"; Lighthouse's six runs added opens to `J6SRZG` and `U3K6CE` (headless Chrome isn't filtered as a bot); four probe opens on `VVD5CQ`.
 
@@ -143,4 +143,4 @@ Updated 2026-11-04 after the deployed run above.
 
 ### Final validation status
 
-**Not final** (2026-11-04): deployed checks pass except V-PERF-2's hero budget (D4); findings F1, D3, D4 open; the owner's real-phone checks (V-E2E-1, V-A11Y-1 VoiceOver) and V-DL-2 (S7) remain.
+**Not final** (2026-11-04): deployed checks pass except V-PERF-2's hero budget (D4); finding F1 open (D3, D4 fixed, not yet deployed); the owner's real-phone checks (V-E2E-1, V-A11Y-1 VoiceOver) and V-DL-2 (S7) remain.

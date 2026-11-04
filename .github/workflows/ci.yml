@@ -64,3 +64,42 @@ jobs:
         run: |
           bun run contracts:openapi
           git diff --exit-code -- packages/contracts/openapi.json
+
+  mobile:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.4
+
+      # Same version as .fvmrc.
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: 3.47.9
+          channel: stable
+          cache: true
+
+      # S7 V-API-1: the committed Dart client matches packages/contracts/openapi.json.
+      - name: Dart client is up to date
+        run: |
+          bun run contracts:dart
+          git diff --exit-code -- packages/api-client-dart
+
+      - name: Dependencies
+        working-directory: apps/mobile
+        run: flutter pub get --enforce-lockfile
+
+      - name: Format
+        working-directory: apps/mobile
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Analyze
+        working-directory: apps/mobile
+        run: flutter analyze
+
+      - name: Test
+        working-directory: apps/mobile
+        run: flutter test

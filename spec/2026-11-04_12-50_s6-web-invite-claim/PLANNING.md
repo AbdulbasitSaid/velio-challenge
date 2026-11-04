@@ -231,3 +231,4 @@ Medium: one route with nine outcome screens, a claim step, metadata, a beacon, a
   - Seed script for every state: `bun apps/api/scripts/seed-invites.ts` (local only; uses the superuser connection for the two states the API refuses to create).
 
 - 2026-11-04 (found in S5 T11): `apiFetch` without a schema returned `undefined` for JSON bodies, so the invite page's reconnect refresh and its live next-steps fetch got nothing (G5 reached live showed no suggestions; the server-rendered G5 was unaffected). Fixed in the shared client (S5 change log, T11) with a regression test in `test/invite-live.test.tsx`.
+- 2026-11-04: owner approved fixing D3, D4 and investigating F1. D3: the invite page refetches who's going after a live spots change. D4 (changes S5 §4.9, recorded there too): uploads are cropped to 16:10 around the centre and encoded at quality 0.7, and phones' heroes take the 640 px file. F1 waits for log access (VALIDATION Part B).
