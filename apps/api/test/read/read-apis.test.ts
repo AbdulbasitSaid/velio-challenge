@@ -110,6 +110,30 @@ describe('GET /api/host/activities', () => {
     const none = HostActivityList.parse(await (await get('/api/host/activities', zainab)).json());
     expect(none).toEqual({ upcoming: [], past: [] });
   });
+
+  // V-HOST-1 (S5 FR-032): "Mark attendance" until someone is marked, then "{n} attended".
+  test('past rows count marks by the latest mark, confirmed bookings only', async () => {
+    const h = await signIn(request, 'Marking Host');
+    const a = await createActivity(request, h, { capacity: 5 });
+    const people = await Promise.all(['One', 'Two', 'Three'].map((n) => signIn(request, `Guest ${n}`)));
+    const [b1, b2, b3] = await Promise.all(people.map((p) => bookOk(request, p, a.id)));
+    await startNow(a.id);
+    const items = async () =>
+      HostActivityList.parse(await (await get('/api/host/activities', h)).json()).past.map((p) => [
+        p.markedCount,
+        p.attendedCount,
+      ]);
+    expect(await items()).toEqual([[0, 0]]);
+    const mark = (id: string, m: string) =>
+      request(`/api/host/bookings/${id}/attendance`, json({ mark: m }, h.headers));
+    await mark(b1!.booking.id, 'attended');
+    await mark(b2!.booking.id, 'attended');
+    await mark(b2!.booking.id, 'no_show');
+    expect(await items()).toEqual([[2, 1]]);
+    await mark(b3!.booking.id, 'attended');
+    expect((await removeBooking(request, h, b3!.booking.id)).status).toBe(200);
+    expect(await items()).toEqual([[2, 1]]);
+  });
 });
 
 describe('attendance', () => {

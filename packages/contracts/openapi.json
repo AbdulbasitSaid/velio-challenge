@@ -1420,253 +1420,147 @@
           "upcoming": {
             "type": "array",
             "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string",
-                  "format": "uuid"
-                },
-                "title": {
-                  "type": "string"
-                },
-                "startsAt": {
-                  "type": "string",
-                  "format": "date-time"
-                },
-                "timezone": {
-                  "type": "string"
-                },
-                "priceMinor": {
-                  "type": "integer"
-                },
-                "currency": {
-                  "type": "string"
-                },
-                "photoUrl": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
-                },
-                "capacity": {
-                  "type": "integer"
-                },
-                "spotsLeft": {
-                  "type": "integer"
-                },
-                "version": {
-                  "type": "integer"
-                },
-                "status": {
-                  "type": "string",
-                  "enum": [
-                    "open",
-                    "sold_out",
-                    "started"
-                  ]
-                },
-                "community": {
-                  "type": "object",
-                  "properties": {
-                    "slug": {
-                      "type": "string"
-                    },
-                    "name": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "slug",
-                    "name"
-                  ]
-                },
-                "location": {
-                  "type": "object",
-                  "properties": {
-                    "venueName": {
-                      "type": "string"
-                    },
-                    "lat": {
-                      "type": "number"
-                    },
-                    "lng": {
-                      "type": "number"
-                    }
-                  },
-                  "required": [
-                    "venueName",
-                    "lat",
-                    "lng"
-                  ]
-                },
-                "members": {
-                  "type": "object",
-                  "properties": {
-                    "count": {
-                      "type": "integer"
-                    },
-                    "preview": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/PublicPerson"
-                      }
-                    }
-                  },
-                  "required": [
-                    "count",
-                    "preview"
-                  ]
-                },
-                "bookedCount": {
-                  "type": "integer"
-                }
-              },
-              "required": [
-                "id",
-                "title",
-                "startsAt",
-                "timezone",
-                "priceMinor",
-                "currency",
-                "photoUrl",
-                "capacity",
-                "spotsLeft",
-                "version",
-                "status",
-                "community",
-                "location",
-                "members",
-                "bookedCount"
-              ]
+              "$ref": "#/components/schemas/HostActivityItem"
             }
           },
           "past": {
             "type": "array",
             "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string",
-                  "format": "uuid"
-                },
-                "title": {
-                  "type": "string"
-                },
-                "startsAt": {
-                  "type": "string",
-                  "format": "date-time"
-                },
-                "timezone": {
-                  "type": "string"
-                },
-                "priceMinor": {
-                  "type": "integer"
-                },
-                "currency": {
-                  "type": "string"
-                },
-                "photoUrl": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
-                },
-                "capacity": {
-                  "type": "integer"
-                },
-                "spotsLeft": {
-                  "type": "integer"
-                },
-                "version": {
-                  "type": "integer"
-                },
-                "status": {
-                  "type": "string",
-                  "enum": [
-                    "open",
-                    "sold_out",
-                    "started"
-                  ]
-                },
-                "community": {
-                  "type": "object",
-                  "properties": {
-                    "slug": {
-                      "type": "string"
-                    },
-                    "name": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "slug",
-                    "name"
-                  ]
-                },
-                "location": {
-                  "type": "object",
-                  "properties": {
-                    "venueName": {
-                      "type": "string"
-                    },
-                    "lat": {
-                      "type": "number"
-                    },
-                    "lng": {
-                      "type": "number"
-                    }
-                  },
-                  "required": [
-                    "venueName",
-                    "lat",
-                    "lng"
-                  ]
-                },
-                "members": {
-                  "type": "object",
-                  "properties": {
-                    "count": {
-                      "type": "integer"
-                    },
-                    "preview": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/PublicPerson"
-                      }
-                    }
-                  },
-                  "required": [
-                    "count",
-                    "preview"
-                  ]
-                },
-                "bookedCount": {
-                  "type": "integer"
-                }
-              },
-              "required": [
-                "id",
-                "title",
-                "startsAt",
-                "timezone",
-                "priceMinor",
-                "currency",
-                "photoUrl",
-                "capacity",
-                "spotsLeft",
-                "version",
-                "status",
-                "community",
-                "location",
-                "members",
-                "bookedCount"
-              ]
+              "$ref": "#/components/schemas/HostActivityItem"
             }
           }
         },
         "required": [
           "upcoming",
           "past"
+        ]
+      },
+      "HostActivityItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "startsAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "priceMinor": {
+            "type": "integer"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "photoUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "capacity": {
+            "type": "integer"
+          },
+          "spotsLeft": {
+            "type": "integer"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "sold_out",
+              "started"
+            ]
+          },
+          "community": {
+            "type": "object",
+            "properties": {
+              "slug": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "slug",
+              "name"
+            ]
+          },
+          "location": {
+            "type": "object",
+            "properties": {
+              "venueName": {
+                "type": "string"
+              },
+              "lat": {
+                "type": "number"
+              },
+              "lng": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "venueName",
+              "lat",
+              "lng"
+            ]
+          },
+          "members": {
+            "type": "object",
+            "properties": {
+              "count": {
+                "type": "integer"
+              },
+              "preview": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/PublicPerson"
+                }
+              }
+            },
+            "required": [
+              "count",
+              "preview"
+            ]
+          },
+          "bookedCount": {
+            "type": "integer"
+          },
+          "markedCount": {
+            "type": "integer"
+          },
+          "attendedCount": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "startsAt",
+          "timezone",
+          "priceMinor",
+          "currency",
+          "photoUrl",
+          "capacity",
+          "spotsLeft",
+          "version",
+          "status",
+          "community",
+          "location",
+          "members",
+          "bookedCount",
+          "markedCount",
+          "attendedCount"
         ]
       },
       "Attendance": {

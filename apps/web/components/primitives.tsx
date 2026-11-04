@@ -304,6 +304,9 @@ export interface TextFieldProps {
   type?: string;
   inputMode?: 'text' | 'email' | 'tel' | 'numeric' | 'decimal' | 'search' | 'url' | 'none';
   autoComplete?: string;
+  /** A `<datalist>` id with suggestions. */
+  list?: string;
+  min?: string;
   readOnly?: boolean;
   disabled?: boolean;
   required?: boolean;
@@ -334,7 +337,7 @@ export function TextField(p: TextFieldProps) {
   const control = p.multiline ? (
     <textarea {...common} />
   ) : (
-    <input {...common} type={p.type ?? 'text'} inputMode={p.inputMode} />
+    <input {...common} type={p.type ?? 'text'} inputMode={p.inputMode} list={p.list} min={p.min} />
   );
   return (
     <div

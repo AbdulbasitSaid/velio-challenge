@@ -269,6 +269,7 @@
   color: var(--ink);
 }
 .vl-field input,
+.vl-field select,
 .vl-field textarea {
   box-sizing: border-box;
   width: 100%;

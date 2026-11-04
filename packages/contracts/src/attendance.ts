@@ -2,11 +2,19 @@ import { z } from 'zod';
 import { ActivityCard } from './activities';
 import { MemberPerson } from './people';
 
+/**
+ * An H3 row. `markedCount` is the confirmed bookings with a mark and `attendedCount` those whose latest
+ * mark is `attended`, so a started activity shows "Mark attendance" or "{n} attended" (S5 FR-032).
+ */
+export const HostActivityItem = ActivityCard.extend({
+  bookedCount: z.number().int(),
+  markedCount: z.number().int(),
+  attendedCount: z.number().int(),
+}).meta({ id: 'HostActivityItem' });
+export type HostActivityItem = z.infer<typeof HostActivityItem>;
+
 export const HostActivityList = z
-  .object({
-    upcoming: z.array(ActivityCard.extend({ bookedCount: z.number().int() })),
-    past: z.array(ActivityCard.extend({ bookedCount: z.number().int() })),
-  })
+  .object({ upcoming: z.array(HostActivityItem), past: z.array(HostActivityItem) })
   .meta({ id: 'HostActivityList' });
 export type HostActivityList = z.infer<typeof HostActivityList>;
 

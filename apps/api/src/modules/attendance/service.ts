@@ -143,9 +143,44 @@ export function createAttendanceService(db: Db) {
         )
       ).map((c) => [c.id, c]),
     );
+    // Latest mark per confirmed booking, counted per activity: one query for the whole list.
+    const marks = new Map(
+      (rows.length
+        ? await db
+            .selectFrom('bookings as b')
+            .leftJoinLateral(
+              (eb) =>
+                eb
+                  .selectFrom('attendance_marks as am')
+                  .select('am.mark')
+                  .whereRef('am.booking_id', '=', 'b.id')
+                  .orderBy('am.created_at', 'desc')
+                  .orderBy('am.id', 'desc')
+                  .limit(1)
+                  .as('m'),
+              (join) => join.onTrue(),
+            )
+            .select([
+              'b.activity_id',
+              sql<number>`count(m.mark)::int`.as('marked'),
+              sql<number>`(count(*) filter (where m.mark = 'attended'))::int`.as('attended'),
+            ])
+            .where(
+              'b.activity_id',
+              'in',
+              rows.map((r) => r.id),
+            )
+            .where('b.status', '=', 'confirmed')
+            .groupBy('b.activity_id')
+            .execute()
+        : []
+      ).map((m) => [m.activity_id, m]),
+    );
     const toItem = (r: (typeof rows)[number]) => ({
       ...cards.get(r.id)!,
       bookedCount: r.capacity - r.spots_left,
+      markedCount: marks.get(r.id)?.marked ?? 0,
+      attendedCount: marks.get(r.id)?.attended ?? 0,
     });
     return {
       upcoming: rows.filter((r) => !r.past).map(toItem),
