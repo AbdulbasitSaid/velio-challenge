@@ -7,30 +7,12 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Banner } from '../feedback';
 import { Button, TextField } from '../primitives';
-import { useOnline } from './invite-live';
 import { ApiRequestError, apiFetch } from '@/lib/api/client';
+import { attemptKey, clearAttemptKey } from '@/lib/attempt-key';
+import { useOnline } from '@/lib/online';
 
-const keyName = (code: string) => `velio_claim_${code}`;
-
-export function claimKey(code: string): string {
-  try {
-    const existing = sessionStorage.getItem(keyName(code));
-    if (existing) return existing;
-    const key = crypto.randomUUID();
-    sessionStorage.setItem(keyName(code), key);
-    return key;
-  } catch {
-    return crypto.randomUUID();
-  }
-}
-
-export function clearClaimKey(code: string): void {
-  try {
-    sessionStorage.removeItem(keyName(code));
-  } catch {
-    // Storage blocked: nothing to clear.
-  }
-}
+export const claimKey = (code: string) => attemptKey(`claim_${code}`);
+export const clearClaimKey = (code: string) => clearAttemptKey(`claim_${code}`);
 
 export type ClaimOutcome =
   | { kind: 'done' }

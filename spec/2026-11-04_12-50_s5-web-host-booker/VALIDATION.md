@@ -135,7 +135,7 @@
 
 ## Part B: Executed checks
 
-In progress. Phase A (T1–T7) and Phase B (T8–T10) recorded 2026-11-04; T11–T16 follow.
+In progress. Phase A (T1–T7), Phase B (T8–T10) and T11 recorded 2026-11-04; T12–T16 follow.
 
 ### V-VER-1: versions (looked up 2026-11-04 with `npm view`, nodejs.org and `docker buildx imagetools inspect`)
 
@@ -190,6 +190,18 @@ In progress. Phase A (T1–T7) and Phase B (T8–T10) recorded 2026-11-04; T11�
 | V-MAP-unit | `bunx vitest run test/maps.test.tsx` (13), fake `google.maps` and mocked loader | 2026-11-04 | Pass: 10 m nudge and accumulation; pixel clustering; search → keyboard pick prefills place ID, venue, address, pin, without a second search; no-results and search-failed copy; drop pin, drag (idle), venue edit; no-Maps manual fields with coordinate validation; failed load → manual fields; locked; static image loads no script until tapped; "Show the map"; clusters, marker card, cluster zoom, map click closes; unavailable → "Show the list instead" | FR-017, FR-018, FR-020, FR-021, NFR-004 |
 | V-MAP-2…6 (components, live) | Chrome on `next dev` with the real browser key, a temporary dev page (deleted after) | 2026-11-04 | Pass: Places (New) suggestions for "Lake Naivasha", keyboard pick fills place ID, venue, address, coordinates; picker map at the pin; 3× ArrowUp/Right = 10 m then (after fix) 30 m; drag moved the pin 320 m; drop pin without a place; "Show the map" → interactive map with pin; community map tiles, cluster "2", marker → card, cluster click splits; no console errors (CSP allows Google). Two bugs found and fixed: suggestions reopening after a pick, and nudges not adding up during a pan | FR-017, FR-018, FR-020, SEC-004 |
 | V-CI-1 (T10) | `bun run format:check && bun run lint && bun run typecheck && bun run web:test && bun run web:build` | 2026-11-04 | Pass (web 130) | NFR-007 |
+
+### Phase C checks (T11)
+
+| Check | Command or procedure | Date | Result | Covers |
+| --- | --- | --- | --- | --- |
+| V-BK-3 | `bunx vitest run test/booking.test.tsx`: outcome mapping for every typed error; "Booking…" shown at once and success only on the API's answer, then `/plans/<id>?welcome=1`; a 500 offers "Try again" and the retry reuses the attempt's key; key cleared after a final outcome | 2026-11-04 | Pass | FR-024 |
+| V-BK-4 (unit) | Same file: sold out mid-checkout (banner, next steps fetched, no Book), live sold out disables and a freed spot re-enables, already booked, own activity, started (closing time in the activity's zone), paused, removed, signed out → X1 with `next`, `already_booked` refreshes the server view | 2026-11-04 | Pass | FR-025, SEC-001 |
+| V-BK-1 (unit) | Same file: phone list first and map only after Map, sold-out activities off the map, live sold out removes a marker and updates the count line, wide shows both, empty community | 2026-11-04 | Pass | FR-020, FR-022, NFR-004 |
+| V-BK-5 (unit) | Same file: B2 lead with zone and ref, prompt with live count, vouch and share links, `?welcome=1` dropped; holdout shows no invite step | 2026-11-04 | Pass | FR-026 |
+| Regression | `test/api.test.ts` (JSON without a schema), `test/invite-live.test.tsx` (G5 reached live renders fetched next steps) | 2026-11-04 | Pass; both failed against the old client | — |
+| V-BK-1, V-BK-2, V-BK-4, V-BK-5 (manual, part) | Chrome, production build (`next build` + `next start -p 3100`) against local Compose and the seed: C1 at 1280 px (list and map side by side, cluster on the shared pin); B1 desktop with Live pill, details, avatar stack, "You're already going"; booked a seed activity → B2 with `VLO-` ref and 11 spots, address `/plans/<id>`; paused activity shows the banner and disabled "Bookings paused"; no console errors | 2026-11-04 | Pass. Found and fixed the blank community map. Phone-width screenshots and the two-browser race (AC-003) wait for T15/T16 (the browser window would not resize below desktop) | FR-018, FR-020, FR-022–FR-026 |
+| V-CI-1 (T11) | `bun run format:check && bun run lint && bun run typecheck && bun run web:test && next build` | 2026-11-04 | Pass (web 161) | NFR-007 |
 
 ### Deploy fix (T7)
 

@@ -76,3 +76,38 @@ test('offline disables claiming; nothing is queued', () => {
   expect(screen.queryByRole('link', { name: 'Claim my spot' })).toBeNull();
   expect(screen.getByText('Join the group going to')).toBeInTheDocument();
 });
+
+test('G5 reached live renders the next steps it fetches', async () => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (url: string) =>
+      String(url).includes('next-steps')
+        ? new Response(
+            JSON.stringify({
+              hostOtherDates: [],
+              moreInCommunity: [
+                {
+                  ...inviteView().activity,
+                  id: '0190a6f2-1f2b-7c3d-8e4f-5a6b7c8d9e09',
+                  title: 'Karura cycle',
+                  location: { venueName: 'Karura', lat: 0, lng: 0 },
+                },
+              ],
+            }),
+            { status: 200 },
+          )
+        : new Response(null, { status: 204 }),
+    ),
+  );
+  const rt = new StubClient();
+  render(
+    <RealtimeProvider client={rt}>
+      <InviteLive view={inviteView()} initialNextSteps={null} />
+    </RealtimeProvider>,
+  );
+  const activityId = inviteView().activity.id;
+  act(() => rt.seen[0]!.onSpots!({ type: 'spots', activityId, spotsLeft: 0, version: 4, committedAt: 'x' }));
+  await act(async () => void (await vi.advanceTimersByTimeAsync(10)));
+  expect(screen.getByText('More in Explore Kenya')).toBeInTheDocument();
+  expect(screen.getByText('Karura cycle')).toBeInTheDocument();
+});

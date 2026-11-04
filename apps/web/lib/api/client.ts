@@ -74,9 +74,12 @@ export async function request<S extends z.ZodType | undefined = undefined>(
     }
     throw new ApiRequestError(res.status, 'internal', `HTTP ${res.status}`);
   }
-  if (res.status === 204 || !init.schema) return undefined as Result<S>;
-  const json: unknown = await res.json();
-  return (strict ? init.schema.parse(json) : json) as Result<S>;
+  if (res.status === 204) return undefined as Result<S>;
+  const text = await res.text();
+  if (!text) return undefined as Result<S>;
+  const json: unknown = JSON.parse(text);
+  // Without a schema the body is returned unchecked (browser code: no Zod in the bundle, S6 §4.8).
+  return (strict && init.schema ? init.schema.parse(json) : json) as Result<S>;
 }
 
 function readCookie(name: string): string | undefined {
@@ -96,4 +99,9 @@ export const browser: Transport = {
 
 export function apiFetch<S extends z.ZodType | undefined = undefined>(path: string, init?: ApiInit<S>) {
   return request(browser, path, init);
+}
+
+/** A JSON response typed by the caller and not parsed: for browser code, which ships without Zod. */
+export async function apiJson<T>(path: string, init?: Omit<ApiInit<undefined>, 'schema'>): Promise<T> {
+  return (await request(browser, path, init)) as unknown as T;
 }

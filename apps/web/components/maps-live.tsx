@@ -698,7 +698,12 @@ export function CommunityMapLive({
     if (!map || positions.length < 2) return;
     const bounds = new google.maps.LatLngBounds();
     for (const [lat, lng] of positions) bounds.extend({ lat, lng });
-    map.fitBounds(bounds, 48);
+    const span = bounds.toSpan();
+    // All at one spot: fitting a zero-size box zooms past the tiles, so centre at street level instead.
+    if (span.lat() < 1e-4 && span.lng() < 1e-4) {
+      map.setCenter(bounds.getCenter());
+      map.setZoom(14);
+    } else map.fitBounds(bounds, 48);
   }, [map, boundsKey]);
 
   useEffect(() => {

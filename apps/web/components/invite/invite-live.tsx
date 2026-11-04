@@ -5,7 +5,7 @@
 // paint, and disables claiming while offline (claims are never queued).
 import type { InviteView, NextSteps as NextStepsData, PublicActivity } from '@velio/contracts';
 import Link from 'next/link';
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useEffect, useState } from 'react';
 import { NextSteps } from '../cards';
 import { Banner } from '../feedback';
 import { LocationBlock } from '../maps';
@@ -21,27 +21,11 @@ import {
   tellInviterMessage,
   whatsappHref,
 } from './parts';
-import { apiFetch } from '@/lib/api/client';
+import { apiFetch, apiJson } from '@/lib/api/client';
 import { firstName, formatDay } from '@/lib/format';
 import { selectScreen } from '@/lib/invite-screen';
+import { useOnline } from '@/lib/online';
 import { useLiveSpots } from '@/lib/realtime/react';
-
-function subscribeOnline(cb: () => void) {
-  window.addEventListener('online', cb);
-  window.addEventListener('offline', cb);
-  return () => {
-    window.removeEventListener('online', cb);
-    window.removeEventListener('offline', cb);
-  };
-}
-
-export function useOnline(): boolean {
-  return useSyncExternalStore(
-    subscribeOnline,
-    () => navigator.onLine,
-    () => true,
-  );
-}
 
 /** PRD Scope challenge 2: an open counts only when a real browser paints the page; bots never run this. */
 function useOpenBeacon(code: string) {
@@ -69,7 +53,7 @@ export function InviteLive({
   const { spots, status } = useLiveSpots(
     { [activity.id]: { spotsLeft: activity.spotsLeft, version: activity.version } },
     async () => {
-      const fresh = (await apiFetch(`/activities/${activity.id}`)) as unknown as PublicActivity;
+      const fresh = await apiJson<PublicActivity>(`/activities/${activity.id}`);
       return { [activity.id]: { spotsLeft: fresh.spotsLeft, version: fresh.version } };
     },
     { announce: [activity.id] },
@@ -86,8 +70,8 @@ export function InviteLive({
   useEffect(() => {
     if (!soldOut || nextSteps) return;
     let stale = false;
-    apiFetch(`/activities/${activity.id}/next-steps`)
-      .then((n) => !stale && setNextSteps(n as unknown as NextStepsData))
+    apiJson<NextStepsData>(`/activities/${activity.id}/next-steps`)
+      .then((n) => !stale && setNextSteps(n))
       .catch(() => undefined);
     return () => {
       stale = true;

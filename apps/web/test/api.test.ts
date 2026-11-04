@@ -1,4 +1,4 @@
-import { ApiRequestError, apiFetch } from '@/lib/api/client';
+import { ApiRequestError, apiFetch, apiJson } from '@/lib/api/client';
 import { safeNext } from '@/lib/session';
 import { z } from 'zod';
 
@@ -56,6 +56,13 @@ describe('apiFetch', () => {
   test('a schema mismatch fails loudly outside production', async () => {
     mockFetch(200, { id: 1 });
     await expect(apiFetch('/x', { schema: z.object({ id: z.string() }) })).rejects.toThrow();
+  });
+
+  test('without a schema the JSON body is returned unchecked (browser code)', async () => {
+    mockFetch(200, { spotsLeft: 3 });
+    await expect(apiJson<{ spotsLeft: number }>('/activities/a')).resolves.toEqual({ spotsLeft: 3 });
+    mockFetch(201, { id: 'b1' });
+    await expect(apiFetch('/x', { method: 'POST' })).resolves.toEqual({ id: 'b1' });
   });
 
   test('204 returns nothing', async () => {

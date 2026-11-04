@@ -23,6 +23,7 @@ export function AppHeader({
   compact,
   signInHref = '/signin',
   onRoleChange,
+  status,
 }: {
   role?: Role;
   current?: string;
@@ -31,6 +32,8 @@ export function AppHeader({
   compact?: boolean;
   signInHref?: string;
   onRoleChange?: (role: Role) => void;
+  /** Live screens put their `LivePill` here (B1). */
+  status?: ReactNode;
 }) {
   return (
     <header className="vl-header">
@@ -47,6 +50,7 @@ export function AppHeader({
         </nav>
       )}
       <div className="vl-header-end">
+        {status}
         {user ? (
           <>
             <Segmented

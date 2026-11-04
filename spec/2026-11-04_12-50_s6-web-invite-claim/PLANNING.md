@@ -230,3 +230,4 @@ Medium: one route with nine outcome screens, a claim step, metadata, a beacon, a
   - Static Maps signing was verified against Google's published URL-signing sample (secret `vNIXE0xscrmjlyV-12Nj_BvUPaw=` → `chaRF2hTJKOScPr-RQCEhZbSzIE=`), which reproduced exactly.
   - Seed script for every state: `bun apps/api/scripts/seed-invites.ts` (local only; uses the superuser connection for the two states the API refuses to create).
 
+- 2026-11-04 (found in S5 T11): `apiFetch` without a schema returned `undefined` for JSON bodies, so the invite page's reconnect refresh and its live next-steps fetch got nothing (G5 reached live showed no suggestions; the server-rendered G5 was unaffected). Fixed in the shared client (S5 change log, T11) with a regression test in `test/invite-live.test.tsx`.
