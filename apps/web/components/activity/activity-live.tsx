@@ -239,7 +239,10 @@ export function ActivityLive({
       </h1>
 
       <aside className="flex flex-col gap-4 md:col-start-2 md:row-span-5 md:row-start-2 md:rounded-hero md:bg-surface md:p-6">
-        <SpotsBadge spots={live.spotsLeft} state={spotsState} className="hidden self-start md:inline-flex" />
+        {/* Wrapped: `.vl-spots` sets display outside Tailwind's layers, so `hidden` on it would lose. */}
+        <span className="hidden self-start md:inline-flex">
+          <SpotsBadge spots={live.spotsLeft} state={spotsState} />
+        </span>
         <DetailRows
           rows={[...activityRows(activity), { icon: 'people', value: `${activity.capacity} spots in total` }]}
         />

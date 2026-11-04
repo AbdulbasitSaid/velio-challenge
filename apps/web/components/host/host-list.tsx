@@ -1,6 +1,6 @@
 'use client';
 
-// H3 (S5 FR-032; PRD W1): the host's activities, upcoming and past. A table from 768 px, cards on phone.
+// H3 (S5 FR-032; PRD W1): the host's activities, upcoming and past. A table from 1024 px, cards below (at 768 px the table would scroll its actions out of view).
 // After the start, a row asks for attendance until someone is marked, then shows how many came.
 import type { HostActivityItem, HostActivityList } from '@velio/contracts';
 import { useState } from 'react';
@@ -106,7 +106,7 @@ export function HostList({ data }: { data: HostActivityList }) {
         </p>
       ) : (
         <>
-          <ul className="m-0 flex list-none flex-col gap-3 p-0 md:hidden">
+          <ul className="m-0 flex list-none flex-col gap-3 p-0 md:grid md:grid-cols-2 lg:hidden">
             {items.map((a) => {
               const row = hostRow(a, tab);
               return (
@@ -134,7 +134,7 @@ export function HostList({ data }: { data: HostActivityList }) {
             })}
           </ul>
 
-          <div className="hidden overflow-x-auto rounded-card bg-surface md:block">
+          <div className="hidden overflow-x-auto rounded-card bg-surface lg:block">
             <table className="w-full min-w-[760px] border-collapse text-[15px]">
               <thead>
                 <tr className="text-left text-[13px] text-muted">

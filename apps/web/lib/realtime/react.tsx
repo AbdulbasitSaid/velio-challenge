@@ -139,6 +139,7 @@ export function useLiveSpots(
   const [spots, setSpots] = useState<LiveSpots>(() =>
     Object.fromEntries(Object.entries(initial).map(([id, s]) => [id, { ...s, changed: false }])),
   );
+  const shown = useRef(spots);
   const toAck = useRef<{ activityId: string; version: number }[]>([]);
   const latest = useRef({ refresh, options });
   useLayoutEffect(() => {
@@ -149,14 +150,16 @@ export function useLiveSpots(
   const extra = (options.extraTopics ?? []).join(',');
 
   useEffect(() => {
-    const merge = (id: string, next: Spots, fromEvent: boolean) =>
-      setSpots((prev) => {
-        const cur = prev[id];
-        if (cur && next.version <= cur.version) return prev;
-        const changed = fromEvent && !!cur && cur.spotsLeft !== next.spotsLeft;
-        if (changed && latest.current.options.announce?.includes(id)) announce(spotsMessage(next.spotsLeft));
-        return { ...prev, [id]: { ...next, changed } };
-      });
+    // The version gate reads `shown` rather than running inside a state updater, so the announcement
+    // (another component's state) isn't set while React renders this one.
+    const merge = (id: string, next: Spots, fromEvent: boolean) => {
+      const cur = shown.current[id];
+      if (cur && next.version <= cur.version) return;
+      const changed = fromEvent && !!cur && cur.spotsLeft !== next.spotsLeft;
+      shown.current = { ...shown.current, [id]: { ...next, changed } };
+      setSpots(shown.current);
+      if (changed && latest.current.options.announce?.includes(id)) announce(spotsMessage(next.spotsLeft));
+    };
 
     const activityIds = ids ? ids.split(',') : [];
     const topics = [

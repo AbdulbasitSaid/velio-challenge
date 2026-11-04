@@ -203,6 +203,29 @@ New strings introduced by the designs. They extend the UX spec's copy deck and n
 | error.appUpdate | "This link needs a newer version of the app." / "Update Velio to open it, or open it in your browser now." | X4 (Flutter) |
 | admin.oversell | "Oversold: {Activity}, {date} has {n} bookings for {capacity} spots." / "Pause bookings for this activity" | A1 |
 | share.sourceHelp | "People who join from this link show as \"Public link\" in your plan." | B3b |
+| *S5 web build (approved 2026-11-04)* | | |
+| maps.manual | "Venue name", "Address", "Latitude", "Longitude" / "Copy the pin's coordinates from any map app." / "Between -90 and 90", "Between -180 and 180" | H2 (no maps) |
+| maps.showMap | "Show the map" | B1, B4 (no static image) |
+| booking.offline | "Reconnect to book" | B1 |
+| booking.free | "Free. Velio doesn't take payment." | B1 |
+| common.addressCopied | "Address copied" | B1, B4 |
+| share.native | "Share" | B3, B3b (Web Share API) |
+| share.copyFailed | "Couldn't copy. Press and hold the link to copy it." | B3, B3b |
+| vouch.errors | "We couldn't create the invite." / "Check your connection and try again."; "You're offline" / "Reconnect to create an invite."; "This activity has started." / "Invites close at the start time." | B3 |
+| share.pausedStates | "You paused this link." / "Nobody can claim from it until you resume it. Bookings already made are safe."; "The host paused this link." / "Bookings already made are safe. Vouch invites still work."; "Resume link"; "We couldn't get your link." | B3b |
+| myPlans.tabEmpty | "Nothing coming up." / "No past plans yet." | B6 |
+| myPlans.footer | "Plans for {Name}." / "Sign out" | B6 |
+| host.formErrors | "Pick a start time.", "Pick a time zone from the list.", "Search for a place, or drop a pin on the map.", "Add the venue name.", "Add the address.", "Enter the price per person.", "At least 1 spot.", "{n} booked, so at least {n}.", "At most 100,000 spots.", "That's fewer spots than people have booked." | H2 |
+| host.photoErrors | "Upload the photo again.", "We couldn't read that photo. Try a JPG or PNG.", "We couldn't upload the photo. Check your connection and try again.", "Uploading…" | H2 |
+| host.saveErrors | "We couldn't publish this." / "We couldn't save your changes." / "You can't edit this activity." | H2 |
+| host.saved | "Changes saved"; "{n} things need fixing before you can save." (edit variant of `host.validationSummary`) | H2 edit |
+| host.meetingPoint | "Meeting point (optional)" / placeholder "Where exactly to find you" | H2 |
+| host.listEmpty | "No bookings" (past, nobody booked); "Nothing coming up." / "No past activities yet." | H3 |
+| host.removeResult | "{Name} removed. Their spot is open again."; "We couldn't remove {Name}. Try again."; "You're offline. Reconnect to remove a guest." | H1 |
+| host.markErrors | "{Name} was removed, so they can't be marked."; "You can mark attendance once the activity starts."; "You're offline. Reconnect to mark attendance."; "We couldn't save that mark. Try again." | H1 |
+| host.searchEmpty | "No guest matches \"{query}\"." | H1 |
+| host.noBookingsAfter | "Nobody booked this activity." | H1 (after the start) |
+| host.closesAt | "Bookings close at {time} {zone} on {day}." (second line of `host.noBookings`, every width) | H1 |
 
 ## 6. Architectural considerations
 
@@ -290,3 +313,4 @@ Large: about 26 screens, over 100 states, two artifacts, five clickable flows.
 - 2026-11-03: the owner asked whether the designs are responsive and approved the proposed rules (UI-D5, §5.6, FR-013 to FR-016). Scope added: phone-first web screens made fluid with a centred column and a desktop frame for them; checks at 360px and with 200% text scaling.
 - 2026-11-03: UI-D5 implemented. The 10 phone-first web screens are now fluid pages (full-width header, content in a centred 480px column) and a new desktop frame, "phone-first screens on desktop", shows each at 1280px through a screen picker. Flutter claim summary row now wraps at large text sizes. Design system rule added: text scales to 200% and rows wrap; avatar initials and icons keep their size. Results in VALIDATION Part B.
 - 2026-11-03: **approved by the owner; Phase 0 closed.** Batches 3–5 and their copy approved with the whole design. Open calls settled as designed: the desktop sign-in headline and the guest search on phone attendance are kept. Source of both artifacts saved to `prototype/` (FR-010). Status: Implemented.
+- 2026-11-04: copy added by the S5 web build (S5 PLANNING change log, T9–T14) approved by the owner as written and recorded in §5.5 under *S5 web build*.
