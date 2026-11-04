@@ -75,9 +75,12 @@ export async function insertInvite(
   sql: postgres.Sql,
   i: { activityId: string; planId: string; inviterId: string; rail?: 'vouch' | 'public' },
 ) {
+  const rail = i.rail ?? 'vouch';
+  // A vouch is addressed to a named person (S4 migration check).
   const [row] = await sql<{ id: string }[]>`
-    INSERT INTO invites (code, rail, activity_id, plan_id, inviter_id)
-    VALUES (${inviteCode()}, ${i.rail ?? 'vouch'}, ${i.activityId}, ${i.planId}, ${i.inviterId})
+    INSERT INTO invites (code, rail, activity_id, plan_id, inviter_id, invitee_name)
+    VALUES (${inviteCode()}, ${rail}, ${i.activityId}, ${i.planId}, ${i.inviterId},
+            ${rail === 'vouch' ? 'Zainab Okafor' : null})
     RETURNING id`;
   return row!.id;
 }

@@ -17,10 +17,13 @@ const healthzRoute = createRoute({
 const readyzRoute = createRoute({
   method: 'get',
   path: '/readyz',
-  summary: 'Readiness. 200 only when a database query succeeds.',
+  summary: 'Readiness. 200 only when a database query succeeds and the realtime listener is listening.',
   responses: {
     200: { description: 'Ready', content: { 'application/json': { schema: Health } } },
-    503: { description: 'The database is unreachable', content: { 'application/json': { schema: Health } } },
+    503: {
+      description: 'The database is unreachable, or live updates are down',
+      content: { 'application/json': { schema: Health } },
+    },
   },
 });
 
@@ -38,6 +41,11 @@ export function healthRoutes(deps: AppDeps) {
           timer = setTimeout(() => reject(new Error('readyz timeout')), READY_TIMEOUT_MS);
         }),
       ]);
+      // Without the listener the API still books correctly, but nothing is live (S3 FR-017).
+      if (deps.realtime && !deps.realtime.listening()) {
+        c.var.logger.warn('readiness check failed: realtime listener not listening');
+        return c.json({ status: 'unavailable' as const }, 503);
+      }
       return c.json({ status: 'ok' as const }, 200);
     } catch (err) {
       c.var.logger.warn({ err }, 'readiness check failed');

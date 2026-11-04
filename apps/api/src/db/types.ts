@@ -60,14 +60,16 @@ export interface AttendanceMarks {
 }
 
 export interface Attributions {
+  activity_id: Generated<string>;
+  chain_seq: Generated<Int8>;
   created_at: Generated<Timestamp>;
   generation: number;
   invite_id: string;
   invitee_id: string;
   inviter_id: string;
-  prev_hash: Buffer | null;
+  prev_hash: Generated<Buffer>;
   rail: string;
-  row_hash: Buffer | null;
+  row_hash: Generated<Buffer>;
 }
 
 export interface BookingRemovals {
@@ -130,6 +132,7 @@ export interface InviteControls {
   invite_id: string;
   paused: Generated<boolean>;
   paused_by: string | null;
+  paused_reason: string | null;
   updated_at: Generated<Timestamp>;
 }
 
@@ -141,6 +144,7 @@ export interface InviteOpens {
 
 export interface Invites {
   activity_id: string;
+  chain_seq: Generated<Int8>;
   code: string;
   created_at: Generated<Timestamp>;
   expires_at: Timestamp | null;
@@ -150,9 +154,9 @@ export interface Invites {
   inviter_id: string;
   note: string | null;
   plan_id: string;
-  prev_hash: Buffer | null;
+  prev_hash: Generated<Buffer>;
   rail: string;
-  row_hash: Buffer | null;
+  row_hash: Generated<Buffer>;
 }
 
 export interface Plans {

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { PublicPerson } from './people';
 
 /** Where an activity happens (Google Maps spec FR-005). `lat`/`lng` are WGS 84 degrees. */
 export const Location = z
@@ -84,3 +85,74 @@ export const HostActivity = z
   })
   .meta({ id: 'HostActivity' });
 export type HostActivity = z.infer<typeof HostActivity>;
+
+/** The activity's place as public screens show it (Maps spec FR-014). */
+export const PublicLocation = Location.extend({
+  placeId: z.string().nullable(),
+  meetingPoint: z.string().nullable(),
+  /** Signed Static Maps image. Null until signing is configured (S6); clients show the address instead (PRD A7). */
+  staticMapUrl: z.string().nullable(),
+  /** Google Maps directions to the pin. */
+  directionsUrl: z.string(),
+}).meta({ id: 'PublicLocation' });
+export type PublicLocation = z.infer<typeof PublicLocation>;
+
+/**
+ * The public activity snapshot (S3). Clients start, reconnect and poll from it; `spotsLeft` and
+ * `version` come from one read, so live `spots` events with a higher version replace them.
+ */
+export const PublicActivity = z
+  .object({
+    id: z.uuid(),
+    title: z.string(),
+    description: z.string(),
+    /** Null until photo upload exists (S5). */
+    photoUrl: z.string().nullable(),
+    startsAt: z.iso.datetime({ offset: true }),
+    timezone: z.string(),
+    priceMinor: z.number().int(),
+    currency: z.string(),
+    capacity: z.number().int(),
+    spotsLeft: z.number().int(),
+    version: z.number().int(),
+    /** `started` wins over `sold_out`. */
+    status: z.enum(['open', 'sold_out', 'started']),
+    bookingsPaused: z.boolean(),
+    host: PublicPerson,
+    community: z.object({ slug: z.string(), name: z.string() }),
+    /** Confirmed bookings; `preview` is the earliest few, for the avatar stack. */
+    members: z.object({ count: z.number().int(), preview: z.array(PublicPerson) }),
+    location: PublicLocation,
+    /** The signed-in caller's relation to the activity; null when signed out. */
+    viewer: z
+      .object({
+        isHost: z.boolean(),
+        booking: z
+          .object({ id: z.uuid(), planId: z.uuid(), status: z.enum(['confirmed', 'removed']) })
+          .nullable(),
+      })
+      .nullable(),
+  })
+  .meta({ id: 'PublicActivity' });
+export type PublicActivity = z.infer<typeof PublicActivity>;
+
+/** An activity in a list (community page, My plans, profile, next-steps). Public data only. */
+export const ActivityCard = z
+  .object({
+    id: z.uuid(),
+    title: z.string(),
+    startsAt: z.iso.datetime({ offset: true }),
+    timezone: z.string(),
+    priceMinor: z.number().int(),
+    currency: z.string(),
+    photoUrl: z.string().nullable(),
+    capacity: z.number().int(),
+    spotsLeft: z.number().int(),
+    version: z.number().int(),
+    status: PublicActivity.shape.status,
+    community: PublicActivity.shape.community,
+    location: z.object({ venueName: z.string(), lat: z.number(), lng: z.number() }),
+    members: PublicActivity.shape.members,
+  })
+  .meta({ id: 'ActivityCard' });
+export type ActivityCard = z.infer<typeof ActivityCard>;

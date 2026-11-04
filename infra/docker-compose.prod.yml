@@ -49,6 +49,8 @@ services:
       DATABASE_LISTEN_URL: postgres://velio_api:${DB_API_PASSWORD:?}@postgres:5432/velio
       CONTACT_PEPPER: ${CONTACT_PEPPER:?}
       ORIGIN_VERIFY_SECRET: ${ORIGIN_VERIFY_SECRET:?}
+      # Invite links. The distribution's hostname is stable (it must never be deleted: MVP plan §8).
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-https://depimls1pcvv4.cloudfront.net}
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
     # The security group admits only CloudFront to this port.
     ports:

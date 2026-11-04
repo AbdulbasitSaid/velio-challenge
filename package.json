@@ -21,6 +21,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit -p apps/api && tsc --noEmit -p packages/contracts && tsc --noEmit -p infra/aws && tsc --noEmit -p load",
     "load:smoke": "bun load/seed.ts && docker compose -f infra/docker-compose.yml run --rm k6 run /load/scenarios/last_spot_race.js && bun load/check.ts",
+    "load:viewers": "bun load/seed.ts viewers && docker compose -f infra/docker-compose.yml run --rm k6 run /load/scenarios/viewers.js && bun load/check.ts results/seed-viewers.json",
     "aws:synth": "AWS_REGION=eu-west-2 bun run --cwd infra/aws cdk synth",
     "aws:diff": "AWS_REGION=eu-west-2 bun run --cwd infra/aws cdk diff",
     "aws:deploy": "AWS_REGION=eu-west-2 bun run --cwd infra/aws cdk deploy",

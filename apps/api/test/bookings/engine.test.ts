@@ -7,7 +7,6 @@ import {
   MetricReader,
   type ResourceMetrics,
 } from '@opentelemetry/sdk-metrics';
-import { ApiError } from '../../src/errors';
 import { changeCapacity, createBookingEngine, type BookingEngine } from '../../src/modules/bookings/engine';
 import { createBookingMetrics } from '../../src/modules/bookings/metrics';
 import { newBookingRef } from '../../src/modules/bookings/ref';
@@ -138,10 +137,11 @@ describe('extension point for claims', () => {
           .insertInto('events')
           .values({ name: 'extend_probe', activity_id: booking.activity_id })
           .execute();
-        throw new ApiError('already_claimed');
+        // Not an ApiError: a typed rejection would also record a booking_rejected event (S4).
+        throw new Error('extend failed');
       },
     });
-    expect(failing).rejects.toThrow(ApiError);
+    expect(failing).rejects.toThrow('extend failed');
     await failing.catch(() => {});
     expect(await counts(activityId)).toEqual(before);
   });

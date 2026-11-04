@@ -79,7 +79,12 @@ describe('error envelope', () => {
 
 describe('origin lockdown', () => {
   const secret = 'origin-secret-0123456789abcdef0123456789';
-  const prod = () => testApp(t.db, undefined, { NODE_ENV: 'production', ORIGIN_VERIFY_SECRET: secret });
+  const prod = () =>
+    testApp(t.db, undefined, {
+      NODE_ENV: 'production',
+      ORIGIN_VERIFY_SECRET: secret,
+      PUBLIC_BASE_URL: 'https://example.cloudfront.net',
+    });
 
   test('in production, requests without X-Origin-Verify are forbidden', async () => {
     const res = await prod().request('/api/readyz');

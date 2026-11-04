@@ -5,6 +5,7 @@ import type { Db } from '../../db/client';
 import type { Bookings, DB } from '../../db/types';
 import { ApiError } from '../../errors';
 import type { Logger } from '../../telemetry/logger';
+import { notifyPlan, notifySpots } from '../realtime/notify';
 import type { BookingMetrics, BookingPath } from './metrics';
 import { newBookingRef } from './ref';
 
@@ -15,9 +16,18 @@ export type Tx = Transaction<DB>;
 export type BookingRow = Selectable<Bookings>;
 export type BookingSource = 'direct' | 'vouch' | 'public';
 
+/** A guest created inside the claim transaction, so a failed claim creates no user (S4 §4.6). */
+export interface NewUser {
+  displayName: string;
+  contactHash: Buffer;
+  generation: number;
+}
+
 export interface BookSpotInput {
   activityId: string;
+  /** Empty when `newUser` is set; the engine fills it in once the user exists. */
   userId: string;
+  newUser?: NewUser;
   idempotencyKey: string;
   source: BookingSource;
   /** Claims join the inviter's Plan (S4). Direct bookings create a new one. */
@@ -53,10 +63,22 @@ const REJECTIONS = new Set([
   'activity_started',
   'bookings_paused',
   'sold_out',
+  // Claims (S4)
+  'already_claimed',
+  'invite_expired',
+  'invite_paused',
+  'invalid_code',
+  'rate_limited',
 ]);
 
 /** The conditional UPDATE matched no row; thrown inside the transaction to roll it back. */
 class SpotUnavailable extends Error {}
+
+/**
+ * The new guest's contact already belongs to a user (a parallel claim or sign-in won). The claim
+ * rolled back; the caller retries as that existing user.
+ */
+export class NewUserConflict extends Error {}
 
 /** The constraint behind a unique violation, if `err` is one. */
 function uniqueViolation(err: unknown): string | undefined {
@@ -74,16 +96,6 @@ export function toBooking(row: BookingRow): Booking {
     status: row.status as Booking['status'],
     createdAt: row.created_at.toISOString(),
   };
-}
-
-/** Delivered by Postgres only on commit. S3 listens; `committedAt` is its latency reference. */
-async function notifySpots(tx: Tx, state: ActivityState) {
-  await sql`
-    SELECT pg_notify('activity_spots', json_build_object(
-      'activityId', ${state.id}::uuid,
-      'spotsLeft', ${state.spotsLeft}::int,
-      'version', ${state.version}::bigint,
-      'committedAt', clock_timestamp())::text)`.execute(tx);
 }
 
 /**
@@ -186,6 +198,22 @@ export function createBookingEngine(deps: BookingEngineDeps) {
 
   function transact(input: BookSpotInput): Promise<BookingResult> {
     return db.transaction().execute(async (tx) => {
+      // A new guest is created before the spot is taken, and rolls back with everything else.
+      if (input.newUser) {
+        const created = await tx
+          .insertInto('users')
+          .values({
+            display_name: input.newUser.displayName,
+            contact_hash: input.newUser.contactHash,
+            invite_generation: input.newUser.generation,
+          })
+          .onConflict((oc) => oc.column('contact_hash').doNothing())
+          .returning('id')
+          .executeTakeFirst();
+        if (!created) throw new NewUserConflict();
+        input = { ...input, userId: created.id };
+      }
+
       // Takes the spot and the activity row lock. A waiting UPDATE re-checks its WHERE against the
       // committed row (READ COMMITTED), so the last spot can be taken only once.
       const waitStart = performance.now();
@@ -248,24 +276,41 @@ export function createBookingEngine(deps: BookingEngineDeps) {
 
       const activity = { id: input.activityId, spotsLeft: taken.spots_left, version: Number(taken.version) };
       await notifySpots(tx, activity);
+      await notifyPlan(tx, planId);
       return { created: true, booking, activity };
     });
   }
 
   async function attempt(input: BookSpotInput): Promise<BookingResult> {
-    const replay = await findReplay(input);
-    if (replay) return replay;
+    // A user who doesn't exist yet can't have a replay or an earlier booking.
+    const existing = !input.newUser;
+    if (existing) {
+      const replay = await findReplay(input);
+      if (replay) return replay;
+    }
     try {
-      await precheck(input);
+      if (existing) await precheck(input);
       return await transact(input);
     } catch (err) {
+      if (err instanceof NewUserConflict) throw err;
       // A parallel request with the same key may have committed since the first lookup, making
       // this one look already booked, sold out or a unique violation. It's a replay of that one.
-      const winner = await findReplay(input);
-      if (winner) return winner;
-      if (err instanceof SpotUnavailable) throw await unavailableReason(input.activityId);
+      if (existing) {
+        const winner = await findReplay(input);
+        if (winner) return winner;
+      }
+      if (err instanceof SpotUnavailable) {
+        const reason = await unavailableReason(input.activityId);
+        // Invites expire at the start time (PRD Lifecycles), so a claim racing it says so.
+        if (reason.code === 'activity_started' && input.source !== 'direct')
+          throw new ApiError('invite_expired');
+        throw reason;
+      }
       // A parallel request with another key won; this transaction rolled back, returning its spot.
-      if (uniqueViolation(err) === 'bookings_one_confirmed_per_user') throw new ApiError('already_booked');
+      const constraint = uniqueViolation(err);
+      if (constraint === 'bookings_one_confirmed_per_user') throw new ApiError('already_booked');
+      // Single use (PRD I6): a parallel claim of this vouch committed first; the spot was restored.
+      if (constraint === 'invite_claims_one_per_vouch') throw new ApiError('already_claimed');
       throw err;
     }
   }
@@ -277,7 +322,7 @@ export function createBookingEngine(deps: BookingEngineDeps) {
         .insertInto('events')
         .values({
           name: 'booking_rejected',
-          user_id: input.userId,
+          user_id: input.userId || null,
           // events.activity_id references activities, so an unknown ID can't be stored.
           activity_id: reason === 'not_found' ? null : input.activityId,
           invite_id: input.inviteId ?? null,
@@ -330,6 +375,10 @@ export function createBookingEngine(deps: BookingEngineDeps) {
           if (result.created) await assertNoOversell(input.activityId);
           return result;
         } catch (err) {
+          if (err instanceof NewUserConflict) {
+            outcome = 'retry';
+            throw err;
+          }
           if (err instanceof ApiError && err.code !== 'internal') {
             outcome = err.code;
             if (REJECTIONS.has(err.code)) await recordRejection(input, err.code);
@@ -400,6 +449,7 @@ export function createBookingEngine(deps: BookingEngineDeps) {
         .execute();
       const state = { id: activityId, spotsLeft: freed.spots_left, version: Number(freed.version) };
       await notifySpots(tx, state);
+      await notifyPlan(tx, removed.plan_id);
       return { removed: true, booking: removed, activity: state };
     });
 
@@ -407,7 +457,36 @@ export function createBookingEngine(deps: BookingEngineDeps) {
     return result;
   }
 
-  return { bookSpot, removeBooking };
+  /**
+   * A claim rejected by a check outside the engine (invalid code, paused link, rate limit, …):
+   * counted and recorded like an engine rejection, so the claim funnel has one source (S4 §4.6).
+   */
+  async function rejectClaim(input: {
+    reason: string;
+    activityId: string | null;
+    userId: string | null;
+    inviteId: string | null;
+    platform?: string;
+  }) {
+    m.attempts.add(1, { outcome: input.reason, path: 'claim' });
+    try {
+      await db
+        .insertInto('events')
+        .values({
+          name: 'booking_rejected',
+          user_id: input.userId,
+          activity_id: input.activityId,
+          invite_id: input.inviteId,
+          platform: input.platform ?? null,
+          props: sql`jsonb_build_object('reason', ${input.reason}::text)`,
+        })
+        .execute();
+    } catch (err) {
+      logger.warn({ err, activity_id: input.activityId }, 'booking_rejected event not recorded');
+    }
+  }
+
+  return { bookSpot, removeBooking, rejectClaim };
 }
 
 export type BookingEngine = ReturnType<typeof createBookingEngine>;

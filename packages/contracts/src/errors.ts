@@ -18,6 +18,8 @@ export const ERROR_CODES = [
   // Booking engine (S2)
   'idempotency_conflict',
   'booking_removed',
+  // Attendance (S4)
+  'activity_not_started',
   // Activity edits (Google Maps spec)
   'location_locked',
   'capacity_below_bookings',

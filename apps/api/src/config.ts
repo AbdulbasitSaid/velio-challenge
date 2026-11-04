@@ -17,11 +17,25 @@ const Config = z
     LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
     SESSION_IDLE_DAYS: z.coerce.number().int().positive().default(30),
     SESSION_ABSOLUTE_DAYS: z.coerce.number().int().positive().default(90),
+    /** Origin of invite links (`<origin>/i/<code>`): the cloudfront.net hostname in production. */
+    PUBLIC_BASE_URL: z.url().optional(),
+    /** PRD R7: claim attempts allowed on one public link per minute (S4 §12, Q2). */
+    LINK_CLAIMS_PER_MINUTE: z.coerce.number().int().positive().default(60),
+    /** PRD R7: opens in the trailing hour before a link with < 2% claims auto-pauses (S4 §12, Q2). */
+    AUTO_PAUSE_MIN_OPENS: z.coerce.number().int().positive().default(200),
   })
   .refine((c) => c.NODE_ENV !== 'production' || c.ORIGIN_VERIFY_SECRET !== undefined, {
     path: ['ORIGIN_VERIFY_SECRET'],
     message: 'required when NODE_ENV=production',
-  });
+  })
+  .refine((c) => c.NODE_ENV !== 'production' || c.PUBLIC_BASE_URL !== undefined, {
+    path: ['PUBLIC_BASE_URL'],
+    message: 'required when NODE_ENV=production',
+  })
+  .transform((c) => ({
+    ...c,
+    PUBLIC_BASE_URL: (c.PUBLIC_BASE_URL ?? 'http://localhost:3000').replace(/\/+$/, ''),
+  }));
 
 export type Config = z.infer<typeof Config>;
 

@@ -1,8 +1,10 @@
-// After a last_spot_race run: the SQL invariant on the run's activities. Exits 1 on any mismatch.
+// After a load run: the SQL invariant on the run's activities. Exits 1 on any mismatch.
+//   bun load/check.ts [results/seed-viewers.json]   (default results/seed.json)
 import { resolve } from 'node:path';
 import { SQL } from 'bun';
 
-const seed = (await Bun.file(resolve(import.meta.dir, 'results/seed.json')).json()) as {
+const seedFile = process.argv[2] ?? 'results/seed.json';
+const seed = (await Bun.file(resolve(import.meta.dir, seedFile)).json()) as {
   runId: string;
   activities: { id: string; spots: number }[];
 };

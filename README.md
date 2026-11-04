@@ -47,6 +47,7 @@ bun run dev        # http://localhost:3001/api/healthz
 | `bun run lint` · `bun run format` · `bun run format:check` | ESLint and Prettier.                      |
 | `bun run dev`               | API with reload.                                                         |
 | `bun run load:smoke`        | k6 `last_spot_race` smoke against the local API (needs `bun run dev` running). |
+| `bun run load:viewers`      | k6 `viewers` smoke: 250 sockets watch a `last_spot_race` (needs `bun run dev` running). |
 | `bun run aws:synth` · `aws:diff` · `aws:deploy` · `aws:destroy` | CDK for the `VelioApp` stack in eu-west-2. Each needs `-c alertEmail=…`. |
 
 After changing a migration or a route, run `db:codegen` or `contracts:openapi` and commit the result; CI fails on drift.
@@ -58,17 +59,20 @@ All variables are documented in [`.env.example`](.env.example). The API refuses 
 | Variable                      | Notes                                                                   |
 | ----------------------------- | ----------------------------------------------------------------------- |
 | `DATABASE_URL`                | Runtime connection as `velio_api`.                                      |
-| `DATABASE_LISTEN_URL`         | Direct connection for `LISTEN` (used from S3).                          |
+| `DATABASE_LISTEN_URL`         | Direct connection for realtime `LISTEN`. Never through a pooler.        |
 | `CONTACT_PEPPER`              | Secret keying contact hashes. Changing it orphans every existing user.  |
 | `ORIGIN_VERIFY_SECRET`        | CloudFront's `X-Origin-Verify` value. Required in production only.      |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | Local collector: `http://localhost:4318`. Empty disables export.        |
 | `LOG_LEVEL`                   | pino level.                                                             |
 | `SESSION_IDLE_DAYS`, `SESSION_ABSOLUTE_DAYS` | Session lifetimes, default 30 and 90.                    |
+| `PUBLIC_BASE_URL` | Origin of invite links (`<origin>/i/<code>`). Required in production; defaults to `http://localhost:3000`. |
+| `LINK_CLAIMS_PER_MINUTE`, `AUTO_PAUSE_MIN_OPENS` | Public-link abuse limits (PRD R7), default 60 and 200. |
 
 ## Database
 
 - Roles: `velio_owner` owns the schema (migrations switch to it), `velio_api` is the runtime role, `velio_readonly` is for metrics views. Locally they have no passwords: the Compose Postgres uses trust auth on `127.0.0.1` only.
 - Insert-only tables (`invites`, `invite_claims`, `attributions`, `trust_edges`, `attendance_marks`, `booking_removals`) reject `UPDATE` and `DELETE` twice: `velio_api` lacks the grants, and a trigger rejects them for every role.
+- `invites` and `attributions` carry a hash chain per activity. A `BEFORE INSERT` trigger sets `chain_seq`, `prev_hash` and `row_hash` under the activity row lock, whatever the caller sent. `SELECT * FROM audit_chain('<activity id>')` (or `audit_all_chains()`) recomputes both chains and returns the first broken `chain_seq` per table; a clean chain returns no rows.
 - Trigger errors use SQLSTATE class `VL`: `VL001` location locked, `VL002` insert-only, `VL003` immutable column, `VL004` invalid time zone.
 
 ## Booking engine
@@ -78,6 +82,21 @@ All variables are documented in [`.env.example`](.env.example). The API refuses 
 - `bun test` includes `apps/api/test/concurrency/last-spot.test.ts`: 200 parallel HTTP bookers for 1, 5 and 14 spots, exactly N succeed. It also covers same-key retries, removal and capacity races.
 - `bun run load:smoke` runs the same race through k6 (25 VUs per activity, the `grafana/k6` image under the Compose `load` profile), then checks the database for oversold activities. Seeded data stays in the development database, named `Load <runId> …`.
 - The kill switch is `activities.bookings_paused`. Until S8 adds the admin endpoint, set it in SQL.
+
+## Invites and claims
+
+- `POST /api/plans/:id/invites` creates a vouch (one named person, single use; the contact is stored only as a keyed hash) or returns the member's public link. `GET /api/invites/:code` is the public invite page's data; `POST /api/invites/:code/opens` is the beacon the page sends after rendering.
+- `POST /api/invites/:code/claims` is a booking through the same engine as a direct booking (`Idempotency-Key` required). A guest without a session sends `displayName` and `contact`; a new guest is created inside the claim transaction with generation = inviter's + 1, and gets the attribution row and a session. Two parallel claims of one vouch give one booking.
+- More than 10 unknown codes from one device (`X-Device-Id`, else the client IP) in an hour lock that device out of every code until the hour ends. Public links take at most `LINK_CLAIMS_PER_MINUTE` claim attempts a minute and pause themselves after `AUTO_PAUSE_MIN_OPENS` opens in an hour with under 2% claimed; the creator or host resumes them with `DELETE /api/invites/:code/pause`.
+- Read APIs for the clients: `GET /api/plans/:id`, `/api/me/plans`, `/api/host/activities`, `/api/host/activities/:id/attendance` (and `POST /api/host/bookings/:id/attendance` to mark), `/api/communities`, `/api/communities/:slug`, `/api/users/:id/profile` and `/api/activities/:id/next-steps`.
+
+## Realtime
+
+`GET /api/activities/:id` is the public snapshot (spots left, `version`, members as "Tunde A."). `GET /api/ws?platform=web|ios|android` upgrades to a WebSocket. Clients subscribe to `activity:<id>` (anyone), `plan:<id>` (Plan members) or `host:<activityId>` (the host), and receive `spots`, `plan`, `attendance` and `resync` messages. The protocol and the client rules (subscribe before fetching the snapshot, ignore older versions, poll every 10 s while disconnected) are in `packages/contracts/src/realtime.ts`.
+
+- Each API process holds one `LISTEN` connection (`apps/api/src/modules/realtime/listener.ts`) on `activity_spots`, `plan_changed` and `attendance_changed`. If it drops, the listener reconnects and sends `resync` to every subscribed topic. `/api/readyz` returns 503 while it isn't listening.
+- Clients send `{type:"rendered", activityId, version}` after painting; `realtime_commit_to_ack_seconds` is the PRD's live-update latency, measured on the server clock.
+- Try it from a browser console on a running API: `ws = new WebSocket('ws://localhost:3001/api/ws?platform=web'); ws.onmessage = (e) => console.log(e.data); ws.onopen = () => ws.send(JSON.stringify({type: 'subscribe', topics: ['activity:<id>']}))`.
 
 ## Telemetry
 

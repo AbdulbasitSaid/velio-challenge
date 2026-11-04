@@ -42,7 +42,23 @@ describe('configuration', () => {
   test('production requires ORIGIN_VERIFY_SECRET', () => {
     expect(() => loadConfig({ ...valid, NODE_ENV: 'production' })).toThrow(/ORIGIN_VERIFY_SECRET/);
     expect(
-      loadConfig({ ...valid, NODE_ENV: 'production', ORIGIN_VERIFY_SECRET: 'y'.repeat(32) }).NODE_ENV,
+      loadConfig({
+        ...valid,
+        NODE_ENV: 'production',
+        ORIGIN_VERIFY_SECRET: 'y'.repeat(32),
+        PUBLIC_BASE_URL: 'https://example.cloudfront.net',
+      }).NODE_ENV,
     ).toBe('production');
+  });
+
+  // S4: invite links need the public origin in production.
+  test('production requires PUBLIC_BASE_URL; elsewhere it defaults, without a trailing slash', () => {
+    expect(() =>
+      loadConfig({ ...valid, NODE_ENV: 'production', ORIGIN_VERIFY_SECRET: 'y'.repeat(32) }),
+    ).toThrow(/PUBLIC_BASE_URL/);
+    expect(loadConfig(valid).PUBLIC_BASE_URL).toBe('http://localhost:3000');
+    expect(loadConfig({ ...valid, PUBLIC_BASE_URL: 'https://d1.cloudfront.net/' }).PUBLIC_BASE_URL).toBe(
+      'https://d1.cloudfront.net',
+    );
   });
 });

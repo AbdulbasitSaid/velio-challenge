@@ -9,13 +9,25 @@ import type { Config } from './config';
 import type { Db } from './db/client';
 import { ApiError, envelope, fromPostgresError } from './errors';
 import { activityRoutes } from './modules/activities/routes';
+import { createAttendanceService } from './modules/attendance/service';
+import { attendanceRoutes } from './modules/attendance/routes';
 import { createBookingEngine } from './modules/bookings/engine';
 import { createBookingMetrics } from './modules/bookings/metrics';
 import { bookingRoutes } from './modules/bookings/routes';
+import { communityRoutes } from './modules/communities/routes';
+import { createCommunityService } from './modules/communities/service';
 import { healthRoutes } from './modules/health/routes';
 import { identityRoutes } from './modules/identity/routes';
+import { createClaims } from './modules/invites/claims';
+import { createLimits } from './modules/invites/limits';
+import { createInviteMetrics } from './modules/invites/metrics';
+import { inviteRoutes } from './modules/invites/routes';
+import { createInviteService } from './modules/invites/service';
+import { planRoutes } from './modules/plans/routes';
+import { createPlanService } from './modules/plans/service';
+import type { Realtime } from './modules/realtime/gateway';
 import type { User } from './modules/identity/sessions';
-import { sessionMiddleware } from './modules/identity/middleware';
+import { sessionMiddleware, sessionPolicy } from './modules/identity/middleware';
 import { accessMiddleware, tracingMiddleware } from './telemetry/http';
 import type { Logger } from './telemetry/logger';
 
@@ -25,8 +37,10 @@ export interface AppDeps {
   logger: Logger;
   /** Injected so tests can move time (session expiry). */
   clock: () => Date;
-  /** Booking metrics bind to this provider; defaults to the global one. Tests inject a reader. */
+  /** Booking and invite metrics bind to this provider; defaults to the global one. Tests inject a reader. */
   meterProvider?: MeterProvider;
+  /** The WebSocket gateway and LISTEN bridge (S3). Absent in tests that don't need realtime. */
+  realtime?: Realtime;
 }
 
 export interface AppEnv extends Env {
@@ -89,6 +103,32 @@ export function createApp(deps: AppDeps) {
     metrics: createBookingMetrics(deps.meterProvider),
   });
   app.route('/', bookingRoutes(bookings));
+
+  const inviteMetrics = createInviteMetrics(deps.meterProvider);
+  const limits = createLimits(deps.db, deps.clock);
+  const invites = createInviteService({
+    db: deps.db,
+    config: deps.config,
+    logger: deps.logger,
+    metrics: inviteMetrics,
+  });
+  const policy = sessionPolicy(deps.config);
+  const claims = createClaims({
+    db: deps.db,
+    config: deps.config,
+    logger: deps.logger,
+    clock: deps.clock,
+    engine: bookings,
+    invites,
+    limits,
+    metrics: inviteMetrics,
+    policy,
+  });
+  app.route('/', inviteRoutes({ invites, claims, limits, metrics: inviteMetrics, policy }));
+  app.route('/', planRoutes(createPlanService(deps.db, deps.config)));
+  app.route('/', attendanceRoutes(createAttendanceService(deps.db)));
+  app.route('/', communityRoutes(createCommunityService(deps.db)));
+  if (deps.realtime) app.route('/', deps.realtime.routes);
 
   app.openAPIRegistry.registerComponent('securitySchemes', 'cookieAuth', {
     type: 'apiKey',

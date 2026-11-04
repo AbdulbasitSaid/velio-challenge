@@ -118,3 +118,85 @@ export interface BookingBody {
 export async function errorCode(res: Response): Promise<string> {
   return ((await res.json()) as { error: { code: string } }).error.code;
 }
+
+export interface InviteBody {
+  id: string;
+  code: string;
+  link: string;
+  rail: 'vouch' | 'public';
+  inviteeName: string | null;
+  note: string | null;
+  status: string;
+  opens: number;
+  claims: number;
+  paused: boolean;
+  pausedReason: string | null;
+}
+
+export function postInvite(request: Requester, caller: Caller, planId: string, body: unknown) {
+  return request(`/api/plans/${planId}/invites`, json(body, caller.headers));
+}
+
+export async function createInvite(request: Requester, caller: Caller, planId: string, body: unknown) {
+  const res = await postInvite(request, caller, planId, body);
+  if (res.status !== 201 && res.status !== 200) {
+    throw new Error(`create invite failed: ${res.status} ${await res.text()}`);
+  }
+  return (await res.json()) as InviteBody;
+}
+
+/** Books directly and returns the booking body (the caller's Plan is `booking.planId`). */
+export async function bookOk(request: Requester, caller: Caller, activityId: string) {
+  const res = await book(request, caller, activityId);
+  if (res.status !== 201) throw new Error(`booking failed: ${res.status} ${await res.text()}`);
+  return (await res.json()) as BookingBody;
+}
+
+export interface ClaimBody extends BookingBody {
+  planId: string;
+  user: { id: string; displayName: string; shortName: string };
+  token?: string;
+}
+
+/**
+ * Claims an invite. `as` is either a signed-in caller, or a new guest's identity (no session).
+ * Every call sends a device ID, so rate limits don't share one "unknown" IP key.
+ */
+export function claim(
+  request: Requester,
+  code: string,
+  as: Caller | { displayName: string; contact: string },
+  options: { key?: string; deviceId?: string; mobile?: boolean } = {},
+) {
+  const signedIn = 'headers' in as;
+  return request(`/api/invites/${code}/claims`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'idempotency-key': options.key ?? randomUUID(),
+      'x-device-id': options.deviceId ?? randomUUID(),
+      ...(options.mobile && { 'x-client': 'mobile' }),
+      ...(signedIn ? as.headers : {}),
+    },
+    body: JSON.stringify(signedIn ? {} : as),
+  });
+}
+
+export function openInvite(
+  request: Requester,
+  code: string,
+  deviceId: string = randomUUID(),
+  headers: Record<string, string> = {},
+) {
+  return request(`/api/invites/${code}/opens`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-device-id': deviceId, ...headers },
+    body: JSON.stringify({ platform: 'web' }),
+  });
+}
+
+export function viewInvite(request: Requester, code: string, headers: Record<string, string> = {}) {
+  return request(`/api/invites/${code}`, { headers: { 'x-device-id': randomUUID(), ...headers } });
+}
+
+export const newContact = () => `${randomUUID()}@example.com`;

@@ -1,9 +1,11 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
-import { ActivityCreate, ActivityPatch, HostActivity } from '@velio/contracts';
+import { ActivityCreate, ActivityPatch, HostActivity, PublicActivity } from '@velio/contracts';
 import type { AppDeps, AppEnv } from '../../app';
+import { ApiError } from '../../errors';
 import { errorResponse, SECURITY } from '../../openapi';
 import { requireUser } from '../identity/middleware';
 import { createActivity, updateActivity } from './service';
+import { buildSnapshot } from './snapshot';
 
 const createActivityRoute = createRoute({
   method: 'post',
@@ -44,8 +46,29 @@ const updateActivityRoute = createRoute({
   },
 });
 
+const snapshotRoute = createRoute({
+  method: 'get',
+  path: '/activities/{id}',
+  summary: 'Public activity snapshot: details, live spots and version',
+  description:
+    "No session needed. With one, `viewer` gives the caller's own booking. Clients fetch this on every (re)connect of the realtime socket and poll it every 10 s while disconnected; `spots` events with a higher `version` replace its count.",
+  request: { params: z.object({ id: z.uuid() }) },
+  responses: {
+    200: { description: 'The snapshot', content: { 'application/json': { schema: PublicActivity } } },
+    400: errorResponse('`validation_failed`'),
+    404: errorResponse('`not_found`'),
+  },
+});
+
 export function activityRoutes(deps: AppDeps) {
   const app = new OpenAPIHono<AppEnv>();
+
+  app.openapi(snapshotRoute, async (c) => {
+    const snapshot = await buildSnapshot(deps.db, c.req.valid('param').id, c.var.user?.id ?? null);
+    if (!snapshot) throw new ApiError('not_found');
+    c.header('cache-control', 'no-store');
+    return c.json(snapshot, 200);
+  });
 
   app.openapi(createActivityRoute, async (c) => {
     const activity = await createActivity(deps.db, {

@@ -113,6 +113,7 @@
           "rate_limited",
           "idempotency_conflict",
           "booking_removed",
+          "activity_not_started",
           "location_locked",
           "capacity_below_bookings",
           "invalid_contact",
@@ -144,6 +145,239 @@
         "required": [
           "displayName",
           "contact"
+        ]
+      },
+      "PublicActivity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "photoUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "startsAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "priceMinor": {
+            "type": "integer"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "capacity": {
+            "type": "integer"
+          },
+          "spotsLeft": {
+            "type": "integer"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "sold_out",
+              "started"
+            ]
+          },
+          "bookingsPaused": {
+            "type": "boolean"
+          },
+          "host": {
+            "$ref": "#/components/schemas/PublicPerson"
+          },
+          "community": {
+            "type": "object",
+            "properties": {
+              "slug": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "slug",
+              "name"
+            ]
+          },
+          "members": {
+            "type": "object",
+            "properties": {
+              "count": {
+                "type": "integer"
+              },
+              "preview": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/PublicPerson"
+                }
+              }
+            },
+            "required": [
+              "count",
+              "preview"
+            ]
+          },
+          "location": {
+            "$ref": "#/components/schemas/PublicLocation"
+          },
+          "viewer": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "isHost": {
+                "type": "boolean"
+              },
+              "booking": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "planId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "confirmed",
+                      "removed"
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "planId",
+                  "status"
+                ]
+              }
+            },
+            "required": [
+              "isHost",
+              "booking"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "description",
+          "photoUrl",
+          "startsAt",
+          "timezone",
+          "priceMinor",
+          "currency",
+          "capacity",
+          "spotsLeft",
+          "version",
+          "status",
+          "bookingsPaused",
+          "host",
+          "community",
+          "members",
+          "location",
+          "viewer"
+        ]
+      },
+      "PublicPerson": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "shortName": {
+            "type": "string",
+            "example": "Tunde A."
+          },
+          "avatarSeed": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "shortName",
+          "avatarSeed"
+        ]
+      },
+      "PublicLocation": {
+        "type": "object",
+        "properties": {
+          "placeId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "venueName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "addressText": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "lat": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90
+          },
+          "lng": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180
+          },
+          "meetingPoint": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "staticMapUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "directionsUrl": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "placeId",
+          "venueName",
+          "addressText",
+          "lat",
+          "lng",
+          "meetingPoint",
+          "staticMapUrl",
+          "directionsUrl"
         ]
       },
       "HostActivity": {
@@ -436,6 +670,1174 @@
           "spotsLeft",
           "version"
         ]
+      },
+      "Invite": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string",
+            "example": "K7M2QX"
+          },
+          "link": {
+            "type": "string",
+            "example": "https://d1234.cloudfront.net/i/K7M2QX"
+          },
+          "rail": {
+            "type": "string",
+            "enum": [
+              "vouch",
+              "public"
+            ]
+          },
+          "inviteeName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/InviteStatus"
+          },
+          "opens": {
+            "type": "integer"
+          },
+          "claims": {
+            "type": "integer"
+          },
+          "paused": {
+            "type": "boolean"
+          },
+          "pausedReason": {
+            "$ref": "#/components/schemas/PauseReason"
+          },
+          "createdBy": {
+            "$ref": "#/components/schemas/MemberPerson"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "link",
+          "rail",
+          "inviteeName",
+          "note",
+          "status",
+          "opens",
+          "claims",
+          "paused",
+          "pausedReason",
+          "createdBy",
+          "createdAt"
+        ]
+      },
+      "InviteStatus": {
+        "type": "string",
+        "enum": [
+          "created",
+          "opened",
+          "claimed",
+          "expired"
+        ]
+      },
+      "PauseReason": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "enum": [
+          "owner",
+          "host",
+          "auto",
+          null
+        ]
+      },
+      "InviteCreate": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "rail": {
+                "type": "string",
+                "enum": [
+                  "vouch"
+                ]
+              },
+              "inviteeName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "contact": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "country": {
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 2
+              },
+              "note": {
+                "type": "string",
+                "maxLength": 280
+              }
+            },
+            "required": [
+              "rail",
+              "inviteeName"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "rail": {
+                "type": "string",
+                "enum": [
+                  "public"
+                ]
+              }
+            },
+            "required": [
+              "rail"
+            ]
+          }
+        ]
+      },
+      "InviteView": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "rail": {
+            "type": "string",
+            "enum": [
+              "vouch",
+              "public"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "claimable",
+              "claimed",
+              "expired",
+              "paused"
+            ]
+          },
+          "pausedReason": {
+            "$ref": "#/components/schemas/PauseReason"
+          },
+          "inviter": {
+            "$ref": "#/components/schemas/PublicPerson"
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "claimedByViewer": {
+            "type": "boolean"
+          },
+          "activity": {
+            "$ref": "#/components/schemas/PublicActivity"
+          }
+        },
+        "required": [
+          "code",
+          "rail",
+          "status",
+          "pausedReason",
+          "inviter",
+          "note",
+          "claimedByViewer",
+          "activity"
+        ]
+      },
+      "OpenCreate": {
+        "type": "object",
+        "properties": {
+          "platform": {
+            "type": "string",
+            "enum": [
+              "web",
+              "ios",
+              "android"
+            ]
+          }
+        }
+      },
+      "ClaimResponse": {
+        "type": "object",
+        "properties": {
+          "booking": {
+            "$ref": "#/components/schemas/Booking"
+          },
+          "activity": {
+            "$ref": "#/components/schemas/ActivityState"
+          },
+          "planId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "user": {
+            "$ref": "#/components/schemas/MemberPerson"
+          },
+          "token": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "booking",
+          "activity",
+          "planId",
+          "user"
+        ]
+      },
+      "ClaimCreate": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "contact": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "country": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 2
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "web",
+              "ios",
+              "android"
+            ]
+          }
+        }
+      },
+      "PlanView": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "activity": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "title": {
+                "type": "string"
+              },
+              "startsAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "timezone": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "title",
+              "startsAt",
+              "timezone"
+            ]
+          },
+          "owner": {
+            "$ref": "#/components/schemas/MemberPerson"
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "person": {
+                  "$ref": "#/components/schemas/MemberPerson"
+                },
+                "source": {
+                  "type": "string",
+                  "enum": [
+                    "direct",
+                    "vouch",
+                    "public"
+                  ]
+                },
+                "invitedBy": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/MemberPerson"
+                    },
+                    {
+                      "type": [
+                        "object",
+                        "null"
+                      ]
+                    }
+                  ]
+                },
+                "joinedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "person",
+                "source",
+                "invitedBy",
+                "joinedAt"
+              ]
+            }
+          },
+          "viewer": {
+            "type": "object",
+            "properties": {
+              "booking": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "ref": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "confirmed",
+                      "removed"
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "ref",
+                  "status"
+                ]
+              },
+              "canInvite": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "booking",
+              "canInvite"
+            ]
+          },
+          "invites": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlanInvite"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "activity",
+          "owner",
+          "members",
+          "viewer",
+          "invites"
+        ]
+      },
+      "PlanInvite": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "rail": {
+            "type": "string",
+            "enum": [
+              "vouch",
+              "public"
+            ]
+          },
+          "inviteeName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdBy": {
+            "$ref": "#/components/schemas/MemberPerson"
+          },
+          "status": {
+            "$ref": "#/components/schemas/InviteStatus"
+          },
+          "opens": {
+            "type": "integer"
+          },
+          "claims": {
+            "type": "integer"
+          },
+          "paused": {
+            "type": "boolean"
+          },
+          "pausedReason": {
+            "$ref": "#/components/schemas/PauseReason"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "code": {
+            "type": "string"
+          },
+          "link": {
+            "type": "string"
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "rail",
+          "inviteeName",
+          "createdBy",
+          "status",
+          "opens",
+          "claims",
+          "paused",
+          "pausedReason",
+          "createdAt"
+        ]
+      },
+      "MyPlans": {
+        "type": "object",
+        "properties": {
+          "upcoming": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MyPlan"
+            }
+          },
+          "past": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MyPlan"
+            }
+          }
+        },
+        "required": [
+          "upcoming",
+          "past"
+        ]
+      },
+      "MyPlan": {
+        "type": "object",
+        "properties": {
+          "planId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "activity": {
+            "$ref": "#/components/schemas/ActivityCard"
+          },
+          "booking": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "ref": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "confirmed",
+                  "removed"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "ref",
+              "status"
+            ]
+          },
+          "members": {
+            "type": "object",
+            "properties": {
+              "count": {
+                "type": "integer"
+              },
+              "preview": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/MemberPerson"
+                }
+              }
+            },
+            "required": [
+              "count",
+              "preview"
+            ]
+          }
+        },
+        "required": [
+          "planId",
+          "activity",
+          "booking",
+          "members"
+        ]
+      },
+      "ActivityCard": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "startsAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "priceMinor": {
+            "type": "integer"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "photoUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "capacity": {
+            "type": "integer"
+          },
+          "spotsLeft": {
+            "type": "integer"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "sold_out",
+              "started"
+            ]
+          },
+          "community": {
+            "type": "object",
+            "properties": {
+              "slug": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "slug",
+              "name"
+            ]
+          },
+          "location": {
+            "type": "object",
+            "properties": {
+              "venueName": {
+                "type": "string"
+              },
+              "lat": {
+                "type": "number"
+              },
+              "lng": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "venueName",
+              "lat",
+              "lng"
+            ]
+          },
+          "members": {
+            "type": "object",
+            "properties": {
+              "count": {
+                "type": "integer"
+              },
+              "preview": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/PublicPerson"
+                }
+              }
+            },
+            "required": [
+              "count",
+              "preview"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "startsAt",
+          "timezone",
+          "priceMinor",
+          "currency",
+          "photoUrl",
+          "capacity",
+          "spotsLeft",
+          "version",
+          "status",
+          "community",
+          "location",
+          "members"
+        ]
+      },
+      "HostActivityList": {
+        "type": "object",
+        "properties": {
+          "upcoming": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "startsAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "timezone": {
+                  "type": "string"
+                },
+                "priceMinor": {
+                  "type": "integer"
+                },
+                "currency": {
+                  "type": "string"
+                },
+                "photoUrl": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "capacity": {
+                  "type": "integer"
+                },
+                "spotsLeft": {
+                  "type": "integer"
+                },
+                "version": {
+                  "type": "integer"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "open",
+                    "sold_out",
+                    "started"
+                  ]
+                },
+                "community": {
+                  "type": "object",
+                  "properties": {
+                    "slug": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "slug",
+                    "name"
+                  ]
+                },
+                "location": {
+                  "type": "object",
+                  "properties": {
+                    "venueName": {
+                      "type": "string"
+                    },
+                    "lat": {
+                      "type": "number"
+                    },
+                    "lng": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "venueName",
+                    "lat",
+                    "lng"
+                  ]
+                },
+                "members": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "integer"
+                    },
+                    "preview": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PublicPerson"
+                      }
+                    }
+                  },
+                  "required": [
+                    "count",
+                    "preview"
+                  ]
+                },
+                "bookedCount": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "id",
+                "title",
+                "startsAt",
+                "timezone",
+                "priceMinor",
+                "currency",
+                "photoUrl",
+                "capacity",
+                "spotsLeft",
+                "version",
+                "status",
+                "community",
+                "location",
+                "members",
+                "bookedCount"
+              ]
+            }
+          },
+          "past": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "startsAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "timezone": {
+                  "type": "string"
+                },
+                "priceMinor": {
+                  "type": "integer"
+                },
+                "currency": {
+                  "type": "string"
+                },
+                "photoUrl": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "capacity": {
+                  "type": "integer"
+                },
+                "spotsLeft": {
+                  "type": "integer"
+                },
+                "version": {
+                  "type": "integer"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "open",
+                    "sold_out",
+                    "started"
+                  ]
+                },
+                "community": {
+                  "type": "object",
+                  "properties": {
+                    "slug": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "slug",
+                    "name"
+                  ]
+                },
+                "location": {
+                  "type": "object",
+                  "properties": {
+                    "venueName": {
+                      "type": "string"
+                    },
+                    "lat": {
+                      "type": "number"
+                    },
+                    "lng": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "venueName",
+                    "lat",
+                    "lng"
+                  ]
+                },
+                "members": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "integer"
+                    },
+                    "preview": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PublicPerson"
+                      }
+                    }
+                  },
+                  "required": [
+                    "count",
+                    "preview"
+                  ]
+                },
+                "bookedCount": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "id",
+                "title",
+                "startsAt",
+                "timezone",
+                "priceMinor",
+                "currency",
+                "photoUrl",
+                "capacity",
+                "spotsLeft",
+                "version",
+                "status",
+                "community",
+                "location",
+                "members",
+                "bookedCount"
+              ]
+            }
+          }
+        },
+        "required": [
+          "upcoming",
+          "past"
+        ]
+      },
+      "Attendance": {
+        "type": "object",
+        "properties": {
+          "activity": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "capacity": {
+                "type": "integer"
+              },
+              "spotsLeft": {
+                "type": "integer"
+              },
+              "version": {
+                "type": "integer"
+              },
+              "startsAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "timezone": {
+                "type": "string"
+              },
+              "started": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id",
+              "capacity",
+              "spotsLeft",
+              "version",
+              "startsAt",
+              "timezone",
+              "started"
+            ]
+          },
+          "attendees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Attendee"
+            }
+          }
+        },
+        "required": [
+          "activity",
+          "attendees"
+        ]
+      },
+      "Attendee": {
+        "type": "object",
+        "properties": {
+          "bookingId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ref": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "confirmed",
+              "removed"
+            ]
+          },
+          "person": {
+            "$ref": "#/components/schemas/MemberPerson"
+          },
+          "bookedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "direct",
+              "vouch",
+              "public"
+            ]
+          },
+          "invitedBy": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MemberPerson"
+              },
+              {
+                "type": [
+                  "object",
+                  "null"
+                ]
+              }
+            ]
+          },
+          "planId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "mark": {
+            "$ref": "#/components/schemas/AttendanceMark"
+          },
+          "markedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "bookingId",
+          "ref",
+          "status",
+          "person",
+          "bookedAt",
+          "source",
+          "invitedBy",
+          "planId",
+          "mark",
+          "markedAt"
+        ]
+      },
+      "AttendanceMark": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "enum": [
+          "attended",
+          "no_show",
+          null
+        ]
+      },
+      "AttendanceMarkCreate": {
+        "type": "object",
+        "properties": {
+          "mark": {
+            "$ref": "#/components/schemas/AttendanceMark"
+          }
+        },
+        "required": [
+          "mark"
+        ]
+      },
+      "CommunityList": {
+        "type": "object",
+        "properties": {
+          "communities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Community"
+            }
+          }
+        },
+        "required": [
+          "communities"
+        ]
+      },
+      "Community": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "blurb": {
+            "type": "string"
+          },
+          "coverPhotoUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "upcomingCount": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "slug",
+          "name",
+          "blurb",
+          "coverPhotoUrl",
+          "upcomingCount"
+        ]
+      },
+      "CommunityPage": {
+        "type": "object",
+        "properties": {
+          "community": {
+            "$ref": "#/components/schemas/Community"
+          },
+          "activities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ActivityCard"
+            }
+          }
+        },
+        "required": [
+          "community",
+          "activities"
+        ]
+      },
+      "Profile": {
+        "type": "object",
+        "properties": {
+          "person": {
+            "$ref": "#/components/schemas/PublicPerson"
+          },
+          "memberSince": {
+            "type": "string",
+            "example": "2026-11"
+          },
+          "hosting": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ActivityCard"
+            }
+          }
+        },
+        "required": [
+          "person",
+          "memberSince",
+          "hosting"
+        ]
+      },
+      "NextSteps": {
+        "type": "object",
+        "properties": {
+          "hostOtherDates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ActivityCard"
+            }
+          },
+          "moreInCommunity": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ActivityCard"
+            }
+          }
+        },
+        "required": [
+          "hostOtherDates",
+          "moreInCommunity"
+        ]
       }
     },
     "parameters": {}
@@ -460,7 +1862,7 @@
     },
     "/api/readyz": {
       "get": {
-        "summary": "Readiness. 200 only when a database query succeeds.",
+        "summary": "Readiness. 200 only when a database query succeeds and the realtime listener is listening.",
         "responses": {
           "200": {
             "description": "Ready",
@@ -473,7 +1875,7 @@
             }
           },
           "503": {
-            "description": "The database is unreachable",
+            "description": "The database is unreachable, or live updates are down",
             "content": {
               "application/json": {
                 "schema": {
@@ -609,34 +2011,28 @@
         }
       }
     },
-    "/api/activities": {
-      "post": {
-        "summary": "Create an activity, hosted by the caller",
-        "security": [
+    "/api/activities/{id}": {
+      "get": {
+        "summary": "Public activity snapshot: details, live spots and version",
+        "description": "No session needed. With one, `viewer` gives the caller's own booking. Clients fetch this on every (re)connect of the realtime socket and poll it every 10 s while disconnected; `spots` events with a higher `version` replace its count.",
+        "parameters": [
           {
-            "cookieAuth": []
-          },
-          {
-            "bearerAuth": []
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
           }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ActivityCreate"
-              }
-            }
-          }
-        },
         "responses": {
-          "201": {
-            "description": "Created",
+          "200": {
+            "description": "The snapshot",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HostActivity"
+                  "$ref": "#/components/schemas/PublicActivity"
                 }
               }
             }
@@ -651,18 +2047,8 @@
               }
             }
           },
-          "401": {
-            "description": "`unauthenticated`",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            }
-          },
           "404": {
-            "description": "`not_found`: unknown community",
+            "description": "`not_found`",
             "content": {
               "application/json": {
                 "schema": {
@@ -672,9 +2058,7 @@
             }
           }
         }
-      }
-    },
-    "/api/activities/{id}": {
+      },
       "patch": {
         "summary": "Edit an activity (host only)",
         "description": "Date, time zone and location are locked once the activity has a confirmed booking. Capacity can be raised at any time and lowered down to the number of confirmed bookings.",
@@ -760,6 +2144,71 @@
           },
           "409": {
             "description": "`location_locked` or `capacity_below_bookings`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/activities": {
+      "post": {
+        "summary": "Create an activity, hosted by the caller",
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActivityCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostActivity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`validation_failed`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "`unauthenticated`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: unknown community",
             "content": {
               "application/json": {
                 "schema": {
@@ -950,6 +2399,983 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/plans/{id}/invites": {
+      "post": {
+        "summary": "Create a vouch, or get your public link (Plan members only)",
+        "description": "A vouch is single use and addressed to one named person; its contact is stored only as a keyed hash. A public link is multi use; each member has one per Plan, so asking again returns it with `200`.",
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "web",
+                "mobile"
+              ]
+            },
+            "required": false,
+            "name": "x-client",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InviteCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Your existing public link",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Invite"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Invite"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`validation_failed` or `invalid_contact`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "`unauthenticated`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`forbidden`: not a confirmed member of the Plan",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`activity_started`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/invites/{code}": {
+      "get": {
+        "summary": "The public invite page data",
+        "description": "No session needed. More than 10 unknown codes from one device in an hour lock that device out of every code until the hour ends (`rate_limited`).",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 32
+            },
+            "required": true,
+            "name": "code",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$",
+              "example": "d3b07384-d113-4ec6-a6a3-8a1f2c7b9e10"
+            },
+            "required": false,
+            "name": "x-device-id",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The invite",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InviteView"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`invalid_code`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "`rate_limited`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/invites/{code}/opens": {
+      "post": {
+        "summary": "Open beacon: send once the invite page has rendered",
+        "description": "Recorded at most once per invite per device. Preview bots and the Plan’s own members are not recorded. Always `204` for a known code.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 32
+            },
+            "required": true,
+            "name": "code",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$",
+              "example": "d3b07384-d113-4ec6-a6a3-8a1f2c7b9e10"
+            },
+            "required": true,
+            "name": "x-device-id",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Received"
+          },
+          "400": {
+            "description": "`validation_failed`: missing `X-Device-Id`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`invalid_code`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "`rate_limited`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/invites/{code}/claims": {
+      "post": {
+        "summary": "Claim a spot through an invite",
+        "description": "The same booking transaction as a direct booking. With a session, the body is ignored; without one, `displayName` and `contact` sign the guest in (web: cookie; `X-Client: mobile`: token in the body). Retrying with the same `Idempotency-Key` returns the original claim with `200`.",
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          },
+          {}
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 32
+            },
+            "required": true,
+            "name": "code",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$",
+              "example": "0190a6f2-1f2b-7c3d-8e4f-5a6b7c8d9e0f"
+            },
+            "required": true,
+            "name": "idempotency-key",
+            "in": "header"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "web",
+                "mobile"
+              ]
+            },
+            "required": false,
+            "name": "x-client",
+            "in": "header"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$",
+              "example": "d3b07384-d113-4ec6-a6a3-8a1f2c7b9e10"
+            },
+            "required": false,
+            "name": "x-device-id",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClaimCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Replay, or this caller already claimed this vouch",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClaimResponse"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Claimed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClaimResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`validation_failed` or `invalid_contact`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`forbidden`: the host cannot claim on their own activity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`invalid_code`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`already_claimed`, `invite_paused`, `already_booked`, `booking_removed`, `bookings_paused`, `sold_out` or `idempotency_conflict`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "`invite_expired`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "`rate_limited`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/invites/{code}/pause": {
+      "post": {
+        "summary": "Pause a public link",
+        "description": "The link's creator or the activity's host. Vouch invites can't be paused.",
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 32
+            },
+            "required": true,
+            "name": "code",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Paused"
+          },
+          "400": {
+            "description": "`validation_failed`: not a public link",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "`unauthenticated`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`forbidden`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Resume a public link",
+        "description": "The link's creator or the activity's host. Vouch invites can't be paused.",
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 32
+            },
+            "required": true,
+            "name": "code",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Resumed"
+          },
+          "400": {
+            "description": "`validation_failed`: not a public link",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "`unauthenticated`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`forbidden`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/plans/{id}": {
+      "get": {
+        "summary": "A Plan: members, how each joined, and invite status (members only)",
+        "description": "Full names, because only people with a booking in the Plan can read it. Codes, links and notes appear only on invites the caller created. A removed member sees their removal and no invites.",
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The Plan",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "`unauthenticated`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`forbidden`: no booking in this Plan",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/me/plans": {
+      "get": {
+        "summary": "My plans: the caller's Plans, upcoming and past",
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Upcoming soonest first, past most recent first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyPlans"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "`unauthenticated`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/host/activities": {
+      "get": {
+        "summary": "The caller's hosted activities, upcoming and past",
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Hosted activities",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostActivityList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "`unauthenticated`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/host/activities/{id}/attendance": {
+      "get": {
+        "summary": "Live attendance (the host only)",
+        "description": "Names, refs, sources and the inviter; never contacts or invite notes (PRD D5).",
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Attendance",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Attendance"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "`unauthenticated`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`forbidden`: not the host",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/host/bookings/{id}/attendance": {
+      "post": {
+        "summary": "Mark an attendee attended or no-show (the host, after the start)",
+        "description": "A later mark supersedes an earlier one; both are kept.",
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttendanceMarkCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The attendee with the new mark",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Attendee"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`validation_failed`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "`unauthenticated`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`forbidden`: not the host",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`activity_not_started` or `booking_removed`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/communities": {
+      "get": {
+        "summary": "Every community",
+        "responses": {
+          "200": {
+            "description": "Communities",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommunityList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/communities/{slug}": {
+      "get": {
+        "summary": "A community and its upcoming activities, with coordinates for the map",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "required": true,
+            "name": "slug",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The community page",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommunityPage"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/{id}/profile": {
+      "get": {
+        "summary": "A public profile: name, \"On Velio since\", upcoming hosted activities",
+        "description": "Never bookings or Plans: where someone will be is a safety concern (PRD Q10).",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/activities/{id}/next-steps": {
+      "get": {
+        "summary": "The host's other dates and \"More in [community]\", for sold-out and expired screens",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Next steps",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NextSteps"
                 }
               }
             }
