@@ -1,0 +1,4 @@
+# Generated code: analysed by its generator, not by us.
+analyzer:
+  exclude:
+    - lib/**

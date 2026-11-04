@@ -1,0 +1,10 @@
+# Kept by hand: exact pins (CLAUDE.md) and a Dart SDK floor the generated serializers need.
+pubspec.yaml
+analysis_options.yaml
+README.md
+.gitignore
+# Generated test stubs and model docs add nothing; the app tests the client through its own tests.
+test/**
+doc/**
+.travis.yml
+git_push.sh
