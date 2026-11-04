@@ -41,6 +41,8 @@ function useOpenBeacon(code: string) {
   }, [code]);
 }
 
+type Members = PublicActivity['members'];
+
 export function InviteLive({
   view,
   initialNextSteps,
@@ -50,10 +52,15 @@ export function InviteLive({
 }) {
   const activity = view.activity;
   const online = useOnline();
+  // Who's going: a `spots` event carries only the count, so the members are refetched after it (S6 D3,
+  // as B1 does). A new server view replaces what was fetched.
+  const [fetched, setFetched] = useState<{ base: Members; members: Members } | null>(null);
+  const members = fetched?.base === activity.members ? fetched.members : activity.members;
   const { spots, status } = useLiveSpots(
     { [activity.id]: { spotsLeft: activity.spotsLeft, version: activity.version } },
     async () => {
       const fresh = await apiJson<PublicActivity>(`/activities/${activity.id}`);
+      setFetched({ base: activity.members, members: fresh.members });
       return { [activity.id]: { spotsLeft: fresh.spotsLeft, version: fresh.version } };
     },
     { announce: [activity.id] },
@@ -61,6 +68,25 @@ export function InviteLive({
   useOpenBeacon(view.code);
 
   const live = spots[activity.id]!;
+
+  // A random 0–2 s delay spreads the refetch when many people watch one activity; a newer version
+  // cancels the pending one and drops a late answer.
+  useEffect(() => {
+    if (!live.changed) return;
+    let stale = false;
+    const timer = setTimeout(() => {
+      apiJson<PublicActivity>(`/activities/${activity.id}`)
+        .then((fresh) => !stale && setFetched({ base: activity.members, members: fresh.members }))
+        .catch(() => undefined);
+    }, Math.random() * 2000);
+    return () => {
+      stale = true;
+      clearTimeout(timer);
+    };
+  }, [live.version, live.changed, activity.id, activity.members]);
+  const shown: InviteView =
+    members === activity.members ? view : { ...view, activity: { ...activity, members } };
+
   const screen = selectScreen(view, live.spotsLeft);
   const spotsState = !online || status === 'reconnecting' ? 'stale' : live.changed ? 'changed' : 'live';
 
@@ -87,10 +113,10 @@ export function InviteLive({
         <LivePill status={!online ? 'offline' : status === 'reconnecting' ? 'reconnecting' : 'live'} />
       </header>
       {soldOut ? (
-        <SoldOut view={view} spotsState={spotsState} nextSteps={nextSteps} />
+        <SoldOut view={shown} spotsState={spotsState} nextSteps={nextSteps} />
       ) : (
         <Open
-          view={view}
+          view={shown}
           screen={screen}
           online={online}
           spotsLeft={live.spotsLeft}

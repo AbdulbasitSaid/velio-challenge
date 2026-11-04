@@ -453,6 +453,13 @@ export function photoSrcSet(src: string): string | undefined {
 }
 
 /**
+ * Below 768 px this understates the hero's width on purpose, so phones (even at 3× density) pick the
+ * 640 px file: the invite page's 3G budget (S6 D4) wins over full sharpness. Wider screens size to the
+ * layout and take the 1280 px file.
+ */
+const HERO_SIZES = '(min-width: 768px) 60vw, 45vw';
+
+/**
  * A real activity photo, or the scene art when there is none. `priority` for the hero (S6 §4.8).
  * Cards take the 640 px variant; the hero takes the 1280 px one on wide or dense screens.
  */
@@ -474,7 +481,7 @@ export function Photo({
     <img
       src={src}
       srcSet={srcSet}
-      sizes={srcSet ? (priority ? '(min-width: 768px) 60vw, 100vw' : '320px') : undefined}
+      sizes={srcSet ? (priority ? HERO_SIZES : '320px') : undefined}
       alt={alt}
       loading={priority ? 'eager' : 'lazy'}
       fetchPriority={priority ? 'high' : undefined}
