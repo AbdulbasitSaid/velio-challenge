@@ -11,7 +11,8 @@ import { formatWhen, zoneLabel } from '@/lib/format';
 import { useOnline } from '@/lib/online';
 import { useLiveSpots } from '@/lib/realtime/react';
 
-function promptLine(spotsLeft: number): string {
+/** Copy deck `booked.prompt`. */
+export function promptLine(spotsLeft: number): string {
   const n = spotsLeft === 1 ? '1 spot' : `${spotsLeft} spots`;
   return `Only ${n} left. Invites don’t hold a spot, so tell friends now.`;
 }

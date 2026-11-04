@@ -135,7 +135,7 @@
 
 ## Part B: Executed checks
 
-In progress. Phase A (T1–T7), Phase B (T8–T10) and T11 recorded 2026-11-04; T12–T16 follow.
+In progress. Phase A (T1–T7), Phase B (T8–T10), T11 and T12 recorded 2026-11-04; T13–T16 follow.
 
 ### V-VER-1: versions (looked up 2026-11-04 with `npm view`, nodejs.org and `docker buildx imagetools inspect`)
 
@@ -202,6 +202,13 @@ In progress. Phase A (T1–T7), Phase B (T8–T10) and T11 recorded 2026-11-04; 
 | Regression | `test/api.test.ts` (JSON without a schema), `test/invite-live.test.tsx` (G5 reached live renders fetched next steps) | 2026-11-04 | Pass; both failed against the old client | — |
 | V-BK-1, V-BK-2, V-BK-4, V-BK-5 (manual, part) | Chrome, production build (`next build` + `next start -p 3100`) against local Compose and the seed: C1 at 1280 px (list and map side by side, cluster on the shared pin); B1 desktop with Live pill, details, avatar stack, "You're already going"; booked a seed activity → B2 with `VLO-` ref and 11 spots, address `/plans/<id>`; paused activity shows the banner and disabled "Bookings paused"; no console errors | 2026-11-04 | Pass. Found and fixed the blank community map. Phone-width screenshots and the two-browser race (AC-003) wait for T15/T16 (the browser window would not resize below desktop) | FR-018, FR-020, FR-022–FR-026 |
 | V-CI-1 (T11) | `bun run format:check && bun run lint && bun run typecheck && bun run web:test && next build` | 2026-11-04 | Pass (web 161) | NFR-007 |
+| V-INV-1 (unit) | `test/plan.test.tsx`: `vouch.message`; WhatsApp and SMS URLs carry only the message; B3 requires the name, sends the contact only in the POST body, shows "Send it to {Name}", code and send links without the contact; `invalid_contact` on the field; error mapping | 2026-11-04 | Pass | FR-027, SEC-002 |
+| V-INV-2 (unit) | Same file: B3b gets the caller's link and copies it ("Link copied"); auto-paused shows `share.paused` and Resume, which calls `DELETE /invites/:code/pause` and reloads; host-paused shows a disabled "Link paused" | 2026-11-04 | Pass | FR-028 |
+| V-PLAN-1 (unit) | Same file: members with full names, "(you)", "Via Tunde", public link; invite rows with status; subscribes `activity:` and `plan:`; a `plan` event refetches and moves an invite Created → Opened; only-me prompt with live count; no invite tools without `canInvite`; removed state with banner and next steps, no members or ref | 2026-11-04 | Pass | FR-029, AC-004 (unit) |
+| V-MY-1 (unit) | Same file: upcoming with ref, live spots and the removed chip; past on its tab; empty state; sign-out calls `DELETE /sessions/current` | 2026-11-04 | Pass | FR-030, FR-010 |
+| V-AUTH-1 (role, unit) | Same file: Host pages are Host; elsewhere the `velio_role` cookie decides; unknown values are Booker | 2026-11-04 | Pass | FR-011 |
+| V-PLAN-1, V-INV-1, V-INV-2, V-MY-1, V-PROF-1, V-AUTH-1 (manual) | Chrome, production build (`next build` + `next start -p 3100`) against local Compose and the seed, signed in as a test booker: booked a seed activity → B4 only-me state at 1280 px (ref card and location in the aside); B3 empty submit shows `vouch.nameError`; created a vouch → "Send it to Wanjiru", code chip, WhatsApp, SMS, Share and Copy link, and neither send URL contains the contact; B4 shows the invite "Created"; recorded an open from another device ID through the API → "Opened" without a reload; claimed it through the API as the friend → "Claimed", "Wanjiru Njoroge · Via Tunde", 2 people, spots 11 → 10, without a reload; B3b link, paused through the API → "You paused this link." and Resume, which restores Copy link; B6 card with ref and live spots, footer and Sign out; P1 for the host (nine upcoming cards, privacy line) and for a guest (`profile.nothingHosted`, no `VLO-` anywhere); `velio_role=host` puts host navigation on `/me/plans` | 2026-11-04 | Pass. Live updates here came from the 10 s poll (rule 3): the production build on :3100 has no socket locally, as in T11. The socket path is covered by the unit test and T16's deployed run. Phone widths wait for T15 | FR-011, FR-027–FR-031, SEC-001, SEC-002 |
+| V-CI-1 (T12) | `bun run format:check && bun run lint && bun run typecheck && bun run web:test && next build` | 2026-11-04 | Pass (web 185) | NFR-007 |
 
 ### Deploy fix (T7)
 
@@ -212,7 +219,7 @@ In progress. Phase A (T1–T7), Phase B (T8–T10) and T11 recorded 2026-11-04; 
 
 ### Not run yet
 
-- V-MAP-2…6 on the real screens (B1, B4, C1 in T11–T12; H2 in T13), V-MAP-5 with Google blocked in the browser, V-MAP-6 network panel, and the deployed key's referrer restriction.
+- V-MAP-2…6 on the real screens (B1, B4, C1 checked with the static fallback in T11–T12; the interactive map and H2 in T13), V-MAP-5 with Google blocked in the browser, V-MAP-6 network panel, and the deployed key's referrer restriction.
 - V-PH-2 (needs H2, T13) and the dev `/photos` rewrite in a browser (with T13).
 - Production photo uploads: need `bun run aws:deploy` (bucket CORS, instance role), after the push deploys the web container (the same order as V-DEP-1), then an upload through CloudFront. Until then the API starts normally and only uploads fail. Checked so far: `bash -n deploy.sh`, and `docker compose -f infra/docker-compose.prod.yml config` resolves `PHOTOS_BUCKET` and `S3_REGION` for the API.
 - V-DEP-1, V-DEP-2, V-DEP-3 (deployed), V-OBS-1 (collector): need the commit pushed to `master` (the owner's git) and then `bun run aws:deploy` for the CloudFront and security-group change, in that order (the web container must be running before CloudFront's default behavior points at it).

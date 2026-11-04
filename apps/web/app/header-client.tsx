@@ -1,9 +1,10 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { AppHeader, LivePill } from '@/components';
+import { AppHeader, LivePill, type Role } from '@/components';
 import { useOnline } from '@/lib/online';
 import { useRealtimeStatus } from '@/lib/realtime/react';
+import { roleFor, saveRole } from '@/lib/role';
 
 function LiveStatus() {
   const online = useOnline();
@@ -15,14 +16,16 @@ export function HeaderClient({
   current,
   user,
   live,
+  savedRole,
 }: {
   current?: string;
+  savedRole: Role;
   user: { name: string; seed: string } | null;
   live?: boolean;
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const role = pathname.startsWith('/host') ? 'host' : 'booker';
+  const role = roleFor(pathname, savedRole);
   return (
     <AppHeader
       role={role}
@@ -30,7 +33,11 @@ export function HeaderClient({
       user={user}
       status={live ? <LiveStatus /> : undefined}
       signInHref={`/signin?next=${encodeURIComponent(pathname)}`}
-      onRoleChange={(next) => router.push(next === 'host' ? '/host/activities' : '/')}
+      onRoleChange={(next) => {
+        saveRole(next);
+        router.push(next === 'host' ? '/host/activities' : '/');
+        router.refresh();
+      }}
     />
   );
 }
