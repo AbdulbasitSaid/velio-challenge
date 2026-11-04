@@ -240,6 +240,35 @@ In progress. Phase A (T1–T7), Phase B (T8–T10), T11 and T12 recorded 2026-11
 | V-SEC-1 | Local seed: HTML of C1, B1 and P1 signed out and as a signed-in non-member, searched for the seeded full names; `GET /api/activities/:id` | 2026-11-04 | Pass: no full name in any page; the API returns only `shortName` ("Tunde A.") | SEC-001 |
 | V-CI-1 (T15) | `bun run format:check && bun run lint && bun run typecheck && bun run web:test && bun run web:build` | 2026-11-04 | Pass (web 214) | NFR-007 |
 
+### Deployed checks (T16, commit `f43f4bf`)
+
+Run on 2026-11-04 against `https://depimls1pcvv4.cloudfront.net`, after CI and Deploy passed on `f43f4bf` (Deploy run `41894185587`). The owner signed in as host in Chrome; Claude drove the browser. The second users ("E2E Guest One", "E2E Guest Two", "E2E Friend", `@example.com` contacts) were created through the public API with `curl`. Every row created is titled or named "E2E" (list below).
+
+| Check | Command or procedure | Date | Result | Covers |
+| --- | --- | --- | --- | --- |
+| Deploy state | SSM on the instance: `docker ps`; `GetBucketCors` on the photos bucket; `DescribeStacks` | 2026-11-04 | `velio-web` and `velio-api` both `f43f4bf…`, healthy; photos bucket CORS is `POST` from the `cloudfront.net` origin only; `VelioApp` `UPDATE_COMPLETE` | FR-039, FR-041 |
+| V-DEP-3 (deployed) | SSM: `curl` the web origin `127.0.0.1:3000/communities/explore-kenya` without `X-Origin-Verify`, and `/healthz` | 2026-11-04 | Pass: `403` without the header, healthz `200` | SEC-002 |
+| V-DEP-4 | SSM: `docker stats --no-stream`, `free -m` | 2026-11-04 | Pass (idle, just before the E2E run): web 78.8 MiB of 512 MiB, API 74 MiB, collector 88 MiB, Postgres 86 MiB; 936 MB available of 1840 MB, no swap. The during-run snapshot wasn't taken (the AWS tool disconnected after the run) | NFR-008 |
+| V-E2E-1 | Chrome, desktop: H2 create "E2E Sunset walk": Places (New) search "Karura Forest" with the deployed key, picked a suggestion (pin on the live map), zone Africa/Nairobi, a generated 2400×1600 JPEG put into the photo input → browser-encoded WebP posted to S3 → Publish → published banner. H1 open; "E2E Guest One" booked through the API → row arrived live with the sweep and "Booked just now", spots 3 → 2 → Remove → dialog → confirm → struck through, "Removed", spots 2 → 3, toast. Marking: an activity ("E2E Marking check") created through the API to start 5 minutes later, both guests booked; H1 left open switched to "Who came?" at the start time without a reload; Attended / No-show / Attended / No-show clicks; after a reload, "Attended" and "No-show" kept, "2 of 2 marked", stats 1 and 1 | 2026-11-04 | Pass | FR-013, FR-015, FR-017, FR-033, FR-035–FR-038, AC-001, AC-008 |
+| V-PH-2 (production) | The published photo's `photoUrl` fetched through CloudFront; C1 card | 2026-11-04 | Pass: `/photos/…webp` `200 image/webp`, 8.6 kB; shown on C1, H2 preview and H3 | FR-013, FR-015 |
+| V-E2E-2 | Chrome, desktop: C1 Explore Kenya (list with the live map tiles, clusters, "3 left" marker) → "E2E Kayak trip" (hosted by Guest Two) B1: Live pill, signed static map, meeting point, directions → Book → B2 with `VLO-` ref and "3 spots left" → Vouch → B3 name, contact (`example.com`), note → "Send it to …", code `4VGFYR`; WhatsApp and SMS links don't contain the contact → B4 shows the invite "Created" → claimed through the API as "E2E Friend" → B4 updated within ~2 s, no reload: member "Via Abdulbasit", invite "Claimed", 2 people, "Last 2 spots". Sold out: "E2E Last spot" (1 spot) open on B1, Guest One booked it through the API → within 2 s "Sold out" badge, disabled button, dimmed photo, the host's other dates and "More in Explore Kenya" | 2026-11-04 | Pass, with defect D1 below. The sold-out state came through the live event, so B1's `sold_out` answer from the API (Book pressed after the spot went) is covered by the unit test only | FR-018, FR-020, FR-022–FR-029, SEC-002, AC-002, AC-004 |
+| V-RT (deployed) | Timing of the live changes above against the 10 s poll | 2026-11-04 | Pass: every change appeared in ≤ 3 s with the Live pill on, which the 10 s poll can't do, so the WebSocket path through CloudFront works | FR-009 |
+| V-DEP-2 | In the signed-in tab, `fetch('/plans/<id>')`; `curl` of the same URL with no cookie | 2026-11-04 | Pass: signed in, `200` with the ref and the members in the server HTML, `cache-control: private, no-cache, no-store…`, `x-cache: Miss`; signed out, `307` to `/signin?next=…`, no plan data | FR-039, SEC-001 |
+| V-SEC-3 (deployed, again) | `curl -I` on C1 | 2026-11-04 | Pass: CSP as in production (no `unsafe-eval`); no CSP errors in the console on C1 | SEC-004 |
+
+**Defects found in T16** (fixed 2026-11-04 on the owner's go-ahead, in the working tree; not yet deployed):
+
+- **D1.** B1's "Be the first to book" stays on an activity that sold out live: the avatar line comes from the server snapshot's members, and a `spots` event updates only the count. A reload shows the booker. Cosmetic; spots, badge and button are right. **Fixed:** B1 refetches the snapshot's members after a live spots change (random 0–2 s delay, a newer version cancels the pending fetch, a resync updates them too); a later server refresh replaces them.
+- **D2.** Cards (C1, H3, B6) load the 1280 px photo variant. `Photo` is given `photoUrl` only and never the 640 px variant, so a small card downloads the large file. Affects NFR-004's weight on phones, not correctness. **Fixed:** `Photo` adds `srcset` with the `-640` variant (the API's `smallVariantKey` rule) for uploaded photos, `sizes="320px"` on cards and `(min-width: 768px) 60vw, 100vw` on the hero. The live E2E photo's `-640.webp` answers `200 image/webp` (3.8 kB vs 8.6 kB) through CloudFront.
+
+| Check | Command or procedure | Date | Result | Covers |
+| --- | --- | --- | --- | --- |
+| D1, D2 unit | `test/booking.test.tsx` "a live spots change refetches who is going"; `test/components.test.tsx` "Photo (T16 D2)" | 2026-11-04 | Pass | FR-023, NFR-004 |
+| V-CI-1 (D1, D2) | `bun run format:check && bun run lint && bun run typecheck && bun run web:test && bun run web:build` | 2026-11-04 | Pass (web 217) | NFR-007 |
+| Deployed D1, D2 | After the owner's push | — | Not run yet | — |
+
+**Test data left on the deployed stack:** activities "E2E Sunset walk", "E2E Marking check" (hosted by the owner's account), "E2E Kayak trip" and "E2E Last spot" (hosted by E2E Guest Two); users "E2E Guest One", "E2E Guest Two", "E2E Friend"; their bookings, Plans and the vouch invite `4VGFYR`; one photo in the photos bucket.
+
 ### Deploy fix (T7)
 
 | Check | Command or procedure | Date | Result | Covers |
@@ -249,10 +278,14 @@ In progress. Phase A (T1–T7), Phase B (T8–T10), T11 and T12 recorded 2026-11
 
 ### Not run yet
 
-- **Waiting for the owner's commit and push of T14–T15** (the deployed stack runs `ba41147`, T13): V-E2E-1 and V-E2E-2 on the deployed stack, V-DEP-2 (B4 rendered server-side with the viewer's data through CloudFront), V-DEP-3 (instance origin without the header, via SSM), V-DEP-4 (`docker stats` and `free -m` during the E2E), and a production photo upload through CloudFront. The same flows passed locally in T11–T14.
-- V-A11Y-1: dropped from S5 by the owner.
+Updated 2026-11-04 after T16. The items that waited for the push and deploy (V-E2E-1, V-E2E-2, V-DEP-2, V-DEP-3, V-DEP-4, production photo upload, V-PH-2 from CloudFront, the maps on the real deployed screens) ran in *Deployed checks (T16)* above.
 
-- V-MAP-2…6 on the real screens (B1, B4, C1 checked with the static fallback in T11–T12; the interactive map and H2 in T13), V-MAP-5 with Google blocked in the browser, V-MAP-6 network panel, and the deployed key's referrer restriction.
-- V-PH-2's photo on C1 and B6 cards and from CloudFront `/photos/` in production (the dev rewrite and B1 checked in T13).
-- Production photo uploads: need `bun run aws:deploy` (bucket CORS, instance role), after the push deploys the web container (the same order as V-DEP-1), then an upload through CloudFront. Until then the API starts normally and only uploads fail. Checked so far: `bash -n deploy.sh`, and `docker compose -f infra/docker-compose.prod.yml config` resolves `PHOTOS_BUCKET` and `S3_REGION` for the API.
-- V-DEP-1, V-DEP-2, V-DEP-3 (deployed), V-OBS-1 (collector): need the commit pushed to `master` (the owner's git) and then `bun run aws:deploy` for the CloudFront and security-group change, in that order (the web container must be running before CloudFront's default behavior points at it).
+- V-A11Y-1: dropped from S5 by the owner; S9's audit covers it.
+- V-MAP-5 with Google blocked in the browser and V-MAP-6's network panel: not run on the deployed stack (the fallback is unit-tested and was checked locally in T10).
+- V-OBS-1 collector inspection of web spans in Grafana Cloud: not run in T16.
+- Phone widths on the deployed stack: not run (the browser window doesn't resize below desktop); V-RESP-1 covered them on the production build locally.
+- V-DEP-4 during load: only the idle snapshot; S10's load-runner work (Phase 5) measures under load.
+
+### Final validation status
+
+**Passed with exceptions** (2026-11-04): every functional flow passes locally and on the deployed stack. Exceptions: V-A11Y-1 dropped by the owner; the D1 and D2 fixes not yet checked on the deployed stack; the not-run items above.

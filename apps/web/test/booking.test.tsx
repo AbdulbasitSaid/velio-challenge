@@ -168,6 +168,37 @@ describe('B1 booking (V-BK-3, V-BK-4 unit)', () => {
     expect(screen.getAllByText('Last 2 spots').length).toBeGreaterThan(0);
   });
 
+  test('a live spots change refetches who is going (T16 D1)', async () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0);
+    const base = activity();
+    const fetch = setupFetch(() => json({}));
+    fetch.mockImplementation(async (url: string) =>
+      String(url).includes('next-steps')
+        ? json({ hostOtherDates: [], moreInCommunity: [] })
+        : json({
+            ...base,
+            spotsLeft: 0,
+            version: 4,
+            members: { count: 1, preview: [{ ...base.host, shortName: 'Zainab K.' }] },
+          }),
+    );
+    const rt = renderWith(
+      <ActivityLive
+        activity={{ ...base, members: { count: 0, preview: [] } }}
+        signedIn
+        initialNextSteps={null}
+      />,
+    );
+    expect(screen.getByText('Be the first to book')).toBeInTheDocument();
+    await act(async () => {
+      rt.seen[0]!.onSpots!({ type: 'spots', activityId: ID, spotsLeft: 0, version: 4, committedAt: 'x' });
+      await new Promise((r) => setTimeout(r, 10));
+    });
+    expect(fetch.mock.calls.some(([url]) => String(url).endsWith(`/activities/${ID}`))).toBe(true);
+    expect(screen.queryByText('Be the first to book')).toBeNull();
+    expect(screen.getByText('Zainab K. is going')).toBeInTheDocument();
+  });
+
   test.each([
     [
       'already booked',

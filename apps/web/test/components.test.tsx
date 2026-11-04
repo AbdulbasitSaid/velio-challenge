@@ -11,11 +11,31 @@ import {
   LocationBlock,
   MapView,
   MemberRow,
+  Photo,
+  photoSrcSet,
   PlanCard,
   Segmented,
   SpotsBadge,
   TextField,
 } from '@/components';
+
+describe('Photo (T16 D2)', () => {
+  const src = '/photos/0190a6f2-1f2b-7c3d-8e4f-5a6b7c8d9e01/aeb0c7c7-aa67-417b-88a9-aaa53a8e33bd.webp';
+  test('uploaded photos offer the 640 px variant; cards size for it', () => {
+    const small = src.replace('.webp', '-640.webp');
+    expect(photoSrcSet(src)).toBe(`${small} 640w, ${src} 1280w`);
+    const { container } = render(<Photo src={src} alt="" />);
+    const img = container.querySelector('img')!;
+    expect(img.getAttribute('srcset')).toBe(`${small} 640w, ${src} 1280w`);
+    expect(img.getAttribute('sizes')).toBe('320px');
+  });
+  test('the hero sizes to the layout; other URLs get no srcset', () => {
+    const { container } = render(<Photo src={src} alt="" priority />);
+    expect(container.querySelector('img')!.getAttribute('sizes')).toBe('(min-width: 768px) 60vw, 100vw');
+    expect(photoSrcSet('blob:http://x/1')).toBeUndefined();
+    expect(photoSrcSet('/photos/a/b.gif')).toBeUndefined();
+  });
+});
 
 describe('SpotsBadge', () => {
   test.each([

@@ -443,7 +443,19 @@ export function PhotoArt({ scene = 'lake', alt }: { scene?: Scene; alt?: string 
   );
 }
 
-/** A real activity photo, or the scene art when there is none. `priority` for the hero (S6 §4.8). */
+/**
+ * The `srcset` for an uploaded photo: H2 posts a 1280 px file and a 640 px one beside it, named
+ * `<key>-640.<ext>` (the API's `smallVariantKey`). Other URLs (blob previews) get none.
+ */
+export function photoSrcSet(src: string): string | undefined {
+  if (!/^\/photos\/.+\.(webp|jpe?g)$/.test(src)) return undefined;
+  return `${src.replace(/\.([a-z]+)$/, '-640.$1')} 640w, ${src} 1280w`;
+}
+
+/**
+ * A real activity photo, or the scene art when there is none. `priority` for the hero (S6 §4.8).
+ * Cards take the 640 px variant; the hero takes the 1280 px one on wide or dense screens.
+ */
 export function Photo({
   src,
   alt,
@@ -456,10 +468,13 @@ export function Photo({
   priority?: boolean;
 }) {
   if (!src) return <PhotoArt scene={scene} alt={alt} />;
+  const srcSet = photoSrcSet(src);
   return (
     // eslint-disable-next-line @next/next/no-img-element -- photos come from our CDN at fixed sizes
     <img
       src={src}
+      srcSet={srcSet}
+      sizes={srcSet ? (priority ? '(min-width: 768px) 60vw, 100vw' : '320px') : undefined}
       alt={alt}
       loading={priority ? 'eager' : 'lazy'}
       fetchPriority={priority ? 'high' : undefined}

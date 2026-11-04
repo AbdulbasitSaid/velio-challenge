@@ -2,7 +2,7 @@
 
 - **Spec ID:** 2026-11-04_12-50_s5-web-host-booker
 - **Created:** 2026-11-04 12:50 (local)
-- **Status:** Approved for implementation
+- **Status:** Implemented
 - **Phase:** 4, Clients (`ROADMAP.md`), alongside S6 and S7
 - **Parent:** `spec/2026-11-03_07-42_group-bookings-mvp-plan/` (approved), delivery step S5
 - **Builds on:** S1 (contracts, sessions), S2 (activities, bookings), S3 (snapshot, realtime protocol), S4 (invites and read APIs), S10 (AWS app stack)
@@ -352,3 +352,5 @@ Large: about 15 screens with many states, 29 components, a realtime client, an u
   - H3 shows the table from 1024 px and the cards below it (two columns from 768 px), not the table from 768 px as §4.8 had it: at 768 px the 760 px-wide table scrolled sideways inside its card and hid Attendance and Edit.
   - Bug fixed: B1 showed the spots badge twice on phone. `hidden` on a design component loses to its own `vl-` display rule (that CSS sits outside Tailwind's layers), so the desktop badge is wrapped in a span that carries the breakpoint. No other design component takes a display utility.
 - 2026-11-04: owner approved all new copy from T9–T14 as written; recorded in the UI design spec's copy deck (§5.5, *S5 web build*).
+- 2026-11-04 (T16): deployed run on `f43f4bf` passed (VALIDATION Part B, *Deployed checks (T16)*). Two defects found and left open for the owner: D1 (B1's "Be the first to book" stays after a live sell-out) and D2 (cards load the 1280 px photo, not the 640 px variant). Status set to Implemented; validation Passed with exceptions.
+- 2026-11-04: owner approved fixing D1 and D2 within S5. Fixed in `components/activity/activity-live.tsx` (members refetched after a live spots change) and `components/primitives.tsx` (`Photo` `srcset`/`sizes` with the 640 px variant), with unit tests. No API or contract change.

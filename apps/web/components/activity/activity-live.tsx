@@ -19,6 +19,7 @@ import { formatMoney, formatTime, zoneLabel } from '@/lib/format';
 import { useOnline } from '@/lib/online';
 import { useLiveSpots } from '@/lib/realtime/react';
 
+type Members = PublicActivity['members'];
 type Attempt = 'idle' | 'booking' | 'sold-out' | 'error' | 'started' | 'paused';
 
 export function ActivityLive({
@@ -32,15 +33,37 @@ export function ActivityLive({
 }) {
   const router = useRouter();
   const online = useOnline();
+  // The avatar stack: a `spots` event carries only the count, so who's going is refetched after it.
+  // A server refresh (new `activity` prop) replaces what was fetched.
+  const [fetched, setFetched] = useState<{ base: Members; members: Members } | null>(null);
+  const members = fetched?.base === activity.members ? fetched.members : activity.members;
+  const setMembers = (next: Members) => setFetched({ base: activity.members, members: next });
   const { spots, status } = useLiveSpots(
     { [activity.id]: { spotsLeft: activity.spotsLeft, version: activity.version } },
     async () => {
       const fresh = await apiJson<PublicActivity>(`/activities/${activity.id}`);
+      setMembers(fresh.members);
       return { [activity.id]: { spotsLeft: fresh.spotsLeft, version: fresh.version } };
     },
     { announce: [activity.id] },
   );
   const live = spots[activity.id]!;
+
+  // A random 0–2 s delay spreads the refetch when many people watch one activity; a newer version
+  // cancels the pending one and drops a late answer.
+  useEffect(() => {
+    if (!live.changed) return;
+    let stale = false;
+    const timer = setTimeout(() => {
+      apiJson<PublicActivity>(`/activities/${activity.id}`)
+        .then((fresh) => !stale && setFetched({ base: activity.members, members: fresh.members }))
+        .catch(() => undefined);
+    }, Math.random() * 2000);
+    return () => {
+      stale = true;
+      clearTimeout(timer);
+    };
+  }, [live.version, live.changed, activity.id, activity.members]);
   const spotsState: SpotsState =
     !online || status === 'reconnecting' ? 'stale' : live.changed ? 'changed' : 'live';
 
@@ -204,7 +227,7 @@ export function ActivityLive({
   }
 
   const dimmed = soldOut || started;
-  const people = activity.members.preview.map((p) => ({ name: p.shortName, seed: p.avatarSeed }));
+  const people = members.preview.map((p) => ({ name: p.shortName, seed: p.avatarSeed }));
   const loc = activity.location;
 
   return (
@@ -246,7 +269,7 @@ export function ActivityLive({
         <DetailRows
           rows={[...activityRows(activity), { icon: 'people', value: `${activity.capacity} spots in total` }]}
         />
-        <AvatarStack people={people} total={activity.members.count} />
+        <AvatarStack people={people} total={members.count} />
         <section className="flex flex-col gap-3" aria-label="Booking">
           {action}
           <p className="m-0 text-center text-caption text-muted">{priceNote}</p>
