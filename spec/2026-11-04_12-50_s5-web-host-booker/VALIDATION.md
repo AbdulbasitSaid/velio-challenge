@@ -256,7 +256,7 @@ Run on 2026-11-04 against `https://depimls1pcvv4.cloudfront.net`, after CI and D
 | V-DEP-2 | In the signed-in tab, `fetch('/plans/<id>')`; `curl` of the same URL with no cookie | 2026-11-04 | Pass: signed in, `200` with the ref and the members in the server HTML, `cache-control: private, no-cache, no-store…`, `x-cache: Miss`; signed out, `307` to `/signin?next=…`, no plan data | FR-039, SEC-001 |
 | V-SEC-3 (deployed, again) | `curl -I` on C1 | 2026-11-04 | Pass: CSP as in production (no `unsafe-eval`); no CSP errors in the console on C1 | SEC-004 |
 
-**Defects found in T16** (fixed 2026-11-04 on the owner's go-ahead, in the working tree; not yet deployed):
+**Defects found in T16** (fixed 2026-11-04 on the owner's go-ahead; deployed in `90c8ca2` and checked):
 
 - **D1.** B1's "Be the first to book" stays on an activity that sold out live: the avatar line comes from the server snapshot's members, and a `spots` event updates only the count. A reload shows the booker. Cosmetic; spots, badge and button are right. **Fixed:** B1 refetches the snapshot's members after a live spots change (random 0–2 s delay, a newer version cancels the pending fetch, a resync updates them too); a later server refresh replaces them.
 - **D2.** Cards (C1, H3, B6) load the 1280 px photo variant. `Photo` is given `photoUrl` only and never the 640 px variant, so a small card downloads the large file. Affects NFR-004's weight on phones, not correctness. **Fixed:** `Photo` adds `srcset` with the `-640` variant (the API's `smallVariantKey` rule) for uploaded photos, `sizes="320px"` on cards and `(min-width: 768px) 60vw, 100vw` on the hero. The live E2E photo's `-640.webp` answers `200 image/webp` (3.8 kB vs 8.6 kB) through CloudFront.
@@ -265,9 +265,9 @@ Run on 2026-11-04 against `https://depimls1pcvv4.cloudfront.net`, after CI and D
 | --- | --- | --- | --- | --- |
 | D1, D2 unit | `test/booking.test.tsx` "a live spots change refetches who is going"; `test/components.test.tsx` "Photo (T16 D2)" | 2026-11-04 | Pass | FR-023, NFR-004 |
 | V-CI-1 (D1, D2) | `bun run format:check && bun run lint && bun run typecheck && bun run web:test && bun run web:build` | 2026-11-04 | Pass (web 217) | NFR-007 |
-| Deployed D1, D2 | After the owner's push | — | Not run yet | — |
+| Deployed D1, D2 | Commit `90c8ca2` (CI and Deploy `41900983783` green). D1: "E2E Stack check" (1 spot, hosted by Guest Two) open in Chrome showing "Be the first to book"; Guest One booked it through the API. D2: `curl` of C1's HTML, and the image each card actually loaded in Chrome | 2026-11-04 | Pass. D1: within 4 s, no reload (one navigation entry), "Sold out" and "E2E O. is going", no "Be the first to book". D2: C1's HTML has `srcSet` with the `-640` variant and `sizes="320px"`, and both cards loaded `…-640.webp` | FR-023, NFR-004 |
 
-**Test data left on the deployed stack:** activities "E2E Sunset walk", "E2E Marking check" (hosted by the owner's account), "E2E Kayak trip" and "E2E Last spot" (hosted by E2E Guest Two); users "E2E Guest One", "E2E Guest Two", "E2E Friend"; their bookings, Plans and the vouch invite `4VGFYR`; one photo in the photos bucket.
+**Test data left on the deployed stack:** activities "E2E Sunset walk", "E2E Marking check" (hosted by the owner's account), "E2E Kayak trip", "E2E Last spot" and "E2E Stack check" (hosted by E2E Guest Two); users "E2E Guest One", "E2E Guest Two", "E2E Friend"; their bookings, Plans and the vouch invite `4VGFYR`; one photo in the photos bucket.
 
 ### Deploy fix (T7)
 
@@ -288,4 +288,4 @@ Updated 2026-11-04 after T16. The items that waited for the push and deploy (V-E
 
 ### Final validation status
 
-**Passed with exceptions** (2026-11-04): every functional flow passes locally and on the deployed stack. Exceptions: V-A11Y-1 dropped by the owner; the D1 and D2 fixes not yet checked on the deployed stack; the not-run items above.
+**Passed with exceptions** (2026-11-04): every functional flow passes locally and on the deployed stack. Exceptions: V-A11Y-1 dropped by the owner; the not-run items above. D1 and D2 are fixed and checked on the deployed stack.
