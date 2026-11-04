@@ -31,7 +31,7 @@ describe('Photo (T16 D2)', () => {
   });
   test('the hero sizes to the layout; other URLs get no srcset', () => {
     const { container } = render(<Photo src={src} alt="" priority />);
-    expect(container.querySelector('img')!.getAttribute('sizes')).toBe('(min-width: 768px) 60vw, 100vw');
+    expect(container.querySelector('img')!.getAttribute('sizes')).toBe('(min-width: 768px) 60vw, 45vw');
     expect(photoSrcSet('blob:http://x/1')).toBeUndefined();
     expect(photoSrcSet('/photos/a/b.gif')).toBeUndefined();
   });

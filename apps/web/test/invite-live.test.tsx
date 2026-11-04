@@ -111,3 +111,45 @@ test('G5 reached live renders the next steps it fetches', async () => {
   expect(screen.getByText('More in Explore Kenya')).toBeInTheDocument();
   expect(screen.getByText('Karura cycle')).toBeInTheDocument();
 });
+
+test('a live spots change refetches who is going (S6 D3)', async () => {
+  vi.spyOn(Math, 'random').mockReturnValue(0);
+  const base = inviteView();
+  const a = base.activity;
+  const fetch = vi.fn(async (url: string) =>
+    String(url).endsWith(`/activities/${a.id}`)
+      ? new Response(
+          JSON.stringify({
+            ...a,
+            spotsLeft: a.spotsLeft - 1,
+            version: a.version + 1,
+            members: { count: 1, preview: [{ ...a.host, shortName: 'Zainab K.' }] },
+          }),
+          { status: 200 },
+        )
+      : new Response(null, { status: 204 }),
+  );
+  vi.stubGlobal('fetch', fetch);
+  const rt = new StubClient();
+  render(
+    <RealtimeProvider client={rt}>
+      <InviteLive
+        view={{ ...base, activity: { ...a, members: { count: 0, preview: [] } } }}
+        initialNextSteps={null}
+      />
+    </RealtimeProvider>,
+  );
+  expect(screen.getByText('Be the first to book')).toBeInTheDocument();
+  act(() =>
+    rt.seen[0]!.onSpots!({
+      type: 'spots',
+      activityId: a.id,
+      spotsLeft: a.spotsLeft - 1,
+      version: a.version + 1,
+      committedAt: 'x',
+    }),
+  );
+  await act(async () => void (await vi.advanceTimersByTimeAsync(10)));
+  expect(screen.queryByText('Be the first to book')).toBeNull();
+  expect(screen.getByText('Zainab K. is going')).toBeInTheDocument();
+});

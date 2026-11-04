@@ -17,20 +17,38 @@ function toBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promi
   return new Promise((resolve) => canvas.toBlob(resolve, type, quality));
 }
 
-/** WebP where the browser can encode it; JPEG otherwise (Safari's canvas has no WebP encoder). */
+/** Every screen shows photos at 16:10 or wider, cover-cropped from the centre (S6 D4). */
+const ASPECT = 16 / 10;
+
+/** The centre 16:10 part of a w × h image. Exported for tests. */
+export function cropTo16x10(w: number, h: number): { sx: number; sy: number; sw: number; sh: number } {
+  if (w / h > ASPECT) {
+    const sw = Math.round(h * ASPECT);
+    return { sx: Math.round((w - sw) / 2), sy: 0, sw, sh: h };
+  }
+  const sh = Math.round(w / ASPECT);
+  return { sx: 0, sy: Math.round((h - sh) / 2), sw: w, sh };
+}
+
+/**
+ * Cropped to 16:10, then WebP where the browser can encode it; JPEG otherwise (Safari's canvas has no
+ * WebP encoder). Quality 0.7 keeps a real 640 px photo near 45 kB, inside the invite hero budget
+ * (S6 NFR, D4).
+ */
 async function encode(bitmap: ImageBitmap, width: number, type?: string): Promise<Blob> {
-  const scale = Math.min(1, width / bitmap.width);
+  const crop = cropTo16x10(bitmap.width, bitmap.height);
+  const scale = Math.min(1, width / crop.sw);
   const canvas = document.createElement('canvas');
-  canvas.width = Math.round(bitmap.width * scale);
-  canvas.height = Math.round(bitmap.height * scale);
+  canvas.width = Math.round(crop.sw * scale);
+  canvas.height = Math.round(crop.sh * scale);
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new PhotoError('unreadable');
-  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  ctx.drawImage(bitmap, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, canvas.width, canvas.height);
   if (type !== 'image/jpeg') {
-    const webp = await toBlob(canvas, 'image/webp', 0.8);
+    const webp = await toBlob(canvas, 'image/webp', 0.7);
     if (webp?.type === 'image/webp') return webp;
   }
-  const jpeg = await toBlob(canvas, 'image/jpeg', 0.82);
+  const jpeg = await toBlob(canvas, 'image/jpeg', 0.72);
   if (!jpeg) throw new PhotoError('unreadable');
   return jpeg;
 }
