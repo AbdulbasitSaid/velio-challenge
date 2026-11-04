@@ -106,9 +106,12 @@ export class AppStack extends Stack {
       natGateways: 0,
       subnetConfiguration: [{ name: 'public', subnetType: ec2.SubnetType.PUBLIC, cidrMask: 24 }],
     });
+    // The CloudFront origin-facing prefix list counts as ~55 rules per use, so two rules need the region's
+    // "rules per security group" quota above the default 60 (raised to 120, README "AWS quotas").
+    // A group's description is immutable: changing it replaces the group and restarts the instance.
     const securityGroup = new ec2.SecurityGroup(this, 'AppSg', {
       vpc,
-      description: 'Velio app: API and web ports from CloudFront only',
+      description: 'Velio app: API port from CloudFront only',
       allowAllOutbound: true,
     });
     for (const port of [API_PORT, WEB_PORT]) {

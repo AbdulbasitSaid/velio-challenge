@@ -26,6 +26,8 @@ describe('instance and network (SEC-001)', () => {
     const groups = Object.values(template.findResources('AWS::EC2::SecurityGroup'));
     expect(groups).toHaveLength(1);
     expect(groups[0]!.Properties.SecurityGroupIngress).toBeUndefined();
+    // Immutable: a new description would replace the group and restart the instance.
+    expect(groups[0]!.Properties.GroupDescription).toBe('Velio app: API port from CloudFront only');
     const ingress = Object.values(template.findResources('AWS::EC2::SecurityGroupIngress'));
     const rule = (port: number) => ({
       Description: 'CloudFront origin-facing',

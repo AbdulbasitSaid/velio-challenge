@@ -182,6 +182,13 @@ In progress. Phase A (T1–T7) and T8 recorded 2026-11-04; T9–T16 follow.
 | V-CDK (T8) | `bun test infra/aws` (15) | 2026-11-04 | Pass: photos bucket CORS is POST from the app origin only; instance role has `PutObject`/`GetObject*` on `photos/*` and no delete | FR-041 |
 | V-CI-1 (T8) | `bun run format:check && bun run lint && bun run typecheck && bun run contracts:openapi && bun run web:test && bun run web:build`; `bun test`; the CI MinIO step (`compose run --rm minio-photos-public`) | 2026-11-04 | Pass (web 117). `bun test`: 272 pass, 3 fail, the known macOS `somaxconn` 200-parallel races; the same tests fail on the tree without T8 | NFR-007 |
 
+### Deploy fix (T7)
+
+| Check | Command or procedure | Date | Result | Covers |
+| --- | --- | --- | --- | --- |
+| V-DEP-0 | `bun test infra/aws` (15); `bun run aws:diff -c alertEmail=…` against the live stack (change set) | 2026-11-04 | Pass. The diff adds only the 3000 rule, the Maps secret, photos CORS, the instance role policy and the CloudFront changes; no security group replacement, and the instance isn't touched | SEC-002 |
+| Quota | Service Quotas request L-0EA8095F = 120, eu-west-2 (request `1bb59c48996b4b419a7c180a3ef0c7e1qtO3axB2`) | 2026-11-04 | Applied: `GetServiceQuota` returns 120 (the request record still showed `PENDING`) | — |
+
 ### Not run yet
 
 - V-PH-2 (needs H2, T13) and the dev `/photos` rewrite in a browser (with T13).

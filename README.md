@@ -134,6 +134,15 @@ Then, once:
 
 `velio:createGithubOidcProvider` in `infra/aws/cdk.json` is `false` because this account already has GitHub's OIDC provider. Set it to `true` in an account without one.
 
+### AWS quotas
+
+The security group admits CloudFront on two ports through the `com.amazonaws.global.cloudfront.origin-facing` prefix list, which counts as about 55 rules each time it is used. The default of 60 rules per security group fits one, so eu-west-2 needs the quota raised to 120 before the stack has both (once per account):
+
+```sh
+aws service-quotas request-service-quota-increase --region eu-west-2 \
+  --service-code vpc --quota-code L-0EA8095F --desired-value 120
+```
+
 ### Deploys and rollback
 
 Every push to `master` that passes CI deploys: the images are built for arm64, the bundle (Compose file, collector configs, `deploy.sh`, `backup.sh`) is uploaded to the deploy bucket, and `deploy.sh <sha> <photos bucket>` runs on the instance through SSM (the bucket is the stack's `PhotosBucket` output). It writes `/opt/velio/.env` (root only) from Secrets Manager, migrates, then restarts the API. If the new API never becomes healthy, it starts the previous release again and the workflow fails. The workflow ends by checking `/api/healthz` and `/api/readyz` through CloudFront.
