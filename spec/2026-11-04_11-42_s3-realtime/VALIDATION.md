@@ -91,11 +91,12 @@ All checks run on 2026-11-04 on macOS (Bun 1.4.4, Compose `postgres:18.6`), unle
 | V-K6-1 | `bun run load:viewers` against `bun apps/api/src/index.ts` (development database) | **Pass** (run `20261104T111321`): 250 / 250 sockets saw sold out; spots latency p(95) 47 ms, max 69 ms; 0 out-of-order events; 14 booked, 11 sold out; checks 100%; post-run SQL check: 0 oversold. An earlier run (`20261104T111230`) also passed, with p(95) 44 ms. | NFR-002, AC-005 |
 | V-CI-1 | `bun run format:check`, `bun run lint`, `bun run typecheck`, `bun test` | **Pass with one environment exception.** Format, lint and typecheck pass. `bun test`: 195 pass, 2 fail. The 2 failures are S2's 200-parallel-booker concurrency test, refused connections (`ECONNREFUSED`): macOS has `kern.ipc.somaxconn = 128`. The committed code (an export of `HEAD`) fails the same way on this machine, so it isn't caused by S3. The same tests pass on Linux: `docker run … oven/bun:1.4.4 bun test apps/api/test/concurrency apps/api/test/realtime` → 21 pass, 0 fail. | — |
 | Load regression | `bun run load:smoke` (S2), after the seed script change | **Pass** on rerun. The first run lost 5 requests per scenario: refused connections throw before `check()`, so they are missing from the counts rather than failed checks (S2's script). The rerun matched exactly (1/24, 5/20, 14/11; 0 oversold). | S2 NFR-006 |
+| V-CI-1 (GitHub) | GitHub Actions CI on push of `b5dea1b` (run 41823140398), 2026-11-04 | **Pass** (1m14s): format, lint, types, migrations, drift checks and the full test suite on Linux. | — |
+| Manual (production) | After the user's deploy of `b5dea1b` (Deploy run 41823309743, success): `GET https://depimls1pcvv4.cloudfront.net/api/readyz`; a Bun WebSocket client to `wss://…/api/ws?platform=web` subscribing to an unknown activity | **Pass.** Readiness `ok`, so the listener is listening in production. The upgrade passed CloudFront and the origin check, and the gateway answered `{type:"error",code:"not_found"}` for the topic. Booking through production to see a live `spots` event wasn't done, to keep test data out of production. | FR-005, FR-007, FR-017, SEC-003 |
 
 **Checks not run:**
 
-- Manual verification through CloudFront and Grafana Cloud: needs a deploy, which is the user's.
-- CI on GitHub: the changes aren't pushed yet.
+- Grafana Cloud check of `realtime_commit_to_ack_seconds`: not run; no client renders and acknowledges in production until S5–S7.
 
 **Deviations from the plan** (also in PLANNING's change log):
 
@@ -109,4 +110,4 @@ All checks run on 2026-11-04 on macOS (Bun 1.4.4, Compose `postgres:18.6`), unle
 - Local and smoke latencies are far below production (no CloudFront, no mobile network); the 5,000-viewer run is S9.
 - S2's booking histograms still use the SDK's default buckets (0, 5, 10, … seconds), which can't show sub-second latency. Recorded for S8, which builds the dashboards.
 
-**Final validation status: Passed with exceptions** (the macOS connection-backlog failures in S2's concurrency test; GitHub CI pending the push).
+**Final validation status: Passed with exceptions** (the macOS connection-backlog failures in S2's concurrency test, local only; CI on GitHub passed).

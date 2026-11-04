@@ -136,11 +136,11 @@ All checks run on 2026-11-04 on macOS (Bun 1.4.4, Compose `postgres:18.6`), and 
 | V-PLAN-1…3 | `bun test apps/api/test/plans` (real server with S3 realtime) | **Pass,** 3 tests. Owner sees members with full names, sources and "via Tunde", own ref, own invites' code and note, no code, link or note on another member's invite; the guest sees only their own ref; a removed member sees `removed`, no invites, `canInvite: false`; outsider `403`, unknown `404`. Status created → opened → claimed for a vouch; opened and claimed with counts for a public link; expired after start (a claimed vouch stays claimed). A `plan` hint on the Plan topic for invite creation, open, claim and pause. | FR-004, FR-006, FR-019, FR-020 |
 | V-READ-1…8 | `bun test apps/api/test/read` | **Pass,** 8 tests. My plans split and ordered, removed booking included, `401` signed out. Host activity list with `bookedCount`, empty for a non-host. Attendance: names, sources, inviter, refs, removed attendee listed; no note, contact or hash text; non-host `403`, unknown `404`. AC-009: mark before start `409 activity_not_started`; `no_show` then `attended`, both rows kept, list shows `attended`; removed booking `409 booking_removed`; non-host `403`; bad mark `400`. Communities: `upcomingCount`; page with upcoming only, soonest first, sold out included, coordinates, short names only; unknown slug `404`. AC-010: profile with "Profile P.", `YYYY-MM`, upcoming hosted only, none of the person's own bookings. Next-steps: 3 host dates with spots soonest first (sold-out ones skipped), 3 more in the community, current excluded. Query counts equal at 1 and 20 rows for My plans, the host list and profiles; the community page at most 4. | FR-022–FR-029, NFR-005, AC-009, AC-010, SEC-007 |
 | V-CI-1 | `bun run format:check`, `bun run lint`, `bun run typecheck`, `bun test` (macOS and Linux) | **Pass with one environment exception.** Format, lint and typecheck pass. Linux: **244 pass, 0 fail** across 20 files. macOS: 242 pass, 2 fail: two rounds of the new 200-guest claim race, refused connections (`ECONNREFUSED`) from macOS's `kern.ipc.somaxconn = 128`, as recorded for S2's race in S3's Part B. | — |
+| V-CI-1 (GitHub) | GitHub Actions CI on push of `b5dea1b` (run 41823140398), 2026-11-04 | **Pass** (1m14s): format, lint, types, migrations, drift checks and the full test suite on Linux. | — |
 
 **Checks not run:**
 
 - Manual verification through CloudFront: needs a deploy (the user's). Production now sets `PUBLIC_BASE_URL` in `infra/docker-compose.prod.yml`, defaulting to the distribution's hostname.
-- CI on GitHub: the changes aren't pushed yet.
 - SEC-006 has no S4 check; it is the parent's SEC-008 (unverified identity, prototype only).
 
 **Deviations from the plan** (also in PLANNING's change log):
@@ -156,4 +156,4 @@ All checks run on 2026-11-04 on macOS (Bun 1.4.4, Compose `postgres:18.6`), and 
 - Old `rate_limits` windows are not cleaned up yet (S8).
 - No holdout gating yet (S8, decided in PLANNING §12, Q5).
 
-**Final validation status: Passed with exceptions** (the macOS connection-backlog failures in the 200-parallel race tests; GitHub CI pending the push).
+**Final validation status: Passed with exceptions** (the macOS connection-backlog failures in the 200-parallel race tests, local only; CI on GitHub passed).
