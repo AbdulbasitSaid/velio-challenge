@@ -2,6 +2,7 @@ import type { ActivityCard, PublicActivity, PublicPerson } from '@velio/contract
 import { sql } from 'kysely';
 import type { Db } from '../../db/client';
 import { toPublicPerson } from '../identity/people';
+import type { StaticMapUrl } from '../maps/static';
 
 /** Avatar-stack size: an engineering choice, not a product rule (S3 PLANNING §12). */
 export const MEMBER_PREVIEW = 8;
@@ -24,6 +25,7 @@ export async function buildSnapshot(
   db: Db,
   activityId: string,
   viewerId: string | null,
+  mapUrl: StaticMapUrl = () => null,
 ): Promise<PublicActivity | undefined> {
   const row = await db
     .selectFrom('activities as a')
@@ -120,7 +122,7 @@ export async function buildSnapshot(
       lat,
       lng,
       meetingPoint: row.meeting_point,
-      staticMapUrl: null,
+      staticMapUrl: mapUrl(lat, lng),
       directionsUrl: directionsUrl(lat, lng, row.place_id),
     },
     viewer,

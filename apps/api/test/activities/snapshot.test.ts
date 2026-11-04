@@ -45,6 +45,23 @@ async function snapshot(id: string, caller?: Caller) {
 }
 
 describe('GET /api/activities/:id', () => {
+  // S6 V-MAP-1: with Static Maps configured, the snapshot carries a signed image URL.
+  test('staticMapUrl is signed when the key and secret are configured', async () => {
+    const signed = inProcess(
+      testApp(t.db, undefined, {
+        GOOGLE_MAPS_SERVER_KEY: 'test-key',
+        GOOGLE_MAPS_SIGNING_SECRET: 'vNIXE0xscrmjlyV-12Nj_BvUPaw=',
+      }),
+    );
+    const a = await createActivity(request, host, { capacity: 3 });
+    const body = PublicActivity.parse(await (await signed(`/api/activities/${a.id}`)).json());
+    const url = new URL(body.location.staticMapUrl!);
+    expect(url.pathname).toBe('/maps/api/staticmap');
+    expect(url.searchParams.get('center')).toBe('-0.7667,36.4333');
+    expect(url.searchParams.get('key')).toBe('test-key');
+    expect(url.searchParams.get('signature')).toMatch(/^[A-Za-z0-9_-]{27}=$/);
+  });
+
   // V-SNAP-1 (FR-001, FR-004, SEC-001)
   test('anonymous: public shape, short names, no viewer, no-store', async () => {
     const a = await createActivity(request, host, { capacity: 3 });

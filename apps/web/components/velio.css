@@ -1,0 +1,1095 @@
+/* Velio design-system components, ported from the approved prototype (spec/2026-11-03_10-34_complete-ui-design/prototype/design-system/components/bundle.css). Every value comes from the token variables; class prefix vl-. */
+
+[class^='vl-'],
+[class*=' vl-'],
+[class^='vl-'] *,
+[class*=' vl-'] * {
+  box-sizing: border-box;
+}
+.vl-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-4);
+}
+.vl-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+.vl-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.vl-icon {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+:where(
+  .vl-btn,
+  .vl-seg button,
+  .vl-field input,
+  .vl-link,
+  .vl-mark button,
+  .vl-pickres button,
+  .vl-map-marker
+):focus-visible {
+  outline: 2px solid var(--forest);
+  outline-offset: 2px;
+}
+
+/* Button */
+.vl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--button-height);
+  padding: 0 var(--space-6);
+  border-radius: var(--radius-pill);
+  border: 0;
+  font: 700 17px/20px var(--font-body);
+  cursor: pointer;
+  text-decoration: none;
+}
+.vl-btn-primary {
+  background: var(--lime);
+  color: var(--forest);
+}
+.vl-btn-primary:active,
+.vl-btn-primary.is-loading {
+  background: var(--lime-press);
+}
+.vl-btn-secondary {
+  background: transparent;
+  color: var(--forest);
+  border: 2px solid var(--forest);
+  min-height: 48px;
+  padding: 0 22px;
+}
+.vl-btn-destructive {
+  background: transparent;
+  color: var(--danger);
+  min-height: var(--touch-min);
+  padding: 0 var(--space-3);
+}
+.vl-btn-danger {
+  background: var(--danger);
+  color: var(--surface);
+}
+.vl-btn-quiet {
+  background: transparent;
+  color: var(--forest);
+  min-height: var(--touch-min);
+  padding: 0 var(--space-3);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.vl-btn[disabled],
+.vl-btn.is-disabled {
+  background: var(--disabled);
+  color: var(--muted);
+  border-color: var(--disabled);
+  cursor: not-allowed;
+}
+.vl-btn-block {
+  width: 100%;
+}
+.vl-btn-sm {
+  min-height: var(--touch-min);
+  padding: 0 var(--space-4);
+  font-size: 15px;
+}
+.vl-spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: vl-spin 0.8s linear infinite;
+}
+@keyframes vl-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Spots badge and live pill */
+.vl-spots {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--forest);
+  font: 700 14px/18px var(--font-body);
+  font-variant-numeric: tabular-nums;
+  transition: background-color 0.3s;
+}
+.vl-spots-changed {
+  background: var(--lime);
+}
+.vl-spots-last {
+  background: var(--forest);
+  color: var(--lime);
+}
+.vl-spots-soldout {
+  background: var(--ink);
+  color: var(--cream);
+}
+.vl-spots-stale {
+  background: var(--disabled);
+  color: var(--muted);
+}
+.vl-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--live);
+  flex: none;
+}
+.vl-dot-pulse {
+  animation: vl-pulse 2s ease-in-out infinite;
+}
+@keyframes vl-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+.vl-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font: 700 12px/16px var(--font-body);
+  background: var(--surface);
+  color: var(--forest);
+}
+.vl-pill-reconnecting {
+  background: var(--disabled);
+  color: var(--muted);
+}
+.vl-pill-offline {
+  background: var(--ink);
+  color: var(--cream);
+}
+@media (prefers-reduced-motion: reduce) {
+  .vl-dot-pulse,
+  .vl-spinner {
+    animation: none;
+  }
+  .vl-spots {
+    transition: none;
+  }
+}
+
+/* Avatars and chips */
+.vl-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: var(--forest);
+  font-weight: 700;
+  flex: none;
+}
+.vl-stack {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.vl-stack-faces {
+  display: flex;
+}
+.vl-stack-faces .vl-avatar {
+  border: 2px solid var(--cream);
+}
+.vl-stack-faces .vl-avatar + .vl-avatar {
+  margin-left: -10px;
+}
+.vl-stack-label {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--forest);
+}
+.vl-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+  font: 700 13px/16px var(--font-body);
+  color: var(--forest);
+  background: var(--line);
+  white-space: nowrap;
+}
+.vl-chip-lime {
+  background: var(--lime);
+}
+.vl-chip-sky {
+  background: var(--sky);
+}
+.vl-chip-forest {
+  background: var(--forest);
+  color: var(--lime);
+}
+.vl-chip-danger {
+  background: var(--surface);
+  color: var(--danger);
+  box-shadow: inset 0 0 0 1.5px var(--danger);
+}
+.vl-chip-outline {
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1.5px var(--forest);
+}
+
+/* Fields */
+.vl-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.vl-field label {
+  font: 700 14px/18px var(--font-body);
+  color: var(--ink);
+}
+.vl-field input,
+.vl-field textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--button-height);
+  padding: 0 var(--space-4);
+  border: 1.5px solid var(--field-border);
+  border-radius: var(--radius-field);
+  background: var(--surface);
+  font: 400 16px/22px var(--font-body);
+  color: var(--ink);
+}
+.vl-field textarea {
+  padding: 14px var(--space-4);
+  min-height: 96px;
+  resize: vertical;
+}
+.vl-field input::placeholder,
+.vl-field textarea::placeholder {
+  color: var(--muted);
+}
+.vl-field-code input {
+  font: 700 20px/24px var(--font-body);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-align: center;
+}
+.vl-field.has-error input,
+.vl-field.has-error textarea {
+  border: 2px solid var(--danger);
+}
+.vl-field-help {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--muted);
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.vl-field-error {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--danger);
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+}
+.vl-field-error .vl-icon {
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+}
+.vl-field-search {
+  position: relative;
+}
+.vl-field-search .vl-icon {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  color: var(--muted);
+}
+.vl-field-search input {
+  padding-left: 46px;
+}
+
+/* Segmented toggle */
+.vl-seg {
+  display: inline-flex;
+  padding: 4px;
+  gap: 2px;
+  border-radius: var(--radius-pill);
+  background: var(--line);
+}
+.vl-seg button {
+  min-height: 36px;
+  padding: 0 var(--space-4);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--muted);
+  font: 700 14px/18px var(--font-body);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.vl-seg button[aria-pressed='true'] {
+  background: var(--surface);
+  color: var(--forest);
+  box-shadow: 0 1px 2px rgba(10, 10, 10, 0.08);
+}
+
+/* Cards */
+.vl-card {
+  background: var(--surface);
+  border-radius: var(--radius-card);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.vl-activity {
+  background: var(--surface);
+  border-radius: var(--radius-hero);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.vl-activity-photo {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  max-width: 100%;
+  background: var(--forest);
+}
+.vl-activity-photo svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.vl-activity-photo .vl-spots {
+  position: absolute;
+  left: var(--space-3);
+  bottom: var(--space-3);
+}
+.vl-activity-photo .vl-chip {
+  position: absolute;
+  left: var(--space-3);
+  top: var(--space-3);
+}
+.vl-activity-body {
+  padding: var(--space-4) var(--space-4) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.vl-activity-title {
+  font: 700 22px/28px var(--font-display);
+  color: var(--ink);
+  margin: 0;
+  text-wrap: balance;
+}
+.vl-activity-compact .vl-activity-photo {
+  aspect-ratio: 16 / 9;
+}
+.vl-details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.vl-details li {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+.vl-details .vl-icon {
+  color: var(--forest);
+  margin-top: 1px;
+}
+.vl-details-label {
+  display: block;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--muted);
+}
+.vl-details-value {
+  display: block;
+  font-weight: 700;
+  color: var(--ink);
+}
+.vl-ref {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-field);
+  background: var(--cream);
+  border: 1.5px dashed var(--forest);
+}
+.vl-ref-label {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--muted);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.vl-ref-code {
+  font: 700 18px/24px var(--font-body);
+  letter-spacing: 2px;
+  color: var(--forest);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Lists */
+.vl-list {
+  background: var(--surface);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex-direction: column;
+}
+.vl-listrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  min-height: 56px;
+}
+.vl-listrow + .vl-listrow {
+  border-top: 1px solid var(--line);
+}
+.vl-listrow-main {
+  flex: 1 1 140px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.vl-listrow-name {
+  font-weight: 700;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.vl-listrow-meta {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--muted);
+}
+.vl-listrow-end {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  align-items: center;
+  flex: 0 1 auto;
+  margin-left: auto;
+}
+.vl-listrow.is-new {
+  background: linear-gradient(90deg, var(--lime), var(--surface) 60%);
+}
+.vl-listrow.is-removed .vl-listrow-name {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+.vl-mark {
+  display: inline-flex;
+  gap: 6px;
+}
+.vl-mark button {
+  min-height: 40px;
+  min-width: 44px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--field-border);
+  background: var(--surface);
+  color: var(--forest);
+  font: 700 13px/16px var(--font-body);
+  cursor: pointer;
+}
+.vl-mark button[aria-pressed='true'].is-attended {
+  background: var(--lime);
+  border-color: var(--forest);
+}
+.vl-mark button[aria-pressed='true'].is-noshow {
+  background: var(--ink);
+  color: var(--cream);
+  border-color: var(--ink);
+}
+.vl-next {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.vl-next a,
+.vl-next .vl-next-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  color: var(--ink);
+  text-decoration: none;
+  min-height: 56px;
+}
+.vl-next-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-small);
+  background: var(--forest);
+  flex: none;
+  overflow: hidden;
+}
+.vl-next-thumb svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.vl-next-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.vl-next-title {
+  font-weight: 700;
+}
+.vl-next-meta {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--muted);
+}
+.vl-next .vl-icon {
+  color: var(--forest);
+}
+
+/* Plan card (My plans) */
+.vl-plan {
+  background: var(--surface);
+  border-radius: var(--radius-card);
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: var(--space-3);
+  padding: var(--space-3);
+  color: var(--ink);
+  text-decoration: none;
+}
+.vl-plan-thumb {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-small);
+  overflow: hidden;
+  background: var(--forest);
+}
+.vl-plan-thumb svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.vl-plan-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.vl-plan-title {
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 22px;
+}
+.vl-plan-meta {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--muted);
+}
+.vl-plan-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+.vl-plan.is-past {
+  opacity: 0.78;
+}
+
+/* Banners, toasts, dialogs, empty, skeleton */
+.vl-banner {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-field);
+  background: var(--info);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 20px;
+}
+.vl-banner strong {
+  display: block;
+}
+.vl-banner .vl-icon {
+  color: var(--forest);
+  margin-top: 1px;
+}
+.vl-banner-offline {
+  background: var(--ink);
+  color: var(--cream);
+}
+.vl-banner-offline .vl-icon {
+  color: var(--lime);
+}
+.vl-banner-error {
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1.5px var(--danger);
+}
+.vl-banner-error .vl-icon {
+  color: var(--danger);
+}
+.vl-banner-body {
+  flex: 1;
+  min-width: 0;
+}
+.vl-toast {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 12px var(--space-4);
+  border-radius: var(--radius-pill);
+  background: var(--forest);
+  color: var(--cream);
+  font: 700 14px/18px var(--font-body);
+  box-shadow: var(--shadow-raised);
+}
+.vl-toast .vl-icon {
+  color: var(--lime);
+  width: 18px;
+  height: 18px;
+}
+.vl-dialog-scrim {
+  background: var(--scrim);
+  padding: var(--space-6) var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.vl-dialog {
+  background: var(--surface);
+  border-radius: var(--radius-card);
+  padding: var(--space-6);
+  max-width: 400px;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  box-shadow: var(--shadow-sheet);
+}
+.vl-dialog h2 {
+  margin: 0;
+  font: 700 22px/28px var(--font-display);
+}
+.vl-dialog p {
+  margin: 0;
+  color: var(--muted);
+}
+.vl-dialog-actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  margin-top: var(--space-2);
+}
+.vl-sheet {
+  background: var(--surface);
+  border-radius: var(--radius-hero) var(--radius-hero) 0 0;
+  padding: var(--space-3) var(--space-5) var(--space-6);
+  box-shadow: var(--shadow-sheet);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.vl-sheet-grip {
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--field-border);
+  align-self: center;
+}
+.vl-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-2);
+  padding: var(--space-8) var(--space-5);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+}
+.vl-empty-mark {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--lime);
+  color: var(--forest);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-2);
+}
+.vl-empty-mark .vl-icon {
+  width: 26px;
+  height: 26px;
+}
+.vl-empty h3 {
+  margin: 0;
+  font: 700 20px/26px var(--font-display);
+}
+.vl-empty p {
+  margin: 0 0 var(--space-2);
+  color: var(--muted);
+  max-width: 32ch;
+}
+.vl-skel {
+  background: linear-gradient(90deg, var(--line) 0%, var(--cream) 50%, var(--line) 100%);
+  background-size: 200% 100%;
+  animation: vl-shimmer 1.4s ease-in-out infinite;
+  border-radius: var(--radius-small);
+}
+@keyframes vl-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vl-skel {
+    animation: none;
+  }
+}
+
+/* App header */
+.vl-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-5);
+  background: var(--cream);
+  border-bottom: 1px solid var(--line);
+  min-height: 64px;
+  box-sizing: border-box;
+}
+.vl-wordmark {
+  font: 700 22px/1 var(--font-display);
+  color: var(--forest);
+  letter-spacing: -0.5px;
+  text-decoration: none;
+}
+.vl-header-nav {
+  display: flex;
+  gap: var(--space-1);
+  flex: 1;
+}
+.vl-header-nav a {
+  padding: 10px var(--space-3);
+  border-radius: var(--radius-pill);
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+}
+.vl-header-nav a[aria-current='page'] {
+  color: var(--forest);
+  background: var(--surface);
+}
+.vl-header-end {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-left: auto;
+}
+@media (max-width: 720px) {
+  .vl-header {
+    padding-inline: var(--space-4);
+    gap: var(--space-3);
+  }
+  .vl-header-nav {
+    display: none;
+  }
+}
+.vl-appbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  min-height: 56px;
+  background: var(--cream);
+}
+.vl-appbar-title {
+  flex: 1;
+  font: 700 17px/22px var(--font-body);
+  color: var(--ink);
+  text-align: center;
+}
+.vl-iconbtn {
+  width: var(--touch-min);
+  height: var(--touch-min);
+  border-radius: 50%;
+  border: 0;
+  background: transparent;
+  color: var(--forest);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* Maps (representative art; production maps are Google's) */
+.vl-map {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: var(--map-land);
+  aspect-ratio: 16 / 9;
+  max-width: 100%;
+}
+.vl-map > svg.vl-map-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.vl-map-pin {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  width: 36px;
+  height: 46px;
+  filter: drop-shadow(0 3px 4px rgba(10, 10, 10, 0.25));
+}
+.vl-map-attrib {
+  position: absolute;
+  left: 8px;
+  bottom: 6px;
+  font: 700 10px/12px var(--font-body);
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.8);
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+.vl-map-controls {
+  position: absolute;
+  right: var(--space-3);
+  top: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.vl-map-controls .vl-iconbtn {
+  background: var(--surface);
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-small);
+  box-shadow: var(--shadow-raised);
+}
+.vl-map-hint {
+  position: absolute;
+  left: 50%;
+  bottom: var(--space-3);
+  transform: translateX(-50%);
+}
+.vl-map-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  text-align: center;
+  padding: var(--space-4);
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 20px;
+  background: var(--line);
+}
+.vl-map-placeholder .vl-icon {
+  width: 28px;
+  height: 28px;
+  color: var(--forest);
+}
+.vl-map-marker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  border: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--forest);
+  font: 700 13px/16px var(--font-body);
+  box-shadow: var(--shadow-raised);
+  white-space: nowrap;
+}
+.vl-map-marker.is-selected {
+  background: var(--forest);
+  color: var(--lime);
+  z-index: 2;
+}
+.vl-map-marker.is-cluster {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--lime);
+  box-shadow:
+    0 0 0 4px rgba(200, 252, 124, 0.45),
+    var(--shadow-raised);
+}
+.vl-map-card {
+  position: absolute;
+  left: var(--space-3);
+  right: var(--space-3);
+  bottom: var(--space-3);
+}
+.vl-location {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.vl-location-text {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+.vl-location-text .vl-icon {
+  color: var(--forest);
+  margin-top: 1px;
+}
+.vl-location-venue {
+  font-weight: 700;
+  display: block;
+}
+.vl-location-address {
+  color: var(--muted);
+  display: block;
+  font-size: 14px;
+  line-height: 20px;
+}
+.vl-meeting {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  padding: 10px var(--space-3);
+  border-radius: var(--radius-field);
+  background: var(--sun);
+  color: var(--forest);
+  font-size: 14px;
+  line-height: 20px;
+}
+.vl-meeting .vl-icon {
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+}
+.vl-location-actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.vl-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.vl-pickres {
+  background: var(--surface);
+  border-radius: var(--radius-field);
+  box-shadow: var(--shadow-raised);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.vl-pickres button {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  text-align: left;
+  padding: var(--space-3) var(--space-4);
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: var(--ink);
+  cursor: pointer;
+  min-height: 56px;
+}
+.vl-pickres button + button {
+  border-top: 1px solid var(--line);
+}
+.vl-pickres button[aria-selected='true'] {
+  background: var(--info);
+}
+.vl-pickres .vl-icon {
+  color: var(--muted);
+  margin-top: 2px;
+}
+.vl-pickres-sub {
+  display: block;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--muted);
+}
+.vl-pickres-foot {
+  padding: 8px var(--space-4);
+  font-size: 11px;
+  line-height: 14px;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+  text-align: right;
+}
+.vl-public-note {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--muted);
+}
+.vl-public-note .vl-icon {
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  color: var(--forest);
+}

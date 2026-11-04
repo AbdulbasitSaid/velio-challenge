@@ -9,7 +9,9 @@ WORKDIR /app
 # Every workspace manifest is needed for a frozen install; only production dependencies are kept.
 COPY package.json bun.lock bunfig.toml tsconfig.base.json ./
 COPY apps/api/package.json apps/api/
+COPY apps/web/package.json apps/web/
 COPY packages/contracts/package.json packages/contracts/
+COPY packages/design-tokens/package.json packages/design-tokens/
 COPY infra/aws/package.json infra/aws/
 RUN bun install --frozen-lockfile --production
 

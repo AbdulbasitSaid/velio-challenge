@@ -21,21 +21,20 @@ function synth(createGithubOidcProvider = true) {
 const template = synth();
 
 describe('instance and network (SEC-001)', () => {
-  test('the security group admits only the API port from the CloudFront prefix list', () => {
+  test('the security group admits only the API and web ports from the CloudFront prefix list', () => {
     const groups = Object.values(template.findResources('AWS::EC2::SecurityGroup'));
     expect(groups).toHaveLength(1);
     expect(groups[0]!.Properties.SecurityGroupIngress).toBeUndefined();
     const ingress = Object.values(template.findResources('AWS::EC2::SecurityGroupIngress'));
-    expect(ingress.map((r) => r.Properties)).toEqual([
-      {
-        Description: 'CloudFront origin-facing',
-        FromPort: 3001,
-        ToPort: 3001,
-        IpProtocol: 'tcp',
-        SourcePrefixListId: 'pl-12345678',
-        GroupId: { 'Fn::GetAtt': [expect.any(String), 'GroupId'] },
-      },
-    ]);
+    const rule = (port: number) => ({
+      Description: 'CloudFront origin-facing',
+      FromPort: port,
+      ToPort: port,
+      IpProtocol: 'tcp',
+      SourcePrefixListId: 'pl-12345678',
+      GroupId: { 'Fn::GetAtt': [expect.any(String), 'GroupId'] },
+    });
+    expect(ingress.map((r) => r.Properties)).toEqual([rule(3001), rule(3000)]);
   });
 
   test('IMDSv2 is required', () => {
@@ -98,29 +97,41 @@ describe('CloudFront (FR-003, SEC-002)', () => {
   const config = () =>
     Object.values(template.findResources('AWS::CloudFront::Distribution'))[0]!.Properties.DistributionConfig;
 
-  test('api, ws and default behaviors go uncached to the instance; photos are cached from S3', () => {
+  test('pages go uncached to the web port, /api/* to the API port; static assets and photos are cached', () => {
     const { DefaultCacheBehavior, CacheBehaviors, Origins } = config();
-    const apiOrigin = Origins.find((o: { CustomOriginConfig?: unknown }) => o.CustomOriginConfig);
-    expect(apiOrigin.CustomOriginConfig).toMatchObject({ HTTPPort: 3001, OriginProtocolPolicy: 'http-only' });
+    const custom = Origins.filter((o: { CustomOriginConfig?: unknown }) => o.CustomOriginConfig);
+    const byPort = (port: number) =>
+      custom.find(
+        (o: { CustomOriginConfig: { HTTPPort: number } }) => o.CustomOriginConfig.HTTPPort === port,
+      );
+    const apiOrigin = byPort(3001);
+    const webOrigin = byPort(3000);
+    expect(apiOrigin.CustomOriginConfig).toMatchObject({ OriginProtocolPolicy: 'http-only' });
+    expect(webOrigin.CustomOriginConfig).toMatchObject({ OriginProtocolPolicy: 'http-only' });
 
     const cachingDisabled = '4135ea2d-6df8-44a3-9df3-4b5a84be39ad';
+    const cachingOptimized = '658327ea-f89d-4fab-a63d-7e88639e58f6';
     const allViewerExceptHost = 'b689b0a8-53d0-40ab-baf2-68738e2966ac';
-    for (const behavior of [
-      DefaultCacheBehavior,
-      ...CacheBehaviors.filter((b: { PathPattern: string }) => b.PathPattern !== '/photos/*'),
+    const behavior = (path: string) =>
+      CacheBehaviors.find((b: { PathPattern: string }) => b.PathPattern === path);
+    for (const [b, origin] of [
+      [DefaultCacheBehavior, webOrigin],
+      [behavior('/api/*'), apiOrigin],
     ]) {
-      expect(behavior.TargetOriginId).toBe(apiOrigin.Id);
-      expect(behavior.CachePolicyId).toBe(cachingDisabled);
-      expect(behavior.OriginRequestPolicyId).toBe(allViewerExceptHost);
-      expect(behavior.ViewerProtocolPolicy).toBe('redirect-to-https');
+      expect(b.TargetOriginId).toBe(origin.Id);
+      expect(b.CachePolicyId).toBe(cachingDisabled);
+      expect(b.OriginRequestPolicyId).toBe(allViewerExceptHost);
+      expect(b.ViewerProtocolPolicy).toBe('redirect-to-https');
     }
+    expect(behavior('/_next/static/*').TargetOriginId).toBe(webOrigin.Id);
+    expect(behavior('/_next/static/*').CachePolicyId).toBe(cachingOptimized);
     expect(CacheBehaviors.map((b: { PathPattern: string }) => b.PathPattern)).toEqual([
       '/api/*',
-      '/ws',
+      '/_next/static/*',
       '/photos/*',
     ]);
 
-    const photos = CacheBehaviors.find((b: { PathPattern: string }) => b.PathPattern === '/photos/*');
+    const photos = behavior('/photos/*');
     expect(photos.TargetOriginId).not.toBe(apiOrigin.Id);
     expect(photos.CachePolicyId).toBe('658327ea-f89d-4fab-a63d-7e88639e58f6');
     template.resourceCountIs('AWS::CloudFront::OriginAccessControl', 1);
@@ -136,7 +147,7 @@ describe('CloudFront (FR-003, SEC-002)', () => {
 });
 
 describe('secrets (SEC-003)', () => {
-  test('six secrets under velio/prod; all but grafana are generated', () => {
+  test('seven secrets under velio/prod; all but grafana and google-maps are generated', () => {
     const secrets = Object.values(template.findResources('AWS::SecretsManager::Secret'));
     expect(secrets.map((s) => s.Properties.Name).sort()).toEqual(
       [
@@ -144,12 +155,14 @@ describe('secrets (SEC-003)', () => {
         'db-api-password',
         'db-readonly-password',
         'db-superuser-password',
+        'google-maps',
         'grafana',
         'origin-verify',
       ].map((n) => `velio/prod/${n}`),
     );
     for (const s of secrets) {
-      if (s.Properties.Name === 'velio/prod/grafana') expect(s.Properties.SecretString).toBe('{}');
+      if (['velio/prod/grafana', 'velio/prod/google-maps'].includes(s.Properties.Name))
+        expect(s.Properties.SecretString).toBe('{}');
       else
         expect(s.Properties.GenerateSecretString).toMatchObject({
           PasswordLength: 64,

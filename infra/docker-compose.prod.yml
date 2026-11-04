@@ -52,6 +52,8 @@ services:
       # Invite links. The distribution's hostname is stable (it must never be deleted: MVP plan §8).
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-https://depimls1pcvv4.cloudfront.net}
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+      GOOGLE_MAPS_SERVER_KEY: ${GOOGLE_MAPS_SERVER_KEY:-}
+      GOOGLE_MAPS_SIGNING_SECRET: ${GOOGLE_MAPS_SIGNING_SECRET:-}
     # The security group admits only CloudFront to this port.
     ports:
       - '3001:3001'
@@ -77,6 +79,49 @@ services:
         max-size: 10m
         max-file: '3'
         # Adds the label to every log line, so the collector picks out the API's lines.
+        labels: com.velio.logs
+
+  # Next.js (S5): every page; CloudFront's default behavior. Talks to the API on the Compose network.
+  web:
+    image: ghcr.io/abdulbasitsaid/velio-web:${IMAGE_TAG:?}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      API_INTERNAL_URL: http://api:3001
+      # Absolute URLs in link previews (S6 Open Graph).
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-https://depimls1pcvv4.cloudfront.net}
+      # App Links (S6 §4.7, S7). Unset → /.well-known files return 404.
+      ANDROID_PACKAGE: ${ANDROID_PACKAGE:-}
+      ANDROID_CERT_SHA256: ${ANDROID_CERT_SHA256:-}
+      APPLE_APP_IDS: ${APPLE_APP_IDS:-}
+      ORIGIN_VERIFY_SECRET: ${ORIGIN_VERIFY_SECRET:?}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+    # The security group admits only CloudFront to this port.
+    ports:
+      - '3000:3000'
+    # t4g.small (2 GB) also runs Postgres, the API and the collector.
+    mem_limit: 512m
+    healthcheck:
+      # /healthz is exempt from the origin check. The slim image has no curl.
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/healthz').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"
+      interval: 10s
+      timeout: 3s
+      start_period: 15s
+      retries: 3
+    depends_on:
+      api:
+        condition: service_healthy
+    labels:
+      com.velio.logs: web
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
         labels: com.velio.logs
 
   otel-collector:

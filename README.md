@@ -19,6 +19,7 @@ To run the API, copy `.env.example` to `.env`, set `CONTACT_PEPPER` (`openssl ra
 
 ```sh
 bun run dev        # http://localhost:3001/api/healthz
+bun run web:dev    # http://localhost:3000 (Next.js; proxies /api/* to :3001, the socket connects to :3001)
 ```
 
 ## Layout
@@ -28,7 +29,9 @@ bun run dev        # http://localhost:3001/api/healthz
 | `apps/api`               | Bun + Hono API. Routes live under `/api`.                                   |
 | `apps/api/migrations`    | Forward-only SQL migrations, run by dbmate.                                 |
 | `apps/api/src/db/types.ts` | Kysely types, generated from the migrated database. Do not edit.          |
+| `apps/web`               | Next.js web app (App Router, run on Node): pages, design-system components, API and realtime clients. Vitest tests in `test/`. |
 | `packages/contracts`     | Zod schemas shared by API and clients, and the generated `openapi.json`.    |
+| `packages/design-tokens` | The approved `tokens.json` and its generated outputs: `css/theme.css` (Tailwind 4 theme) and `dart/` (the `velio_tokens` Flutter package). Shared avatar hash fixtures. |
 | `load`                   | k6 load tests: `seed.ts` and `check.ts` (Bun), `scenarios/` (k6). Results go to `load/results/` (git-ignored). |
 | `infra`                  | Local Docker Compose (Postgres, MinIO, OpenTelemetry Collector), and the production Compose and collector configs. |
 | `infra/aws`              | CDK app for the AWS stack (`VelioApp`), its tests, and the instance scripts (`scripts/`). |
@@ -46,6 +49,9 @@ bun run dev        # http://localhost:3001/api/healthz
 | `bun run typecheck`         | `tsc --noEmit` for every workspace.                                      |
 | `bun run lint` · `bun run format` · `bun run format:check` | ESLint and Prettier.                      |
 | `bun run dev`               | API with reload.                                                         |
+| `bun run web:dev` · `web:build` · `web:test` | Next.js dev server, production build, Vitest.            |
+| `bun apps/api/scripts/seed-invites.ts` | Local only: one invite per invite-page state (S6), printed as links. Needs `bun run dev` and `web:dev`. |
+| `bun run tokens:build`      | Regenerates the token outputs from `packages/design-tokens/tokens.json`. CI fails on drift. |
 | `bun run load:smoke`        | k6 `last_spot_race` smoke against the local API (needs `bun run dev` running). |
 | `bun run load:viewers`      | k6 `viewers` smoke: 250 sockets watch a `last_spot_race` (needs `bun run dev` running). |
 | `bun run aws:synth` · `aws:diff` · `aws:deploy` · `aws:destroy` | CDK for the `VelioApp` stack in eu-west-2. Each needs `-c alertEmail=…`. |

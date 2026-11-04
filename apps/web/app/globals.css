@@ -1,0 +1,40 @@
+@import 'tailwindcss';
+@import '@velio/design-tokens/theme.css';
+@import '../components/velio.css';
+
+/* next/font exposes the self-hosted faces as variables; put them in front of the token stacks. Unlayered, so
+   it wins over the @theme values for both Tailwind utilities and the component CSS. */
+:root {
+  --font-display: var(--font-sora), 'Sora', system-ui, sans-serif;
+  --font-body: var(--font-dm-sans), 'DM Sans', system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    background: var(--color-cream);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    color: var(--color-forest);
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-forest);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}

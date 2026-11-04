@@ -6,6 +6,7 @@ import { errorResponse, SECURITY } from '../../openapi';
 import { requireUser } from '../identity/middleware';
 import { createActivity, updateActivity } from './service';
 import { buildSnapshot } from './snapshot';
+import { staticMapUrl } from '../maps/static';
 
 const createActivityRoute = createRoute({
   method: 'post',
@@ -62,9 +63,10 @@ const snapshotRoute = createRoute({
 
 export function activityRoutes(deps: AppDeps) {
   const app = new OpenAPIHono<AppEnv>();
+  const mapUrl = staticMapUrl(deps.config);
 
   app.openapi(snapshotRoute, async (c) => {
-    const snapshot = await buildSnapshot(deps.db, c.req.valid('param').id, c.var.user?.id ?? null);
+    const snapshot = await buildSnapshot(deps.db, c.req.valid('param').id, c.var.user?.id ?? null, mapUrl);
     if (!snapshot) throw new ApiError('not_found');
     c.header('cache-control', 'no-store');
     return c.json(snapshot, 200);

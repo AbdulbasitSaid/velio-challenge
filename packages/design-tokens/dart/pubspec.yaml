@@ -1,0 +1,15 @@
+name: velio_tokens
+description: Velio design tokens, generated from packages/design-tokens/tokens.json.
+publish_to: none
+version: 1.0.0
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

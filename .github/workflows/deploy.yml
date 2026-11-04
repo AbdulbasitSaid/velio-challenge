@@ -82,6 +82,18 @@ jobs:
           cache-from: type=gha,scope=api
           cache-to: type=gha,mode=max,scope=api
 
+      - name: Build and push the web image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          platforms: linux/arm64
+          push: true
+          tags: ghcr.io/abdulbasitsaid/velio-web:${{ env.SHA }}
+          build-args: NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY=${{ vars.GOOGLE_MAPS_BROWSER_KEY }}
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
+
       - name: Build and push the migrate image
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
@@ -122,8 +134,8 @@ jobs:
 
       - name: Smoke check through CloudFront
         run: |
-          for path in healthz readyz; do
+          for path in api/healthz api/readyz healthz; do
             curl --fail --silent --show-error --retry 6 --retry-delay 5 --retry-all-errors \
-              "https://${DistributionDomain}/api/${path}"
+              "https://${DistributionDomain}/${path}"
             echo
           done

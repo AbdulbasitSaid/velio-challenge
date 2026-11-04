@@ -4,8 +4,8 @@
 #   deploy.sh <commit sha>
 # The bundle s3://$DEPLOY_BUCKET/<sha>/ holds this script, the Compose file, the collector
 # configs and backup.sh. Order: write .env from Secrets Manager, pull, start Postgres and the
-# collector, migrate, then restart the API. If the new API never becomes healthy, the previous
-# release is started again and the script still fails.
+# collector, migrate, then restart the API and the web app. If either never becomes healthy, the
+# previous release is started again and the script still fails.
 set -euo pipefail
 
 SHA="${1:-}"
@@ -41,6 +41,11 @@ if [[ -n "$grafana_endpoint" ]]; then
   collector_overlay=/etc/otelcol/grafana.yaml
 fi
 
+# Static Maps signing (S6) once its secret is filled in; empty values leave map images off.
+google_maps=$(secret google-maps)
+google_maps_server_key=$(jq -r '.serverKey // empty' <<<"$google_maps")
+google_maps_signing_secret=$(jq -r '.signingSecret // empty' <<<"$google_maps")
+
 # $1: image tag. The file is root-only: mktemp creates it with mode 600.
 write_env() {
   local tmp
@@ -55,6 +60,8 @@ ORIGIN_VERIFY_SECRET='$origin_verify'
 OTEL_COLLECTOR_EXTRA_CONFIG='$collector_overlay'
 GRAFANA_OTLP_ENDPOINT='$grafana_endpoint'
 GRAFANA_OTLP_AUTH='$grafana_auth'
+GOOGLE_MAPS_SERVER_KEY='$google_maps_server_key'
+GOOGLE_MAPS_SIGNING_SECRET='$google_maps_signing_secret'
 EOF
   mv "$tmp" /opt/velio/.env
 }
@@ -75,13 +82,16 @@ dc "$REL" up -d --wait --wait-timeout 120 postgres otel-collector
 # A failing migration stops here, before the API restarts.
 dc "$REL" --profile deploy run --rm migrate
 
-if ! dc "$REL" up -d --wait --wait-timeout 120 api; then
-  echo "deploy: the API for $SHA did not become healthy" >&2
-  dc "$REL" logs --no-color --tail 100 api >&2 || true
+if ! dc "$REL" up -d --wait --wait-timeout 120 api web; then
+  echo "deploy: the API or web app for $SHA did not become healthy" >&2
+  dc "$REL" logs --no-color --tail 100 api web >&2 || true
   if [[ -n "$previous" && -d "/opt/velio/releases/$previous" ]]; then
     echo "deploy: starting the previous release $previous again" >&2
     write_env "$previous"
-    dc "/opt/velio/releases/$previous" up -d --wait --wait-timeout 120 api otel-collector || true
+    # A release from before S5 has no web service; Compose starts only what its file defines.
+    services=(api otel-collector)
+    grep -q '^  web:' "/opt/velio/releases/$previous/docker-compose.prod.yml" && services+=(web)
+    dc "/opt/velio/releases/$previous" up -d --wait --wait-timeout 120 "${services[@]}" || true
   fi
   exit 1
 fi

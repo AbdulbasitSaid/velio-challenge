@@ -8,3 +8,4 @@
 spec
 infra/aws/cdk.out
 *.md
+**/.next

@@ -23,6 +23,9 @@ const Config = z
     LINK_CLAIMS_PER_MINUTE: z.coerce.number().int().positive().default(60),
     /** PRD R7: opens in the trailing hour before a link with < 2% claims auto-pauses (S4 §12, Q2). */
     AUTO_PAUSE_MIN_OPENS: z.coerce.number().int().positive().default(200),
+    /** Static Maps (S6 §4.6): server key and URL-signing secret. Either unset → `staticMapUrl` is null (PRD A7). */
+    GOOGLE_MAPS_SERVER_KEY: z.string().min(1).optional(),
+    GOOGLE_MAPS_SIGNING_SECRET: z.string().min(1).optional(),
   })
   .refine((c) => c.NODE_ENV !== 'production' || c.ORIGIN_VERIFY_SECRET !== undefined, {
     path: ['ORIGIN_VERIFY_SECRET'],

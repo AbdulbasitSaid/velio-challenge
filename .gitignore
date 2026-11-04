@@ -14,6 +14,13 @@ coverage/
 # CDK synth output: holds the alarm email and account ID (public repository)
 cdk.out/
 *.tsbuildinfo
+# Next.js
+.next/
+next-env.d.ts
+# Dart and Flutter
+.dart_tool/
+# Library package: apps commit their lockfile, packages don't
+packages/design-tokens/dart/pubspec.lock
 .eslintcache
 
 # Load-test results (S2/S9)

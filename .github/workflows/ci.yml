@@ -46,6 +46,17 @@ jobs:
       - name: Test
         run: bun test
 
+      - name: Design tokens are up to date
+        run: |
+          bun run tokens:build
+          git diff --exit-code -- packages/design-tokens
+
+      - name: Web tests
+        run: bun run web:test
+
+      - name: Web build
+        run: bun run web:build
+
       - name: OpenAPI is up to date
         run: |
           bun run contracts:openapi

@@ -1,6 +1,8 @@
 # Generated (drift-checked in CI instead)
 apps/api/src/db/types.ts
 packages/contracts/openapi.json
+packages/design-tokens/css/theme.css
+packages/design-tokens/dart/
 bun.lock
 # Docs and specs are maintained by hand
 *.md
@@ -9,3 +11,4 @@ spec/
 .claude/
 # CDK synth output
 cdk.out/
+apps/web/.next/

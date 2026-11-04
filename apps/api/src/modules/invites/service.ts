@@ -6,6 +6,7 @@ import type { Invites } from '../../db/types';
 import { ApiError } from '../../errors';
 import type { Logger } from '../../telemetry/logger';
 import { buildSnapshot } from '../activities/snapshot';
+import { staticMapUrl } from '../maps/static';
 import { contactHash, normaliseContact } from '../identity/contact';
 import { toMemberPerson, toPublicPerson } from '../identity/people';
 import { notifyPlan } from '../realtime/notify';
@@ -79,6 +80,7 @@ export function planInviteStatus(rail: Rail, stats: InviteStats, started: boolea
 
 export function createInviteService(deps: InviteDeps) {
   const { db, config, metrics: m } = deps;
+  const mapUrl = staticMapUrl(config);
 
   async function loadByCode(code: string) {
     return db
@@ -222,7 +224,7 @@ export function createInviteService(deps: InviteDeps) {
             .where('c.invite_id', '=', invite.id)
             .executeTakeFirst()
         : undefined;
-    const activity = (await buildSnapshot(db, invite.activity_id, viewerId))!;
+    const activity = (await buildSnapshot(db, invite.activity_id, viewerId, mapUrl))!;
     const status = claimant ? 'claimed' : invite.expired ? 'expired' : invite.paused ? 'paused' : 'claimable';
     return {
       code: invite.code,

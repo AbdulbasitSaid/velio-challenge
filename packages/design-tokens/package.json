@@ -1,0 +1,14 @@
+{
+  "name": "@velio/design-tokens",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./theme.css": "./css/theme.css",
+    "./tokens.json": "./tokens.json",
+    "./fixtures/avatar.json": "./fixtures/avatar.json"
+  },
+  "scripts": {
+    "build": "bun build.ts"
+  }
+}

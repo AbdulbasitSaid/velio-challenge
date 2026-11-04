@@ -36,6 +36,7 @@ export interface AppStackProps extends StackProps {
 }
 
 const API_PORT = 3001;
+const WEB_PORT = 3000;
 const SECRET_PREFIX = 'velio/prod';
 const SCRIPTS = new URL('../scripts/', import.meta.url);
 
@@ -60,6 +61,11 @@ export class AppStack extends Stack {
       // Filled in by hand once the Grafana Cloud stack exists (README "Grafana Cloud").
       new secretsmanager.Secret(this, 'Secret-grafana', {
         secretName: `${SECRET_PREFIX}/grafana`,
+        secretStringValue: SecretValue.unsafePlainText('{}'),
+      }),
+      // Filled in by hand: {"serverKey": "...", "signingSecret": "..."} (S6 §4.6). Empty → no map images.
+      new secretsmanager.Secret(this, 'Secret-google-maps', {
+        secretName: `${SECRET_PREFIX}/google-maps`,
         secretStringValue: SecretValue.unsafePlainText('{}'),
       }),
     ];
@@ -95,14 +101,16 @@ export class AppStack extends Stack {
     });
     const securityGroup = new ec2.SecurityGroup(this, 'AppSg', {
       vpc,
-      description: 'Velio app: API port from CloudFront only',
+      description: 'Velio app: API and web ports from CloudFront only',
       allowAllOutbound: true,
     });
-    securityGroup.addIngressRule(
-      ec2.Peer.prefixList(props.cloudfrontPrefixListId),
-      ec2.Port.tcp(API_PORT),
-      'CloudFront origin-facing',
-    );
+    for (const port of [API_PORT, WEB_PORT]) {
+      securityGroup.addIngressRule(
+        ec2.Peer.prefixList(props.cloudfrontPrefixListId),
+        ec2.Port.tcp(port),
+        'CloudFront origin-facing',
+      );
+    }
 
     // Instance.
     const role = new iam.Role(this, 'InstanceRole', {
@@ -157,27 +165,34 @@ export class AppStack extends Stack {
     ]);
 
     // CloudFront. The origin header value is a dynamic reference, resolved by CloudFormation.
-    const api = new origins.HttpOrigin(originDomain, {
-      protocolPolicy: cloudfront.OriginProtocolPolicy.HTTP_ONLY,
-      httpPort: API_PORT,
-      customHeaders: { 'X-Origin-Verify': originVerify.secretValue.unsafeUnwrap() },
-    });
-    const apiBehavior: cloudfront.BehaviorOptions = {
-      origin: api,
+    const instanceOrigin = (httpPort: number) =>
+      new origins.HttpOrigin(originDomain, {
+        protocolPolicy: cloudfront.OriginProtocolPolicy.HTTP_ONLY,
+        httpPort,
+        customHeaders: { 'X-Origin-Verify': originVerify.secretValue.unsafeUnwrap() },
+      });
+    const uncached = (origin: cloudfront.IOrigin): cloudfront.BehaviorOptions => ({
+      origin,
       viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
       cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
       originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
-    };
+    });
+    const web = instanceOrigin(WEB_PORT);
     const distribution = new cloudfront.Distribution(this, 'Cdn', {
       comment: 'Velio',
       priceClass: cloudfront.PriceClass.PRICE_CLASS_100,
       httpVersion: cloudfront.HttpVersion.HTTP2_AND_3,
-      // The API until S5 adds the web origin; S5 changes only this behavior.
-      defaultBehavior: apiBehavior,
+      // Pages go to the Next.js app (S5); the socket is /api/ws, under /api/* (S3).
+      defaultBehavior: uncached(web),
       additionalBehaviors: {
-        '/api/*': apiBehavior,
-        '/ws': apiBehavior,
+        '/api/*': uncached(instanceOrigin(API_PORT)),
+        // Content-hashed build assets: safe to cache for as long as CloudFront keeps them.
+        '/_next/static/*': {
+          origin: web,
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+        },
         '/photos/*': {
           origin: origins.S3BucketOrigin.withOriginAccessControl(photos),
           viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
