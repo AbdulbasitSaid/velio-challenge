@@ -4,6 +4,8 @@ import type { NextConfig } from 'next';
 // Locally the browser talks to Next on :3000 and Next proxies /api/* to the API. In production CloudFront
 // routes /api/* to the API directly, so the rewrite never runs there.
 const apiUrl = process.env.API_INTERNAL_URL ?? 'http://localhost:3001';
+// Photos are `/photos/<key>` (CloudFront → bucket in production); locally Next serves them from MinIO.
+const photosUrl = 'http://localhost:9000/velio-photos/photos';
 
 // S5 §4.11 and Maps §6. Photos and the API are same-origin (CloudFront). Google Maps needs its script,
 // tile and API hosts. Inline scripts are Next's hydration payload ('unsafe-inline' until nonces are worth
@@ -40,7 +42,10 @@ const config: NextConfig = {
   transpilePackages: ['@velio/contracts', '@velio/design-tokens'],
   poweredByHeader: false,
   async rewrites() {
-    return [{ source: '/api/:path*', destination: `${apiUrl}/api/:path*` }];
+    return [
+      { source: '/api/:path*', destination: `${apiUrl}/api/:path*` },
+      ...(dev ? [{ source: '/photos/:path*', destination: `${photosUrl}/:path*` }] : []),
+    ];
   },
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];

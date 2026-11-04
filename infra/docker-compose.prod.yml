@@ -54,6 +54,9 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
       GOOGLE_MAPS_SERVER_KEY: ${GOOGLE_MAPS_SERVER_KEY:-}
       GOOGLE_MAPS_SIGNING_SECRET: ${GOOGLE_MAPS_SIGNING_SECRET:-}
+      # Photo uploads (S5 §4.9): presigned with the instance role's credentials, from IMDS.
+      PHOTOS_BUCKET: ${PHOTOS_BUCKET:?}
+      S3_REGION: eu-west-2
     # The security group admits only CloudFront to this port.
     ports:
       - '3001:3001'

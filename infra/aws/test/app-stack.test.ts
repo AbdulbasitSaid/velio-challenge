@@ -14,6 +14,7 @@ function synth(createGithubOidcProvider = true) {
     alertEmail: EMAIL,
     githubRepository: 'owner/repo',
     createGithubOidcProvider,
+    appOrigin: 'https://d111111abcdef8.cloudfront.net',
   });
   return Template.fromStack(stack);
 }
@@ -74,6 +75,29 @@ describe('buckets (SEC-006, FR-006)', () => {
       });
       expect(bucket.Properties.BucketEncryption).toBeDefined();
     }
+  });
+
+  test('photos accept POSTs only from the app origin; the instance writes and reads only photos/*', () => {
+    template.hasResourceProperties('AWS::S3::Bucket', {
+      CorsConfiguration: {
+        CorsRules: [
+          {
+            AllowedOrigins: ['https://d111111abcdef8.cloudfront.net'],
+            AllowedMethods: ['POST'],
+            MaxAge: 3600,
+          },
+        ],
+      },
+    });
+    const policies = Object.values(template.findResources('AWS::IAM::Policy'));
+    const statements = policies.flatMap(
+      (p) => p.Properties.PolicyDocument.Statement as Record<string, unknown>[],
+    );
+    const photoObjects = statements.filter((st) => JSON.stringify(st.Resource).includes('/photos/*'));
+    const actions = photoObjects.flatMap((st) => [st.Action].flat() as string[]);
+    expect(actions).toContain('s3:PutObject');
+    expect(actions).toContain('s3:GetObject*');
+    expect(actions.some((a) => a.startsWith('s3:Delete'))).toBe(false);
   });
 
   test('backups expire after 14 days and survive stack deletion', () => {

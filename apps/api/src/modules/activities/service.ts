@@ -49,11 +49,12 @@ async function loadHostActivity(db: Db | Tx, id: string): Promise<HostActivity> 
     bookedCount: row.capacity - row.spots_left,
     version: Number(row.version),
     bookingsPaused: row.bookings_paused,
+    photoKey: row.photo_key,
     createdAt: row.created_at.toISOString(),
   };
 }
 
-/** PRD A1, A4. The photo is S5's (signed upload); `photo_key` stays null until then. */
+/** PRD A1, A4. The route has already checked that the caller uploaded `photoKey` (S5 FR-014). */
 export async function createActivity(
   db: Db,
   input: { hostId: string; body: ActivityCreate; now: Date },
@@ -81,6 +82,7 @@ export async function createActivity(
       currency: body.currency,
       capacity: body.capacity,
       spots_left: body.capacity,
+      photo_key: body.photoKey ?? null,
     })
     .returning('id')
     .executeTakeFirstOrThrow();
@@ -115,6 +117,7 @@ export async function updateActivity(
       ...(patch.startsAt !== undefined && { starts_at: patch.startsAt }),
       ...(patch.timezone !== undefined && { timezone: patch.timezone }),
       ...(patch.location !== undefined && locationColumns(patch.location)),
+      ...(patch.photoKey !== undefined && { photo_key: patch.photoKey }),
     };
     // The location-lock trigger raises VL001 (location_locked) here once someone has booked.
     if (Object.keys(fields).length > 0) {

@@ -34,8 +34,11 @@ jobs:
       - name: Type check
         run: bun run typecheck
 
-      - name: Start Postgres
-        run: docker compose -f infra/docker-compose.yml up -d --wait postgres
+      - name: Start Postgres and MinIO
+        run: |
+          docker compose -f infra/docker-compose.yml up -d --wait postgres minio
+          # One-shot: creates the photos bucket (after minio-bucket) and opens photos/ for reading.
+          docker compose -f infra/docker-compose.yml run --rm minio-photos-public
 
       - name: Migrate
         run: bun run db:migrate

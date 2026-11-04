@@ -25,6 +25,8 @@ import { inviteRoutes } from './modules/invites/routes';
 import { createInviteService } from './modules/invites/service';
 import { planRoutes } from './modules/plans/routes';
 import { createPlanService } from './modules/plans/service';
+import { createPhotoStore } from './modules/uploads/photos';
+import { uploadRoutes } from './modules/uploads/routes';
 import type { Realtime } from './modules/realtime/gateway';
 import type { User } from './modules/identity/sessions';
 import { sessionMiddleware, sessionPolicy } from './modules/identity/middleware';
@@ -96,7 +98,9 @@ export function createApp(deps: AppDeps) {
 
   app.route('/', healthRoutes(deps));
   app.route('/', identityRoutes(deps));
-  app.route('/', activityRoutes(deps));
+  const photos = createPhotoStore(deps.config);
+  app.route('/', activityRoutes(deps, photos));
+  app.route('/', uploadRoutes(photos, deps.clock));
   const bookings = createBookingEngine({
     db: deps.db,
     logger: deps.logger,

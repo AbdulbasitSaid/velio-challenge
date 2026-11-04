@@ -136,7 +136,7 @@ Then, once:
 
 ### Deploys and rollback
 
-Every push to `master` that passes CI deploys: the images are built for arm64, the bundle (Compose file, collector configs, `deploy.sh`, `backup.sh`) is uploaded to the deploy bucket, and `deploy.sh <sha>` runs on the instance through SSM. It writes `/opt/velio/.env` (root only) from Secrets Manager, migrates, then restarts the API. If the new API never becomes healthy, it starts the previous release again and the workflow fails. The workflow ends by checking `/api/healthz` and `/api/readyz` through CloudFront.
+Every push to `master` that passes CI deploys: the images are built for arm64, the bundle (Compose file, collector configs, `deploy.sh`, `backup.sh`) is uploaded to the deploy bucket, and `deploy.sh <sha> <photos bucket>` runs on the instance through SSM (the bucket is the stack's `PhotosBucket` output). It writes `/opt/velio/.env` (root only) from Secrets Manager, migrates, then restarts the API. If the new API never becomes healthy, it starts the previous release again and the workflow fails. The workflow ends by checking `/api/healthz` and `/api/readyz` through CloudFront.
 
 To roll back, run the Deploy workflow by hand (Actions → Deploy → Run workflow, on `master`) with the earlier commit's SHA.
 

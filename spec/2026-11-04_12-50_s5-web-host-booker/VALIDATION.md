@@ -135,7 +135,7 @@
 
 ## Part B: Executed checks
 
-In progress. Phase A (T1–T7) recorded 2026-11-04; Phases B–D follow.
+In progress. Phase A (T1–T7) and T8 recorded 2026-11-04; T9–T16 follow.
 
 ### V-VER-1: versions (looked up 2026-11-04 with `npm view`, nodejs.org and `docker buildx imagetools inspect`)
 
@@ -173,6 +173,17 @@ In progress. Phase A (T1–T7) recorded 2026-11-04; Phases B–D follow.
 | V-CI-1 | `bun run format:check && bun run lint && bun run typecheck && bun run web:test && bun run web:build`; `bun test infra/aws packages` | 2026-11-04 | Pass (web 64 tests; CDK 14). Full `bun test`: 258 pass, 3 fail, the known macOS `somaxconn` claim-race failures recorded in S4 Part B; also fails with the pre-S5 `bunfig.toml` | FR-003, NFR-007 |
 | Image build | `docker build -f apps/web/Dockerfile .` (arm64) | 2026-11-04 | Pass, 431 MB | FR-039 |
 
+### Phase B checks (T8)
+
+| Check | Command or procedure | Date | Result | Covers |
+| --- | --- | --- | --- | --- |
+| V-VER-1 (T8) | `npm view @aws-sdk/client-s3 version`, `@aws-sdk/s3-presigned-post`; minio-client image by `docker buildx imagetools inspect` | 2026-11-04 | 3.1161.0 both, pinned; `cgr.dev/chainguard/minio-client@sha256:1dccd2a6…` | — |
+| V-PH-1 | `bun test apps/api/test/uploads` against Compose MinIO (8 tests) | 2026-11-04 | Pass: 401 signed out; `image/gif` → 400; key under the caller, two targets, 10-minute expiry; MinIO accepts 1 MB WebP (204) and serves it unsigned; refuses 3 MB and 0 B (400), another type and another key (403); `photoKey` from another user, never uploaded, or malformed → 400; `photoUrl` on the snapshot and My plans cards; photo editable after a booking, `null` removes it, non-host 403 | FR-013, FR-014, FR-015, SEC-006 |
+| V-CDK (T8) | `bun test infra/aws` (15) | 2026-11-04 | Pass: photos bucket CORS is POST from the app origin only; instance role has `PutObject`/`GetObject*` on `photos/*` and no delete | FR-041 |
+| V-CI-1 (T8) | `bun run format:check && bun run lint && bun run typecheck && bun run contracts:openapi && bun run web:test && bun run web:build`; `bun test`; the CI MinIO step (`compose run --rm minio-photos-public`) | 2026-11-04 | Pass (web 117). `bun test`: 272 pass, 3 fail, the known macOS `somaxconn` 200-parallel races; the same tests fail on the tree without T8 | NFR-007 |
+
 ### Not run yet
 
+- V-PH-2 (needs H2, T13) and the dev `/photos` rewrite in a browser (with T13).
+- Production photo uploads: need `bun run aws:deploy` (bucket CORS, instance role), after the push deploys the web container (the same order as V-DEP-1), then an upload through CloudFront. Until then the API starts normally and only uploads fail. Checked so far: `bash -n deploy.sh`, and `docker compose -f infra/docker-compose.prod.yml config` resolves `PHOTOS_BUCKET` and `S3_REGION` for the API.
 - V-DEP-1, V-DEP-2, V-DEP-3 (deployed), V-OBS-1 (collector): need the commit pushed to `master` (the owner's git) and then `bun run aws:deploy` for the CloudFront and security-group change, in that order (the web container must be running before CloudFront's default behavior points at it).

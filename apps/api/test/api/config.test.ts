@@ -47,6 +47,7 @@ describe('configuration', () => {
         NODE_ENV: 'production',
         ORIGIN_VERIFY_SECRET: 'y'.repeat(32),
         PUBLIC_BASE_URL: 'https://example.cloudfront.net',
+        PHOTOS_BUCKET: 'velio-photos-test',
       }).NODE_ENV,
     ).toBe('production');
   });
@@ -54,11 +55,39 @@ describe('configuration', () => {
   // S4: invite links need the public origin in production.
   test('production requires PUBLIC_BASE_URL; elsewhere it defaults, without a trailing slash', () => {
     expect(() =>
-      loadConfig({ ...valid, NODE_ENV: 'production', ORIGIN_VERIFY_SECRET: 'y'.repeat(32) }),
+      loadConfig({
+        ...valid,
+        NODE_ENV: 'production',
+        ORIGIN_VERIFY_SECRET: 'y'.repeat(32),
+        PHOTOS_BUCKET: 'velio-photos-test',
+      }),
     ).toThrow(/PUBLIC_BASE_URL/);
     expect(loadConfig(valid).PUBLIC_BASE_URL).toBe('http://localhost:3000');
     expect(loadConfig({ ...valid, PUBLIC_BASE_URL: 'https://d1.cloudfront.net/' }).PUBLIC_BASE_URL).toBe(
       'https://d1.cloudfront.net',
     );
+  });
+
+  // S5 §4.9: photos go to the stack's bucket with the instance role in production, MinIO elsewhere.
+  test('production requires PHOTOS_BUCKET and no MinIO defaults; elsewhere MinIO is the default', () => {
+    const prod = {
+      ...valid,
+      NODE_ENV: 'production',
+      ORIGIN_VERIFY_SECRET: 'y'.repeat(32),
+      PUBLIC_BASE_URL: 'https://example.cloudfront.net',
+    };
+    expect(() => loadConfig(prod)).toThrow(/PHOTOS_BUCKET/);
+    expect(loadConfig({ ...prod, PHOTOS_BUCKET: 'b' + 'x'.repeat(5) })).toMatchObject({
+      PHOTOS_BUCKET: 'bxxxxx',
+      S3_REGION: 'eu-west-2',
+      S3_ENDPOINT: undefined,
+      S3_ACCESS_KEY_ID: undefined,
+      S3_SECRET_ACCESS_KEY: undefined,
+    });
+    expect(loadConfig(valid)).toMatchObject({
+      PHOTOS_BUCKET: 'velio-photos',
+      S3_ENDPOINT: 'http://localhost:9000',
+      S3_ACCESS_KEY_ID: 'velio-local',
+    });
   });
 });

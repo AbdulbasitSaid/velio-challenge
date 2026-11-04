@@ -224,6 +224,7 @@ describe('connection and topics', () => {
         CONTACT_PEPPER: TEST_PEPPER,
         ORIGIN_VERIFY_SECRET: 'x'.repeat(32),
         PUBLIC_BASE_URL: 'https://example.cloudfront.net',
+        PHOTOS_BUCKET: 'velio-photos-test',
       }),
       db,
       logger: createLogger('silent'),

@@ -45,6 +45,26 @@ services:
       timeout: 3s
       retries: 30
 
+  # Creates the photos bucket (S5 §4.9) and lets browsers read photos/ without signing, as
+  # CloudFront does in production. Chainguard's mc, pinned by digest; it has no shell, so one
+  # command per service. MinIO answers CORS for any origin by default.
+  minio-bucket:
+    image: cgr.dev/chainguard/minio-client@sha256:1dccd2a6fd59914a98ac2d9dad95e552c91243cb0bd7242aaa224802df4b3432
+    command: ['mb', '--ignore-existing', 'local/velio-photos']
+    environment: &mc-host
+      MC_HOST_local: http://${MINIO_ROOT_USER:-velio-local}:${MINIO_ROOT_PASSWORD:-velio-local-only}@minio:9000
+    depends_on:
+      minio:
+        condition: service_healthy
+
+  minio-photos-public:
+    image: cgr.dev/chainguard/minio-client@sha256:1dccd2a6fd59914a98ac2d9dad95e552c91243cb0bd7242aaa224802df4b3432
+    command: ['anonymous', 'set', 'download', 'local/velio-photos/photos']
+    environment: *mc-host
+    depends_on:
+      minio-bucket:
+        condition: service_completed_successfully
+
   # The image has no shell, so Docker cannot probe it from inside. Its health_check
   # extension is published on 127.0.0.1:13133 for checks from the host.
   otel-collector:

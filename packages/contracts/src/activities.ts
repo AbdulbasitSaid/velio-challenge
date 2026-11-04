@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { PublicPerson } from './people';
+import { PhotoKey } from './uploads';
 
 /** Where an activity happens (Google Maps spec FR-005). `lat`/`lng` are WGS 84 degrees. */
 export const Location = z
@@ -31,6 +32,8 @@ export const ActivityCreate = z
     priceMinor: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
     currency: z.string().regex(/^[A-Z]{3}$/),
     capacity: z.number().int().min(1).max(100_000),
+    /** From `POST /uploads/photos`, uploaded by the caller. */
+    photoKey: PhotoKey.optional(),
   })
   .meta({ id: 'ActivityCreate' });
 export type ActivityCreate = z.infer<typeof ActivityCreate>;
@@ -38,7 +41,7 @@ export type ActivityCreate = z.infer<typeof ActivityCreate>;
 /**
  * Any subset of the editable fields. Date, time zone and location are locked once the activity
  * has a confirmed booking (`location_locked`). Capacity can't go below confirmed bookings
- * (`capacity_below_bookings`).
+ * (`capacity_below_bookings`). The photo stays editable; `photoKey: null` removes it.
  */
 export const ActivityPatch = z
   .object({
@@ -48,6 +51,7 @@ export const ActivityPatch = z
     timezone: ActivityCreate.shape.timezone,
     location: Location,
     capacity: ActivityCreate.shape.capacity,
+    photoKey: PhotoKey.nullable(),
   })
   .partial()
   .meta({ id: 'ActivityPatch' });
@@ -81,6 +85,7 @@ export const HostActivity = z
     bookedCount: z.number().int(),
     version: z.number().int(),
     bookingsPaused: z.boolean(),
+    photoKey: PhotoKey.nullable(),
     createdAt: z.iso.datetime({ offset: true }),
   })
   .meta({ id: 'HostActivity' });
@@ -106,7 +111,7 @@ export const PublicActivity = z
     id: z.uuid(),
     title: z.string(),
     description: z.string(),
-    /** Null until photo upload exists (S5). */
+    /** `/photos/<key>` on the app's origin (CloudFront in production), or null without a photo. */
     photoUrl: z.string().nullable(),
     startsAt: z.iso.datetime({ offset: true }),
     timezone: z.string(),

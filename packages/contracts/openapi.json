@@ -431,6 +431,9 @@
           "bookingsPaused": {
             "type": "boolean"
           },
+          "photoKey": {
+            "$ref": "#/components/schemas/PhotoKey"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -452,6 +455,7 @@
           "bookedCount",
           "version",
           "bookingsPaused",
+          "photoKey",
           "createdAt"
         ]
       },
@@ -501,6 +505,13 @@
           "lng"
         ]
       },
+      "PhotoKey": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "pattern": "^[0-9a-f-]{36}\\/[0-9a-f-]{36}\\.(webp|jpg|avif)$"
+      },
       "ActivityCreate": {
         "type": "object",
         "properties": {
@@ -543,6 +554,9 @@
             "type": "integer",
             "minimum": 1,
             "maximum": 100000
+          },
+          "photoKey": {
+            "$ref": "#/components/schemas/PhotoKey"
           }
         },
         "required": [
@@ -584,8 +598,77 @@
             "type": "integer",
             "minimum": 1,
             "maximum": 100000
+          },
+          "photoKey": {
+            "$ref": "#/components/schemas/PhotoKey"
           }
         }
+      },
+      "PhotoUploadResponse": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "$ref": "#/components/schemas/PhotoKey"
+          },
+          "uploads": {
+            "type": "object",
+            "properties": {
+              "large": {
+                "$ref": "#/components/schemas/PresignedPost"
+              },
+              "small": {
+                "$ref": "#/components/schemas/PresignedPost"
+              }
+            },
+            "required": [
+              "large",
+              "small"
+            ]
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "key",
+          "uploads",
+          "expiresAt"
+        ]
+      },
+      "PresignedPost": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "fields": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "url",
+          "fields"
+        ]
+      },
+      "PhotoUploadRequest": {
+        "type": "object",
+        "properties": {
+          "contentType": {
+            "type": "string",
+            "enum": [
+              "image/webp",
+              "image/jpeg",
+              "image/avif"
+            ]
+          }
+        },
+        "required": [
+          "contentType"
+        ]
       },
       "BookingResponse": {
         "type": "object",
@@ -2103,7 +2186,7 @@
             }
           },
           "400": {
-            "description": "`validation_failed`",
+            "description": "`validation_failed`, including a `photoKey` the caller did not upload",
             "content": {
               "application/json": {
                 "schema": {
@@ -2188,7 +2271,7 @@
             }
           },
           "400": {
-            "description": "`validation_failed`",
+            "description": "`validation_failed`, including a `photoKey` the caller did not upload",
             "content": {
               "application/json": {
                 "schema": {
@@ -2209,6 +2292,62 @@
           },
           "404": {
             "description": "`not_found`: unknown community",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/uploads/photos": {
+      "post": {
+        "summary": "Presigned uploads for an activity photo",
+        "description": "Returns two S3 presigned POSTs, for the 1280 px and 640 px variants, each limited to 2 MB of the requested type and valid for 10 minutes. Upload both, then pass `key` as `photoKey` on `POST /activities` or `PATCH /activities/{id}`.",
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PhotoUploadRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Upload targets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhotoUploadResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`validation_failed`: unsupported type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "`unauthenticated`",
             "content": {
               "application/json": {
                 "schema": {

@@ -7,6 +7,7 @@ import { requireUser } from '../identity/middleware';
 import { createActivity, updateActivity } from './service';
 import { buildSnapshot } from './snapshot';
 import { staticMapUrl } from '../maps/static';
+import type { PhotoStore } from '../uploads/photos';
 
 const createActivityRoute = createRoute({
   method: 'post',
@@ -19,7 +20,7 @@ const createActivityRoute = createRoute({
   },
   responses: {
     201: { description: 'Created', content: { 'application/json': { schema: HostActivity } } },
-    400: errorResponse('`validation_failed`'),
+    400: errorResponse('`validation_failed`, including a `photoKey` the caller did not upload'),
     401: errorResponse('`unauthenticated`'),
     404: errorResponse('`not_found`: unknown community'),
   },
@@ -39,7 +40,7 @@ const updateActivityRoute = createRoute({
   },
   responses: {
     200: { description: 'Updated', content: { 'application/json': { schema: HostActivity } } },
-    400: errorResponse('`validation_failed`'),
+    400: errorResponse('`validation_failed`, including a `photoKey` the caller did not upload'),
     401: errorResponse('`unauthenticated`'),
     403: errorResponse('`forbidden`: not the host'),
     404: errorResponse('`not_found`'),
@@ -61,9 +62,16 @@ const snapshotRoute = createRoute({
   },
 });
 
-export function activityRoutes(deps: AppDeps) {
+export function activityRoutes(deps: AppDeps, photos: PhotoStore) {
   const app = new OpenAPIHono<AppEnv>();
   const mapUrl = staticMapUrl(deps.config);
+
+  /** FR-014: only a photo the caller uploaded can be attached. */
+  async function assertOwnPhoto(photoKey: string | null | undefined, userId: string) {
+    if (photoKey && !(await photos.isUploadedBy(photoKey, userId))) {
+      throw new ApiError('validation_failed', 'Invalid request: photoKey.');
+    }
+  }
 
   app.openapi(snapshotRoute, async (c) => {
     const snapshot = await buildSnapshot(deps.db, c.req.valid('param').id, c.var.user?.id ?? null, mapUrl);
@@ -73,6 +81,7 @@ export function activityRoutes(deps: AppDeps) {
   });
 
   app.openapi(createActivityRoute, async (c) => {
+    await assertOwnPhoto(c.req.valid('json').photoKey, c.var.user!.id);
     const activity = await createActivity(deps.db, {
       hostId: c.var.user!.id,
       body: c.req.valid('json'),
@@ -82,6 +91,7 @@ export function activityRoutes(deps: AppDeps) {
   });
 
   app.openapi(updateActivityRoute, async (c) => {
+    await assertOwnPhoto(c.req.valid('json').photoKey, c.var.user!.id);
     const activity = await updateActivity(deps.db, {
       activityId: c.req.valid('param').id,
       userId: c.var.user!.id,

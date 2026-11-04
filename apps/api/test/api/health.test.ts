@@ -84,6 +84,7 @@ describe('origin lockdown', () => {
       NODE_ENV: 'production',
       ORIGIN_VERIFY_SECRET: secret,
       PUBLIC_BASE_URL: 'https://example.cloudfront.net',
+      PHOTOS_BUCKET: 'velio-photos-test',
     });
 
   test('in production, requests without X-Origin-Verify are forbidden', async () => {

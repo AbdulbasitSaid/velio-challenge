@@ -18,4 +18,6 @@ new AppStack(app, 'VelioApp', {
   // `gh api repos/AbdulbasitSaid/velio-challenge/actions/oidc/customization/sub` → sub_claim_prefix.
   githubRepository: 'AbdulbasitSaid@16627656/velio-challenge@1443959310',
   createGithubOidcProvider: app.node.tryGetContext('velio:createGithubOidcProvider') !== false,
+  // The distribution's hostname is stable: it must never be deleted (MVP plan §8).
+  appOrigin: 'https://depimls1pcvv4.cloudfront.net',
 });

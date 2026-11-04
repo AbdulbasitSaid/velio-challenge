@@ -1,7 +1,7 @@
 #!/bin/bash
 # Deploys one commit on the app instance. Runs as root through SSM, started by
 # .github/workflows/deploy.yml (or by hand, README "Deploy"):
-#   deploy.sh <commit sha>
+#   deploy.sh <commit sha> <photos bucket>
 # The bundle s3://$DEPLOY_BUCKET/<sha>/ holds this script, the Compose file, the collector
 # configs and backup.sh. Order: write .env from Secrets Manager, pull, start Postgres and the
 # collector, migrate, then restart the API and the web app. If either never becomes healthy, the
@@ -9,8 +9,10 @@
 set -euo pipefail
 
 SHA="${1:-}"
-if [[ ! "$SHA" =~ ^[0-9a-f]{40}$ ]]; then
-  echo "usage: deploy.sh <40-character commit sha>" >&2
+# The stack's PhotosBucket output, passed by the workflow (user data predates it).
+PHOTOS_BUCKET="${2:-}"
+if [[ ! "$SHA" =~ ^[0-9a-f]{40}$ || ! "$PHOTOS_BUCKET" =~ ^[a-z0-9.-]{3,63}$ ]]; then
+  echo "usage: deploy.sh <40-character commit sha> <photos bucket>" >&2
   exit 2
 fi
 
@@ -62,6 +64,7 @@ GRAFANA_OTLP_ENDPOINT='$grafana_endpoint'
 GRAFANA_OTLP_AUTH='$grafana_auth'
 GOOGLE_MAPS_SERVER_KEY='$google_maps_server_key'
 GOOGLE_MAPS_SIGNING_SECRET='$google_maps_signing_secret'
+PHOTOS_BUCKET='$PHOTOS_BUCKET'
 EOF
   mv "$tmp" /opt/velio/.env
 }

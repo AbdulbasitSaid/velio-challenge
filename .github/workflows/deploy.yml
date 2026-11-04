@@ -60,7 +60,7 @@ jobs:
       - name: Read stack outputs
         run: |
           aws cloudformation describe-stacks --stack-name VelioApp --query 'Stacks[0].Outputs' --output json |
-            jq -r '.[] | select(.OutputKey | IN("DistributionDomain", "InstanceId", "DeployBucket")) | "\(.OutputKey)=\(.OutputValue)"' \
+            jq -r '.[] | select(.OutputKey | IN("DistributionDomain", "InstanceId", "DeployBucket", "PhotosBucket")) | "\(.OutputKey)=\(.OutputValue)"' \
             >> "$GITHUB_ENV"
 
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
@@ -116,7 +116,7 @@ jobs:
         run: |
           script="set -euo pipefail
           aws s3 cp --quiet --region ${AWS_REGION} s3://${DeployBucket}/${SHA}/deploy.sh /opt/velio/deploy.sh
-          bash /opt/velio/deploy.sh ${SHA}"
+          bash /opt/velio/deploy.sh ${SHA} ${PhotosBucket}"
           command_id=$(aws ssm send-command --instance-ids "$InstanceId" --document-name AWS-RunShellScript \
             --comment "deploy ${SHA:0:12}" --timeout-seconds 60 \
             --parameters "$(jq -n --arg s "$script" '{commands: [$s], executionTimeout: ["900"]}')" \

@@ -26,6 +26,13 @@ const Config = z
     /** Static Maps (S6 §4.6): server key and URL-signing secret. Either unset → `staticMapUrl` is null (PRD A7). */
     GOOGLE_MAPS_SERVER_KEY: z.string().min(1).optional(),
     GOOGLE_MAPS_SIGNING_SECRET: z.string().min(1).optional(),
+    /** Activity photos (S5 §4.9). Required in production; locally the MinIO bucket from Compose. */
+    PHOTOS_BUCKET: z.string().min(1).optional(),
+    S3_REGION: z.string().min(1).default('eu-west-2'),
+    /** MinIO locally (path-style). Unset in production: the AWS endpoint and the instance role. */
+    S3_ENDPOINT: z.url().optional(),
+    S3_ACCESS_KEY_ID: z.string().min(1).optional(),
+    S3_SECRET_ACCESS_KEY: z.string().min(1).optional(),
   })
   .refine((c) => c.NODE_ENV !== 'production' || c.ORIGIN_VERIFY_SECRET !== undefined, {
     path: ['ORIGIN_VERIFY_SECRET'],
@@ -35,10 +42,22 @@ const Config = z
     path: ['PUBLIC_BASE_URL'],
     message: 'required when NODE_ENV=production',
   })
-  .transform((c) => ({
-    ...c,
-    PUBLIC_BASE_URL: (c.PUBLIC_BASE_URL ?? 'http://localhost:3000').replace(/\/+$/, ''),
-  }));
+  .refine((c) => c.NODE_ENV !== 'production' || c.PHOTOS_BUCKET !== undefined, {
+    path: ['PHOTOS_BUCKET'],
+    message: 'required when NODE_ENV=production',
+  })
+  .transform((c) => {
+    // Outside production, default to the MinIO service in infra/docker-compose.yml.
+    const local = c.NODE_ENV !== 'production';
+    return {
+      ...c,
+      PUBLIC_BASE_URL: (c.PUBLIC_BASE_URL ?? 'http://localhost:3000').replace(/\/+$/, ''),
+      PHOTOS_BUCKET: c.PHOTOS_BUCKET ?? 'velio-photos',
+      S3_ENDPOINT: c.S3_ENDPOINT ?? (local ? 'http://localhost:9000' : undefined),
+      S3_ACCESS_KEY_ID: c.S3_ACCESS_KEY_ID ?? (local ? 'velio-local' : undefined),
+      S3_SECRET_ACCESS_KEY: c.S3_SECRET_ACCESS_KEY ?? (local ? 'velio-local-only' : undefined),
+    };
+  });
 
 export type Config = z.infer<typeof Config>;
 

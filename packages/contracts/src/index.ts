@@ -9,3 +9,4 @@ export * from './people';
 export * from './plans';
 export * from './realtime';
 export * from './session';
+export * from './uploads';

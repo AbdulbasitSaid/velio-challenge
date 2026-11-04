@@ -33,6 +33,11 @@ export interface AppStackProps extends StackProps {
   githubRepository: string;
   /** False when the account already has GitHub's OIDC provider; it is then referenced, not created. */
   createGithubOidcProvider: boolean;
+  /**
+   * The app's origin, `https://<distribution>.cloudfront.net`: browsers POST photos to the bucket from
+   * it (S5 §4.9). A prop, because the bucket's CORS can't reference the distribution that uses it.
+   */
+  appOrigin: string;
 }
 
 const API_PORT = 3001;
@@ -80,6 +85,8 @@ export class AppStack extends Stack {
       ...bucketDefaults,
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
+      // Presigned POSTs from the browser (S5 FR-041). The policy in each POST limits key, type and size.
+      cors: [{ allowedOrigins: [props.appOrigin], allowedMethods: [s3.HttpMethods.POST], maxAge: 3600 }],
     });
     const backups = new s3.Bucket(this, 'Backups', {
       ...bucketDefaults,
@@ -120,6 +127,9 @@ export class AppStack extends Stack {
     for (const secret of secrets) secret.grantRead(role);
     deploy.grantRead(role);
     backups.grantPut(role);
+    // The API presigns photo uploads and checks they exist (S5 §4.9): signatures carry the role's rights.
+    photos.grantPut(role, 'photos/*');
+    photos.grantRead(role, 'photos/*');
 
     const userData = ec2.UserData.forLinux();
     userData.addCommands(
