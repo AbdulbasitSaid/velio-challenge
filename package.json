@@ -20,6 +20,7 @@
     "db:migrate": "docker compose -f infra/docker-compose.yml run --rm dbmate up && docker compose -f infra/docker-compose.yml run --rm -e DATABASE_URL=postgres://postgres@postgres:5432/velio_test?sslmode=disable dbmate up",
     "db:codegen": "kysely-codegen --dialect postgres --url postgres://postgres@localhost:5432/velio_test --exclude-pattern schema_migrations --out-file apps/api/src/db/types.ts",
     "contracts:openapi": "bun apps/api/scripts/openapi.ts",
+    "contracts:dart": "bash packages/api-client-dart/generate.sh",
     "tokens:build": "bun packages/design-tokens/build.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

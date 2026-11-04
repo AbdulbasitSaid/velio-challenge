@@ -106,6 +106,41 @@ In progress (2026-11-04): T1–T10 done locally; T11 (deployed stack, real phone
 | V-CI-1 | `bun run format:check && bun run lint && bun run typecheck && bun run web:test` (117) and `bun test` | 2026-11-04 | Pass, except the known macOS `somaxconn` race failures (3 of 265, 200-parallel tests; S4 Part B) | NFR-007 |
 | V-MAP-2 (part) | The API's `staticMapUrl` signer with the values stored in `velio/prod/google-maps` (project `velio-maps-5eb36a`), fetched from Google; then the same URL with a wrong signature | 2026-11-04 | Pass: signed `200 image/png`; wrong signature `403`. The check on the deployed page follows the next deploy | FR-016, SEC-004 |
 
+### Deployed checks (T11, commit `90c8ca2`)
+
+Run 2026-11-04 against `https://depimls1pcvv4.cloudfront.net`. Test data was made through the public API by the S5 run's "E2E" users: activity "E2E Invite check" (3 spots, hosted by E2E Guest Two, booked by E2E Guest One) with public link `VVD5CQ` and vouch `K4B4AJ`; on "E2E Sunset walk" (with a photo), Guest Two's public link `U3K6CE` and vouch `J6SRZG`; a third user "E2E Guest Three". The owner's account was signed in to Chrome.
+
+| Check | Command or procedure | Date | Result | Covers |
+| --- | --- | --- | --- | --- |
+| V-OG-1 (deployed) | `curl -A "WhatsApp/2.23.20.0"` on `/i/VVD5CQ`, `/i/K4B4AJ`, `/i/U3K6CE`; unknown code; lowercase code | 2026-11-04 | Pass: public and vouch titles ("Join the group going to …", "{Inviter} wants you on …"), description with the date, venue and live spots, absolute `og:url`, `noindex, nofollow`, `private, no-store`, CloudFront `Miss`. With a photo: absolute `og:image` (WebP, `200`) and `summary_large_image`; without one, `summary` and no image. `ZZZZZZ` → `404`; `vvd5cq` → `308` to `/i/VVD5CQ`. Risk for V-E2E-1: WhatsApp's support for WebP previews is uneven | FR-006, SEC-003 |
+| V-OPEN-1 (deployed) | `/i/K4B4AJ` opened by full page loads in Chrome, the WhatsApp fetch above; then the Plan view as the inviter | 2026-11-04 | Pass, with finding F1: K4B4AJ shows `opened` with exactly 1 open (the browser device; the WhatsApp fetch isn't counted; reloads don't add). **F1:** the page's own beacon on a full page load gets **`503`** in the browser, three loads out of three, though the open is recorded. The same request from the page's console, a client-side remount, or `curl` gets `204`. The API returns `503` only from `/readyz`, so it's added between CloudFront and the browser. Not diagnosed: CloudFront and API logs were unreachable (the AWS tool disconnected). Users don't see it (the beacon ignores errors), but it adds 5xx at CloudFront | FR-005, AC-002 |
+| V-MAP-2 (deployed) | Chrome network log on `/i/VVD5CQ` | 2026-11-04 | Pass: signed `maps/api/staticmap` (`600x300`, `scale=2`) `200` | FR-016, SEC-004 |
+| V-MAP-3 (part) | Same log | 2026-11-04 | Pass in part: no `maps.googleapis.com/maps/api/js` on the invite page. "Loaded only near the scroll" not shown: in a 1440 px-tall window the map is in the first screen (top at 996 px) | FR-014, FR-015 |
+| V-RT-1 (deployed) | `/i/VVD5CQ` open in Chrome (G2, 2 left); Guest Three claimed through the API; the host lowered capacity to 2 through the API; then removed Guest Three's booking | 2026-11-04 | Pass: 2 → "Last spot" live; G2 → G5 ("This one filled up before you got here.", "Tell E2E", the host's other dates, "More in Explore Kenya") live; G5 → G2 with Claim live, each within 3 s and no reload. Offline: unit test only (no DevTools offline). Finding D3 below | FR-004, FR-013 |
+| V-CLM-1 (deployed, signed in) | Chrome as the owner: "Claim my spot" → "Claiming as …" with "Not you?" → "Confirm my spot" | 2026-11-04 | Pass: G4 "You're in, Abdulbasit.", `VLO-` ref, the group with "Via E2E", "See the plan", Vouch and Share link, the map, meeting point and directions; the claim key is gone from `sessionStorage`. Signed-out claim on the deployed stack not run (it creates an account; owner step) | FR-007, FR-008, FR-010 |
+| V-PERF-1 | `npx lighthouse@13.6.0` (latest, published 2026-10-27), default mobile preset (412 px, DPR 1.75, simulated throttling), performance and accessibility, three runs each on G1 `/i/J6SRZG` and G2 `/i/U3K6CE` (signed out, the photo activity) | 2026-11-04 | Pass. Median G1: FCP 939 ms, LCP 1723 ms, TBT 24 ms, CLS 0.000, 300 kB total. G2: FCP 793 ms, LCP 1372 ms, TBT 20 ms, CLS 0.005, 389 kB. Performance and accessibility scores 1.00 on all six | NFR-001 |
+| V-PERF-2 (deployed) | Lighthouse network items (G2 run 1); `curl` of a real photo's variants | 2026-11-04 | JS: 180 kB script transfer (≤ 200 kB, NFR-002 as amended): pass. Hero: the test photo (synthetic) is 8.9 kB, but a real upload on the stack (`c7f317a0…`) is 332 kB at 1280 px and 125 kB at 640 px; at DPR 1.75 a phone picks the 1280 px file. **Fails** the ~60 kB hero target for real photos (finding D4) | NFR-002 |
+
+**Findings (open; owner to decide):**
+
+- **F1.** Open beacon `503` on full page loads (V-OPEN-1 above). Needs CloudFront access logs or the API's logs for one of those requests.
+- **D3.** G1/G2's "{Name} is going" line and avatar stack stay as the server rendered them: a live `spots` event changes only the count (`components/invite/invite-live.tsx`, `activity.members`). Same defect and fix as S5's D1.
+- **D4.** Real photos are far over the invite hero budget: S5's browser encoder writes WebP at quality 0.8, which gives 332 kB / 125 kB for a real 1280 / 640 px photo. Options: lower quality, a smaller large variant, or a `sizes` that lets phones take 640 px. A design change to S5 §4.9 and S6's hero, so not changed here.
+
+**Test data added on the deployed stack:** "E2E Invite check"; invites `VVD5CQ`, `K4B4AJ`, `U3K6CE`, `J6SRZG`; user "E2E Guest Three" and their removed booking; the owner's booking on "E2E Invite check"; Guest Two's booking on "E2E Sunset walk"; Lighthouse's six runs added opens to `J6SRZG` and `U3K6CE` (headless Chrome isn't filtered as a bot); four probe opens on `VVD5CQ`.
+
 ### Not run yet
 
-- V-MAP-2 on the deployed page (needs a deploy after the secret was stored, 2026-11-04), V-MAP-3, V-PERF-1 (Lighthouse on the deployed page), V-A11Y-1 (VoiceOver), V-E2E-1 (real phone, WhatsApp preview), V-DL-2 (with S7), V-SEC-1 network inspection on the deployed stack.
+Updated 2026-11-04 after the deployed run above.
+
+- V-E2E-1: real phone with WhatsApp (owner).
+- V-A11Y-1: VoiceOver on a phone (owner); Lighthouse accessibility scored 1.00 above, keyboard and axe not run on the deployed stack.
+- V-DL-2: needs S7's Android app.
+- V-CLM-1 signed out and "Not you?" on the deployed stack (creates an account: owner step); both passed locally.
+- V-SEC-1 network inspection of a signed-out claim on the deployed stack (no contact is sent in a signed-in claim); passed locally.
+- V-STATE-1 for every state on the deployed stack: G1, G2, G4 and G5 seen above; the rest passed locally.
+- V-RESP-1 at five widths on the deployed stack: the invite pages rendered without overflow at 712 px; the 360 px check ran locally.
+
+### Final validation status
+
+**Not final** (2026-11-04): deployed checks pass except V-PERF-2's hero budget (D4); findings F1, D3, D4 open; the owner's real-phone checks (V-E2E-1, V-A11Y-1 VoiceOver) and V-DL-2 (S7) remain.

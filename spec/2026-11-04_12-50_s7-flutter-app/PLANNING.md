@@ -2,7 +2,7 @@
 
 - **Spec ID:** 2026-11-04_12-50_s7-flutter-app
 - **Created:** 2026-11-04 12:50 (local)
-- **Status:** Approved
+- **Status:** Approved for implementation
 - **Phase:** 4, Clients (`ROADMAP.md`), alongside S5 and S6
 - **Parent:** `spec/2026-11-03_07-42_group-bookings-mvp-plan/` (approved), delivery step S7
 - **Builds on:** S1 (contracts, OpenAPI, sessions with `X-Client: mobile`), S3 (snapshot, realtime), S4 (invites, claims, Plan and read APIs); uses `packages/design-tokens` from S5 T2; deep-link files served by S6
@@ -234,3 +234,4 @@ Large: nine screens with offline, live and native map behavior, a generated clie
 - 2026-11-04 12:50: created, together with S5 and S6.
 - 2026-11-04: owner answers. Q1 no Apple Developer account: iOS Universal Links removed from scope. Q2 no distribution: CI release APK and release keystore removed; App Links verified with the debug keystore. Q3 app ID `io.github.abdulbasitsaid.velio` and Q4 extra screens accepted as recommended. Google Cloud project to be created under the owner's Google account (S5 §12 Q2).
 - 2026-11-04: approved by the owner.
+- 2026-11-04: owner authorized implementation (after S6's deployed run).
