@@ -22,9 +22,12 @@ Future<void> waitFor(WidgetTester t, Finder f, {Duration timeout = const Duratio
 
 Future<void> tapText(WidgetTester t, String text) async {
   await waitFor(t, find.text(text));
+  // On a phone the keyboard may still be open; close it and let the layout settle before tapping.
+  FocusManager.instance.primaryFocus?.unfocus();
+  await t.pump(const Duration(milliseconds: 800));
   final f = find.text(text).first;
   await t.ensureVisible(f);
-  await t.pump(const Duration(milliseconds: 300));
+  await t.pump(const Duration(milliseconds: 500));
   await t.tap(f);
   await t.pump(const Duration(milliseconds: 300));
 }
