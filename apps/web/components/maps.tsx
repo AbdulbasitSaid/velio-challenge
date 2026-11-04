@@ -1,5 +1,6 @@
-// Map surfaces from the approved design system. T10 replaces the representative art with Google Maps
-// (static image, interactive map, picker, community map); the fallback states and copy are final.
+// Map surfaces from the approved design system, server-renderable: the static image, the location
+// block and the fallback states. The live Google Maps versions are in maps-live.tsx (T10). The
+// representative art remains for design previews and tests.
 import type { ReactNode } from 'react';
 import { Button, Chip, cx, Icon, TextField } from './primitives';
 
@@ -138,6 +139,7 @@ export function LocationBlock({
   onCopy,
   tapHint,
   ratio,
+  mapSlot,
 }: {
   venue: string;
   address: string;
@@ -151,15 +153,24 @@ export function LocationBlock({
   onCopy?: () => void;
   tapHint?: boolean;
   ratio?: string;
+  /** Replaces the map, e.g. B1's explorable map (`ExploreMap`, maps-live.tsx). */
+  mapSlot?: ReactNode;
 }) {
   return (
     <section className="vl-location" aria-label="Location">
       {title === false ? null : (
         <h3 style={{ margin: 0, font: '700 17px/24px var(--font-body)' }}>{title}</h3>
       )}
-      {map ? (
-        <MapView state={mapState} venue={venue} staticMapUrl={staticMapUrl} tapHint={tapHint} ratio={ratio} />
-      ) : null}
+      {mapSlot ??
+        (map ? (
+          <MapView
+            state={mapState}
+            venue={venue}
+            staticMapUrl={staticMapUrl}
+            tapHint={tapHint}
+            ratio={ratio}
+          />
+        ) : null)}
       <div className="vl-location-text">
         <Icon name="pin" />
         <span>
@@ -193,7 +204,7 @@ export function LocationBlock({
 export const PIN_PUBLIC_NOTE =
   'The pin, address and meeting point are public. Anyone who sees this activity can see exactly where it is. They lock once someone books.';
 
-/** Visual states of the H2 picker. T10 drives them from Places and the map. */
+/** Visual states of the H2 picker, for previews. Screens use `LocationPickerLive` (maps-live.tsx). */
 export function LocationPicker({
   state = 'empty',
   query = '',

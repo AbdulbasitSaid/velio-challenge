@@ -135,7 +135,7 @@
 
 ## Part B: Executed checks
 
-In progress. Phase A (T1–T7) and T8 recorded 2026-11-04; T9–T16 follow.
+In progress. Phase A (T1–T7) and Phase B (T8–T10) recorded 2026-11-04; T11–T16 follow.
 
 ### V-VER-1: versions (looked up 2026-11-04 with `npm view`, nodejs.org and `docker buildx imagetools inspect`)
 
@@ -182,6 +182,15 @@ In progress. Phase A (T1–T7) and T8 recorded 2026-11-04; T9–T16 follow.
 | V-CDK (T8) | `bun test infra/aws` (15) | 2026-11-04 | Pass: photos bucket CORS is POST from the app origin only; instance role has `PutObject`/`GetObject*` on `photos/*` and no delete | FR-041 |
 | V-CI-1 (T8) | `bun run format:check && bun run lint && bun run typecheck && bun run contracts:openapi && bun run web:test && bun run web:build`; `bun test`; the CI MinIO step (`compose run --rm minio-photos-public`) | 2026-11-04 | Pass (web 117). `bun test`: 272 pass, 3 fail, the known macOS `somaxconn` 200-parallel races; the same tests fail on the tree without T8 | NFR-007 |
 
+### Phase B checks (T9–T10)
+
+| Check | Command or procedure | Date | Result | Covers |
+| --- | --- | --- | --- | --- |
+| V-VER-1 (T10) | `npm view @googlemaps/js-api-loader version`, `@types/google.maps` | 2026-11-04 | 2.1.3 and 3.66.9, pinned; marker clusterer not used (PLANNING change log) | — |
+| V-MAP-unit | `bunx vitest run test/maps.test.tsx` (13), fake `google.maps` and mocked loader | 2026-11-04 | Pass: 10 m nudge and accumulation; pixel clustering; search → keyboard pick prefills place ID, venue, address, pin, without a second search; no-results and search-failed copy; drop pin, drag (idle), venue edit; no-Maps manual fields with coordinate validation; failed load → manual fields; locked; static image loads no script until tapped; "Show the map"; clusters, marker card, cluster zoom, map click closes; unavailable → "Show the list instead" | FR-017, FR-018, FR-020, FR-021, NFR-004 |
+| V-MAP-2…6 (components, live) | Chrome on `next dev` with the real browser key, a temporary dev page (deleted after) | 2026-11-04 | Pass: Places (New) suggestions for "Lake Naivasha", keyboard pick fills place ID, venue, address, coordinates; picker map at the pin; 3× ArrowUp/Right = 10 m then (after fix) 30 m; drag moved the pin 320 m; drop pin without a place; "Show the map" → interactive map with pin; community map tiles, cluster "2", marker → card, cluster click splits; no console errors (CSP allows Google). Two bugs found and fixed: suggestions reopening after a pick, and nudges not adding up during a pan | FR-017, FR-018, FR-020, SEC-004 |
+| V-CI-1 (T10) | `bun run format:check && bun run lint && bun run typecheck && bun run web:test && bun run web:build` | 2026-11-04 | Pass (web 130) | NFR-007 |
+
 ### Deploy fix (T7)
 
 | Check | Command or procedure | Date | Result | Covers |
@@ -191,6 +200,7 @@ In progress. Phase A (T1–T7) and T8 recorded 2026-11-04; T9–T16 follow.
 
 ### Not run yet
 
+- V-MAP-2…6 on the real screens (B1, B4, C1 in T11–T12; H2 in T13), V-MAP-5 with Google blocked in the browser, V-MAP-6 network panel, and the deployed key's referrer restriction.
 - V-PH-2 (needs H2, T13) and the dev `/photos` rewrite in a browser (with T13).
 - Production photo uploads: need `bun run aws:deploy` (bucket CORS, instance role), after the push deploys the web container (the same order as V-DEP-1), then an upload through CloudFront. Until then the API starts normally and only uploads fail. Checked so far: `bash -n deploy.sh`, and `docker compose -f infra/docker-compose.prod.yml config` resolves `PHOTOS_BUCKET` and `S3_REGION` for the API.
 - V-DEP-1, V-DEP-2, V-DEP-3 (deployed), V-OBS-1 (collector): need the commit pushed to `master` (the owner's git) and then `bun run aws:deploy` for the CloudFront and security-group change, in that order (the web container must be running before CloudFront's default behavior points at it).

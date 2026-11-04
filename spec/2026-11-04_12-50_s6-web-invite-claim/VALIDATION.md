@@ -104,7 +104,8 @@ In progress (2026-11-04): T1–T10 done locally; T11 (deployed stack, real phone
 | V-PERF-2 (JS) | Production build, `next start`, gzip of every script on `/i/<code>` | 2026-11-04 | 232 kB → **199 kB** after removing Zod from browser code; ~157 kB is React DOM and the Next runtime. NFR-002 amended to ≤ 200 kB (owner). Hero size waits for S5's photo variants (T8) | NFR-002 |
 | V-RESP-1 | Chrome: each invite route's server HTML laid out in a 360 px container; any element past 360 px reported | 2026-11-04 | Pass, no overflow on all nine routes. (DevTools device emulation wasn't available; headless Chrome's minimum window is 500 px) | NFR-006 |
 | V-CI-1 | `bun run format:check && bun run lint && bun run typecheck && bun run web:test` (117) and `bun test` | 2026-11-04 | Pass, except the known macOS `somaxconn` race failures (3 of 265, 200-parallel tests; S4 Part B) | NFR-007 |
+| V-MAP-2 (part) | The API's `staticMapUrl` signer with the values stored in `velio/prod/google-maps` (project `velio-maps-5eb36a`), fetched from Google; then the same URL with a wrong signature | 2026-11-04 | Pass: signed `200 image/png`; wrong signature `403`. The check on the deployed page follows the next deploy | FR-016, SEC-004 |
 
 ### Not run yet
 
-- V-MAP-2 (needs the Google project and the `velio/prod/google-maps` secret), V-MAP-3, V-PERF-1 (Lighthouse on the deployed page), V-A11Y-1 (VoiceOver), V-E2E-1 (real phone, WhatsApp preview), V-DL-2 (with S7), V-SEC-1 network inspection on the deployed stack.
+- V-MAP-2 on the deployed page (needs a deploy after the secret was stored, 2026-11-04), V-MAP-3, V-PERF-1 (Lighthouse on the deployed page), V-A11Y-1 (VoiceOver), V-E2E-1 (real phone, WhatsApp preview), V-DL-2 (with S7), V-SEC-1 network inspection on the deployed stack.
