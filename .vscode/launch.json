@@ -8,13 +8,15 @@
             "name": "mobile",
             "cwd": "apps/mobile",
             "request": "launch",
-            "type": "dart"
+            "type": "dart",
+            "toolArgs": ["--dart-define=MAPS=true"]
         },
         {
             "name": "mobile (profile mode)",
             "cwd": "apps/mobile",
             "request": "launch",
             "type": "dart",
+            "toolArgs": ["--dart-define=MAPS=true"],
             "flutterMode": "profile"
         },
         {
@@ -22,6 +24,7 @@
             "cwd": "apps/mobile",
             "request": "launch",
             "type": "dart",
+            "toolArgs": ["--dart-define=MAPS=true"],
             "flutterMode": "release"
         },
         {

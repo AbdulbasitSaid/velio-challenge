@@ -4,5 +4,5 @@
 const apiBaseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: 'https://depimls1pcvv4.cloudfront.net');
 
 /// Native maps only when the build has a key for this platform (S7 §4.9, FR-018):
-/// `--dart-define=MAPS=1`, set together with the key files.
+/// `--dart-define=MAPS=true` (exactly `true`; `1` reads as false), set together with the key files.
 const mapsEnabled = bool.fromEnvironment('MAPS');

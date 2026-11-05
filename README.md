@@ -76,7 +76,7 @@ flutter test integration_test --dart-define=SMOKE_CODE=<claimable vouch code>   
 flutter test integration_test/parity_test.dart --dart-define=API_BASE_URL=http://localhost:3001   # local only: books, publishes, removes
 ```
 
-- **Maps:** without keys the app shows the address and directions instead of a map. To show native maps, put `MAPS_ANDROID_KEY=…` in `apps/mobile/android/secrets.properties` and `MAPS_IOS_KEY = …` in `apps/mobile/ios/Flutter/Secrets.xcconfig` (both git-ignored), and add `--dart-define=MAPS=1`.
+- **Maps:** without keys the app shows the address and directions instead of a map. To show native maps, put `MAPS_ANDROID_KEY=…` in `apps/mobile/android/secrets.properties` and `MAPS_IOS_KEY = …` in `apps/mobile/ios/Flutter/Secrets.xcconfig` (both git-ignored), and add `--dart-define=MAPS=true` (exactly `true`: `MAPS=1` leaves maps off).
 - **Places search (host create form):** add `--dart-define=PLACES_KEY=…` (a key with Places API (New), ideally restricted to the app; on Android also `--dart-define=ANDROID_CERT_SHA1=…` for the restriction). Without it, hosts drop a pin or type the coordinates.
 - **App Links (Android):** links to `https://<host>/i/<code>` open the app when the host's `/.well-known/assetlinks.json` lists the package and the SHA-256 of the keystore that signed the build (`ANDROID_PACKAGE`, `ANDROID_CERT_SHA256` on the web container). Builds are signed with the local debug keystore. iOS opens the web page; the app is reached by code entry (no Apple Developer account).
 - The app isn't distributed: run it from here on a simulator, emulator or cabled phone.
