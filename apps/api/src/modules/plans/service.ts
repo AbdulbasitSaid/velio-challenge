@@ -4,6 +4,7 @@ import type { Config } from '../../config';
 import type { Db } from '../../db/client';
 import { ApiError } from '../../errors';
 import { buildCards, MEMBER_PREVIEW } from '../activities/snapshot';
+import { createHoldout } from '../flags/holdout';
 import { toMemberPerson } from '../identity/people';
 import { inviteLink } from '../invites/codes';
 import { inviteStats, planInviteStatus } from '../invites/service';
@@ -15,6 +16,8 @@ const person = (id: string | null, name: string | null): MemberPerson | null =>
   id && name ? toMemberPerson({ id, display_name: name }) : null;
 
 export function createPlanService(db: Db, config: Config) {
+  const holdout = createHoldout(db, config.HOLDOUT_PERCENT);
+
   /**
    * PRD L1, Q12, D5 (S4 FR-020): for anyone with a booking in the Plan. Full names, because the
    * reader is a member; codes, links and notes only on the reader's own invites.
@@ -45,6 +48,8 @@ export function createPlanService(db: Db, config: Config) {
       .executeTakeFirst();
     if (!own) throw new ApiError('forbidden');
     const confirmed = own.status === 'confirmed';
+    // A confirmed member before the start has reached an invite surface: log the arm (S8 FR-002, FR-003).
+    const exposed = confirmed && !plan.started && (await holdout.expose(viewerId)) === 'exposed';
 
     const members = await db
       .selectFrom('bookings as b')
@@ -106,7 +111,7 @@ export function createPlanService(db: Db, config: Config) {
       })),
       viewer: {
         booking: { id: own.id, ref: own.ref, status: own.status as Status },
-        canInvite: confirmed && !plan.started,
+        canInvite: exposed,
       },
       invites: invites.map((i) => {
         const s = stats.get(i.id)!;

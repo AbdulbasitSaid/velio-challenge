@@ -57,6 +57,7 @@ bun run web:dev    # http://localhost:3000 (Next.js; proxies /api/* to :3001, th
 | `bun run tokens:build`      | Regenerates the token outputs from `packages/design-tokens/tokens.json`. CI fails on drift. |
 | `bun run load:smoke`        | k6 `last_spot_race` smoke against the local API (needs `bun run dev` running). |
 | `bun run load:viewers`      | k6 `viewers` smoke: 250 sockets watch a `last_spot_race` (needs `bun run dev` running). |
+| `bun run grafana:push`      | Pushes the dashboards and alert rules in `infra/grafana/` to Grafana Cloud. See [Dashboards and alerts](#dashboards-and-alerts). |
 | `bun run aws:synth` · `aws:diff` · `aws:deploy` · `aws:destroy` | CDK for the `VelioApp` stack in eu-west-2. Each needs `-c alertEmail=…`. |
 
 After changing a migration or a route, run `db:codegen` or `contracts:openapi` (then `contracts:dart`) and commit the result; CI fails on drift.
@@ -96,6 +97,8 @@ All variables are documented in [`.env.example`](.env.example). The API refuses 
 | `SESSION_IDLE_DAYS`, `SESSION_ABSOLUTE_DAYS` | Session lifetimes, default 30 and 90.                    |
 | `PUBLIC_BASE_URL` | Origin of invite links (`<origin>/i/<code>`). Required in production; defaults to `http://localhost:3000`. |
 | `LINK_CLAIMS_PER_MINUTE`, `AUTO_PAUSE_MIN_OPENS` | Public-link abuse limits (PRD R7), default 60 and 200. |
+| `HOLDOUT_PERCENT` | Share of users who never get invite tools (PRD holdout), default 10. Tests use 0. |
+| `ADMIN_TOKEN` | Bearer token for `/api/admin/*` and the web `/admin` page, at least 32 characters. Unset: admin answers 404. |
 
 ## Database
 
@@ -126,6 +129,14 @@ All variables are documented in [`.env.example`](.env.example). The API refuses 
 - Each API process holds one `LISTEN` connection (`apps/api/src/modules/realtime/listener.ts`) on `activity_spots`, `plan_changed` and `attendance_changed`. If it drops, the listener reconnects and sends `resync` to every subscribed topic. `/api/readyz` returns 503 while it isn't listening.
 - Clients send `{type:"rendered", activityId, version}` after painting; `realtime_commit_to_ack_seconds` is the PRD's live-update latency, measured on the server clock.
 - Try it from a browser console on a running API: `ws = new WebSocket('ws://localhost:3001/api/ws?platform=web'); ws.onmessage = (e) => console.log(e.data); ws.onopen = () => ws.send(JSON.stringify({type: 'subscribe', topics: ['activity:<id>']}))`.
+
+## Metrics and admin
+
+- **Holdout (`group_invites`):** a stable hash of the user ID puts `HOLDOUT_PERCENT` of users in the holdout. The first time someone reaches invite tools (their Plan before the start, or creating an invite), their arm is stored in `exposures`. Holdout users get `canInvite: false` and `403 invites_unavailable`; web and the app already hide invite tools when `canInvite` is false.
+- **Events:** the server writes the funnel events (`booking_succeeded`, `booking_rejected`, `booking_failed`, `invite_created`, `invite_opened`, `invite_claimed`) in the same transaction as the fact. The web sends `activity_viewed` and Web Vitals to `POST /api/events` (60 a minute per device); vitals become the `web_vitals_seconds` and `web_vitals_cls` histograms and are never stored.
+- **Views:** `v_oversell`, `v_booking_success`, `v_invite_rate`, `v_open_to_claim_by_rail`, `v_k_factor_by_rail`, `v_plans_happened`, `v_guardrail` and `v_holdout` (`apps/api/migrations/20261105090000_metrics_views.sql`). One row per fact, with the timestamp a reporting window applies to; `velio_readonly` can query them.
+- **Admin:** open `/admin` on the web and enter `ADMIN_TOKEN` (kept for the tab only). It shows the PRD goals with targets and triggers, the funnel and K-factor per rail, the plans-happen guardrail and the holdout split, runs the attribution audit, and pauses or resumes bookings for any upcoming activity (the kill switch; existing bookings stay). The same data is at `GET /api/admin/metrics?days=7` with `Authorization: Bearer <token>`. In production the token is the generated `velio/prod/admin-token` secret: `aws secretsmanager get-secret-value --region eu-west-2 --secret-id velio/prod/admin-token --query SecretString --output text`.
+- **Jobs:** the API checks for oversold activities every 5 minutes (gauge `oversell_activities`) and audits every hash chain nightly at 02:00 UTC (gauge `audit_chain_failures`).
 
 ## Telemetry
 
@@ -186,6 +197,16 @@ aws secretsmanager put-secret-value --region eu-west-2 --secret-id velio/prod/gr
 ```
 
 Traces are tail-sampled: every error, everything over 1 s, and 10% of the rest. API logs carry `trace_id`, so a log line links to its trace.
+
+### Dashboards and alerts
+
+Three dashboards (Goals; Booking and realtime; Host and database) and four alert rules (oversell, booking success under 99.5% over 1 h, live-update p95 over 2 s for 15 min, a broken hash chain) live as JSON in `infra/grafana/`. To push them:
+
+1. In the stack: Administration → Users and access → Service accounts → Add service account, role Admin (the alert provisioning API needs it). Add a token with a short expiry.
+2. Put `GRAFANA_URL=https://<stack>.grafana.net` and `GRAFANA_SA_TOKEN=glsa_…` in the root `.env` (git-ignored).
+3. `bun run grafana:push`. It is idempotent: dashboards are matched by UID, and the `velio-goals` rule group is replaced as a whole. Everything lands in the Velio folder.
+
+Alerts go to the stack's default notification policy; check its contact point has your email address.
 
 ### Shell access
 

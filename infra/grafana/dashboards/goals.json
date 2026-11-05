@@ -1,0 +1,412 @@
+{
+  "uid": "velio-goals",
+  "title": "Velio · Goals",
+  "description": "The PRD's technical goals and their alert signals (S8 FR-017). Product goals are on /admin.",
+  "tags": ["velio"],
+  "timezone": "utc",
+  "schemaVersion": 39,
+  "refresh": "1m",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "templating": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Oversold activities (must be 0)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${PROM}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 5
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${PROM}"
+          },
+          "expr": "max(oversell_activities)",
+          "legendFormat": "__auto",
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name"
+      },
+      "description": "From the 5-minute oversell check. Alert: > 0, immediately."
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Booking success, last hour (≥ 99.5%)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${PROM}"
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 5
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${PROM}"
+          },
+          "expr": "sum(increase(booking_attempts_total{outcome=\"success\"}[1h])) / (sum(increase(booking_attempts_total{outcome=\"success\"}[1h])) + (sum(increase(booking_attempts_total{outcome=\"error\"}[1h])) or vector(0)))",
+          "legendFormat": "__auto",
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 0.995
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name"
+      },
+      "description": "Successes ÷ (successes + server errors). Typed refusals such as sold out are not failures. Alert: below 99.5% over 1 h."
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Live updates p95 (≤ 2 s)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${PROM}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 6,
+        "h": 5
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${PROM}"
+          },
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(realtime_commit_to_ack_seconds_bucket[5m])))",
+          "legendFormat": "__auto",
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 2
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name"
+      },
+      "description": "Database commit to client render acknowledgement. Alert: above 2 s for 15 min."
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Broken hash chains (must be 0)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${PROM}"
+      },
+      "gridPos": {
+        "x": 18,
+        "y": 0,
+        "w": 6,
+        "h": 5
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${PROM}"
+          },
+          "expr": "max(audit_chain_failures)",
+          "legendFormat": "__auto",
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name"
+      },
+      "description": "From the nightly attribution audit."
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Booking attempts by outcome",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${PROM}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 5,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${PROM}"
+          },
+          "expr": "sum by (outcome) (rate(booking_attempts_total[5m]))",
+          "legendFormat": "{{outcome}}",
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Live updates p95 by platform",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${PROM}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 5,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${PROM}"
+          },
+          "expr": "histogram_quantile(0.95, sum by (le, platform) (rate(realtime_commit_to_ack_seconds_bucket[5m])))",
+          "legendFormat": "{{platform}}",
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Real-user LCP and FCP p75 by page",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${PROM}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 13,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${PROM}"
+          },
+          "expr": "histogram_quantile(0.75, sum by (le, page) (rate(web_vitals_seconds_bucket{metric=\"LCP\"}[30m])))",
+          "legendFormat": "LCP {{page}}",
+          "range": true
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${PROM}"
+          },
+          "expr": "histogram_quantile(0.75, sum by (le, page) (rate(web_vitals_seconds_bucket{metric=\"FCP\"}[30m])))",
+          "legendFormat": "FCP {{page}}",
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "description": "PRD: invite page first content under 1.5 s on mobile."
+    }
+  ]
+}

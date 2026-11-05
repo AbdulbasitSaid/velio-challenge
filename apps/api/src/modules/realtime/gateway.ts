@@ -12,6 +12,7 @@ import type { AppEnv } from '../../app';
 import type { Db } from '../../db/client';
 import { ApiError } from '../../errors';
 import { errorResponse, SECURITY } from '../../openapi';
+import { createRollingWindow } from '../../telemetry/rolling';
 import type { Logger } from '../../telemetry/logger';
 import { createAckWindow } from './acks';
 import { createListener, type SpotsPayload } from './listener';
@@ -84,6 +85,8 @@ export function createRealtime(deps: RealtimeDeps) {
   /** Subscriber count per topic on this instance, for resync. */
   const topicCounts = new Map<string, number>();
   const acks = createAckWindow();
+  /** The last hour of commit-to-ack latencies, for the admin page's p95 (S8 FR-009). */
+  const latency = createRollingWindow();
   const m = createRealtimeMetrics(() => {
     const counts = new Map<Platform, number>();
     for (const ws of sockets) counts.set(ws.data.platform, (counts.get(ws.data.platform) ?? 0) + 1);
@@ -170,7 +173,9 @@ export function createRealtime(deps: RealtimeDeps) {
     if (ws.data.acked.size > LIMITS.ackedPerSocket) {
       ws.data.acked.delete(ws.data.acked.values().next().value!);
     }
-    m.commitToAck.record(Math.max(0, Date.now() - committedAt) / 1000, { platform: ws.data.platform });
+    const seconds = Math.max(0, Date.now() - committedAt) / 1000;
+    m.commitToAck.record(seconds, { platform: ws.data.platform });
+    latency.record(seconds);
   }
 
   async function handle(ws: Socket, raw: string | Buffer) {
@@ -265,6 +270,7 @@ export function createRealtime(deps: RealtimeDeps) {
         for (const ws of sockets) ws.ping();
       }, deps.pingIntervalMs ?? PING_INTERVAL_MS);
     },
+    latency,
     start: () => listener.start(),
     listening: () => listener.listening(),
     /** On shutdown: close every socket with 1012 (service restart) so clients reconnect at once. */

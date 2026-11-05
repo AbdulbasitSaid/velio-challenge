@@ -16,6 +16,7 @@ const STATUS: Record<ErrorCode, ContentfulStatusCode> = {
   activity_not_started: 409,
   location_locked: 409,
   capacity_below_bookings: 409,
+  invites_unavailable: 403,
   invalid_contact: 400,
   validation_failed: 400,
   unauthenticated: 401,
@@ -43,6 +44,7 @@ const DEFAULT_MESSAGE: Partial<Record<ErrorCode, string>> = {
   rate_limited: 'Too many attempts from this device. Try again in an hour.',
   location_locked: 'Date, time zone and location are locked once someone has booked.',
   capacity_below_bookings: 'Capacity cannot go below the number of confirmed bookings.',
+  invites_unavailable: 'Invites aren’t available on your account.',
 };
 
 /** A typed API error. Thrown anywhere; `app.onError` turns it into the envelope. */

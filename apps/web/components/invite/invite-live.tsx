@@ -21,6 +21,7 @@ import {
   tellInviterMessage,
   whatsappHref,
 } from './parts';
+import { useActivityViewed } from '@/lib/analytics';
 import { apiFetch, apiJson } from '@/lib/api/client';
 import { firstName, formatDay } from '@/lib/format';
 import { selectScreen } from '@/lib/invite-screen';
@@ -66,6 +67,7 @@ export function InviteLive({
     { announce: [activity.id] },
   );
   useOpenBeacon(view.code);
+  useActivityViewed(view.activity.id);
 
   const live = spots[activity.id]!;
 

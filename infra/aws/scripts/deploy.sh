@@ -32,6 +32,7 @@ db_api_password=$(secret db-api-password)
 db_readonly_password=$(secret db-readonly-password)
 contact_pepper=$(secret contact-pepper)
 origin_verify=$(secret origin-verify)
+admin_token=$(secret admin-token)
 
 # Export to Grafana Cloud only once its secret is filled in (README "Grafana Cloud").
 grafana=$(secret grafana)
@@ -59,6 +60,7 @@ DB_API_PASSWORD='$db_api_password'
 DB_READONLY_PASSWORD='$db_readonly_password'
 CONTACT_PEPPER='$contact_pepper'
 ORIGIN_VERIFY_SECRET='$origin_verify'
+ADMIN_TOKEN='$admin_token'
 OTEL_COLLECTOR_EXTRA_CONFIG='$collector_overlay'
 GRAFANA_OTLP_ENDPOINT='$grafana_endpoint'
 GRAFANA_OTLP_AUTH='$grafana_auth'

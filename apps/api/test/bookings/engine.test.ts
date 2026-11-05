@@ -64,7 +64,9 @@ async function counts(activityId: string) {
     SELECT spots_left, version::int,
            (SELECT count(*)::int FROM bookings WHERE activity_id = a.id) AS bookings,
            (SELECT count(*)::int FROM plans WHERE activity_id = a.id) AS plans,
-           (SELECT count(*)::int FROM events WHERE activity_id = a.id) AS events
+           -- booking_failed is written after the rollback, on purpose (S8 FR-005).
+           (SELECT count(*)::int FROM events WHERE activity_id = a.id AND name <> 'booking_failed') AS events,
+           (SELECT count(*)::int FROM events WHERE activity_id = a.id AND name = 'booking_failed') AS failed
       FROM activities a WHERE id = ${activityId}`;
   return row!;
 }
@@ -101,7 +103,7 @@ describe('booking reference', () => {
     const failing = engine(() => 'VLO-CCCCC').bookSpot(direct(activityId, guest));
     expect(failing).rejects.toThrow('collided');
     await failing.catch(() => {});
-    expect(await counts(activityId)).toEqual(before);
+    expect(await counts(activityId)).toEqual({ ...before, failed: before.failed + 1 });
   });
 });
 
@@ -143,7 +145,7 @@ describe('extension point for claims', () => {
     });
     expect(failing).rejects.toThrow('extend failed');
     await failing.catch(() => {});
-    expect(await counts(activityId)).toEqual(before);
+    expect(await counts(activityId)).toEqual({ ...before, failed: before.failed + 1 });
   });
 });
 

@@ -12,6 +12,7 @@ import { activityRows, HostCard, MoreToDo } from '../invite/parts';
 import { LocationBlock } from '../maps';
 import { ExploreMap } from '../maps-live';
 import { AvatarStack, Button, Icon, Photo, SpotsBadge, type SpotsState } from '../primitives';
+import { useActivityViewed } from '@/lib/analytics';
 import { apiJson } from '@/lib/api/client';
 import { attemptKey, clearAttemptKey } from '@/lib/attempt-key';
 import { bookingOutcome, bookingScope } from '@/lib/booking';
@@ -33,6 +34,7 @@ export function ActivityLive({
 }) {
   const router = useRouter();
   const online = useOnline();
+  useActivityViewed(activity.id);
   // The avatar stack: a `spots` event carries only the count, so who's going is refetched after it.
   // A server refresh (new `activity` prop) replaces what was fetched.
   const [fetched, setFetched] = useState<{ base: Members; members: Members } | null>(null);

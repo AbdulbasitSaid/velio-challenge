@@ -51,6 +51,12 @@ export function createLimits(db: Db, clock: () => Date) {
     async linkOverLimit(inviteId: string, perMinute: number): Promise<boolean> {
       return (await increment(`link:${inviteId}`, MINUTE_MS)) > perMinute;
     },
+    /** Counts one request under `key`; true when it is over the per-minute limit (S8). */
+    async overPerMinute(key: string, perMinute: number): Promise<boolean> {
+      return (await increment(key, MINUTE_MS)) > perMinute;
+    },
+    /** This minute's count under `key`, without adding to it. */
+    minuteCount: (key: string) => count(key, MINUTE_MS),
   };
 }
 

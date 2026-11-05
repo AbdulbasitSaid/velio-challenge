@@ -22,6 +22,7 @@
     "contracts:openapi": "bun apps/api/scripts/openapi.ts",
     "contracts:dart": "bash packages/api-client-dart/generate.sh",
     "tokens:build": "bun packages/design-tokens/build.ts",
+    "grafana:push": "bun infra/grafana/push.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",

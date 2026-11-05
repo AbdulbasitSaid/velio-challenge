@@ -198,6 +198,70 @@ export interface Users {
   invite_generation: Generated<number>;
 }
 
+export interface VBookingSuccess {
+  at: Timestamp | null;
+  outcome: string | null;
+}
+
+export interface VGuardrail {
+  bad: boolean | null;
+  booking_id: string | null;
+  invited: boolean | null;
+  starts_at: Timestamp | null;
+}
+
+export interface VHoldout {
+  arm: string | null;
+  booked: boolean | null;
+  first_exposed_at: Timestamp | null;
+  new_users: number | null;
+  user_id: string | null;
+}
+
+export interface VInviteRate {
+  arm: string | null;
+  first_booked_at: Timestamp | null;
+  invited_public: boolean | null;
+  invited_vouch: boolean | null;
+  user_id: string | null;
+}
+
+export interface VKFactorByRail {
+  created_at: Timestamp | null;
+  invite_id: string | null;
+  inviter_id: string | null;
+  new_users: number | null;
+  rail: string | null;
+}
+
+export interface VLatestMark {
+  booking_id: string | null;
+  mark: string | null;
+}
+
+export interface VOpenToClaimByRail {
+  claims: number | null;
+  created_at: Timestamp | null;
+  invite_id: string | null;
+  opens: number | null;
+  rail: string | null;
+}
+
+export interface VOversell {
+  activity_id: string | null;
+  capacity: number | null;
+  confirmed: number | null;
+}
+
+export interface VPlansHappened {
+  arm: string | null;
+  attended: number | null;
+  happened: boolean | null;
+  members: number | null;
+  plan_id: string | null;
+  starts_at: Timestamp | null;
+}
+
 export interface DB {
   activities: Activities;
   attendance_marks: AttendanceMarks;
@@ -216,4 +280,13 @@ export interface DB {
   sessions: Sessions;
   trust_edges: TrustEdges;
   users: Users;
+  v_booking_success: VBookingSuccess;
+  v_guardrail: VGuardrail;
+  v_holdout: VHoldout;
+  v_invite_rate: VInviteRate;
+  v_k_factor_by_rail: VKFactorByRail;
+  v_latest_mark: VLatestMark;
+  v_open_to_claim_by_rail: VOpenToClaimByRail;
+  v_oversell: VOversell;
+  v_plans_happened: VPlansHappened;
 }

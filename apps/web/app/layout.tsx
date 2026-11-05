@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { DM_Sans, Sora } from 'next/font/google';
 import type { ReactNode } from 'react';
 import { RealtimeProvider } from '@/lib/realtime/react';
+import { WebVitals } from '@/lib/telemetry/web-vitals';
 import './globals.css';
 
 // next/font downloads these OFL faces at build time and serves them from our origin (S5 FR-004).
@@ -27,6 +28,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${sora.variable} ${dmSans.variable}`}>
       <body className="min-h-dvh bg-cream text-body text-ink antialiased">
+        <WebVitals />
         <RealtimeProvider>{children}</RealtimeProvider>
       </body>
     </html>

@@ -23,6 +23,8 @@ export const ERROR_CODES = [
   // Activity edits (Google Maps spec)
   'location_locked',
   'capacity_below_bookings',
+  // Holdout (S8): invite tools are withheld from this user
+  'invites_unavailable',
   // Generic
   'invalid_contact',
   'validation_failed',

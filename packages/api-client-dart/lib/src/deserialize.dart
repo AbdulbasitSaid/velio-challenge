@@ -3,6 +3,18 @@ import 'package:velio_api/src/model/activity_card_location.dart';
 import 'package:velio_api/src/model/activity_create.dart';
 import 'package:velio_api/src/model/activity_patch.dart';
 import 'package:velio_api/src/model/activity_state.dart';
+import 'package:velio_api/src/model/admin_activity.dart';
+import 'package:velio_api/src/model/admin_activity_list.dart';
+import 'package:velio_api/src/model/admin_audit.dart';
+import 'package:velio_api/src/model/admin_audit_failures_inner.dart';
+import 'package:velio_api/src/model/admin_goal.dart';
+import 'package:velio_api/src/model/admin_metrics.dart';
+import 'package:velio_api/src/model/admin_metrics_audit.dart';
+import 'package:velio_api/src/model/admin_metrics_funnel_inner.dart';
+import 'package:velio_api/src/model/admin_metrics_guardrail.dart';
+import 'package:velio_api/src/model/admin_metrics_holdout_inner.dart';
+import 'package:velio_api/src/model/admin_metrics_invite_rate_inner.dart';
+import 'package:velio_api/src/model/admin_metrics_k_factor_inner.dart';
 import 'package:velio_api/src/model/attendance.dart';
 import 'package:velio_api/src/model/attendance_activity.dart';
 import 'package:velio_api/src/model/attendance_mark_create.dart';
@@ -11,6 +23,9 @@ import 'package:velio_api/src/model/booking.dart';
 import 'package:velio_api/src/model/booking_response.dart';
 import 'package:velio_api/src/model/claim_create.dart';
 import 'package:velio_api/src/model/claim_response.dart';
+import 'package:velio_api/src/model/client_event.dart';
+import 'package:velio_api/src/model/client_event_one_of.dart';
+import 'package:velio_api/src/model/client_event_one_of1.dart';
 import 'package:velio_api/src/model/community.dart';
 import 'package:velio_api/src/model/community_list.dart';
 import 'package:velio_api/src/model/community_page.dart';
@@ -50,6 +65,7 @@ import 'package:velio_api/src/model/public_activity_viewer.dart';
 import 'package:velio_api/src/model/public_activity_viewer_booking.dart';
 import 'package:velio_api/src/model/public_location.dart';
 import 'package:velio_api/src/model/public_person.dart';
+import 'package:velio_api/src/model/ratio.dart';
 import 'package:velio_api/src/model/session_create.dart';
 import 'package:velio_api/src/model/session_response.dart';
 
@@ -81,6 +97,30 @@ final _regMap = RegExp(r'^Map<String,(.*)>$');
           return ActivityPatch.fromJson(value as Map<String, dynamic>) as ReturnType;
         case 'ActivityState':
           return ActivityState.fromJson(value as Map<String, dynamic>) as ReturnType;
+        case 'AdminActivity':
+          return AdminActivity.fromJson(value as Map<String, dynamic>) as ReturnType;
+        case 'AdminActivityList':
+          return AdminActivityList.fromJson(value as Map<String, dynamic>) as ReturnType;
+        case 'AdminAudit':
+          return AdminAudit.fromJson(value as Map<String, dynamic>) as ReturnType;
+        case 'AdminAuditFailuresInner':
+          return AdminAuditFailuresInner.fromJson(value as Map<String, dynamic>) as ReturnType;
+        case 'AdminGoal':
+          return AdminGoal.fromJson(value as Map<String, dynamic>) as ReturnType;
+        case 'AdminMetrics':
+          return AdminMetrics.fromJson(value as Map<String, dynamic>) as ReturnType;
+        case 'AdminMetricsAudit':
+          return AdminMetricsAudit.fromJson(value as Map<String, dynamic>) as ReturnType;
+        case 'AdminMetricsFunnelInner':
+          return AdminMetricsFunnelInner.fromJson(value as Map<String, dynamic>) as ReturnType;
+        case 'AdminMetricsGuardrail':
+          return AdminMetricsGuardrail.fromJson(value as Map<String, dynamic>) as ReturnType;
+        case 'AdminMetricsHoldoutInner':
+          return AdminMetricsHoldoutInner.fromJson(value as Map<String, dynamic>) as ReturnType;
+        case 'AdminMetricsInviteRateInner':
+          return AdminMetricsInviteRateInner.fromJson(value as Map<String, dynamic>) as ReturnType;
+        case 'AdminMetricsKFactorInner':
+          return AdminMetricsKFactorInner.fromJson(value as Map<String, dynamic>) as ReturnType;
         case 'Attendance':
           return Attendance.fromJson(value as Map<String, dynamic>) as ReturnType;
         case 'AttendanceActivity':
@@ -100,6 +140,12 @@ final _regMap = RegExp(r'^Map<String,(.*)>$');
           return ClaimCreate.fromJson(value as Map<String, dynamic>) as ReturnType;
         case 'ClaimResponse':
           return ClaimResponse.fromJson(value as Map<String, dynamic>) as ReturnType;
+        case 'ClientEvent':
+          return ClientEvent.fromJson(value as Map<String, dynamic>) as ReturnType;
+        case 'ClientEventOneOf':
+          return ClientEventOneOf.fromJson(value as Map<String, dynamic>) as ReturnType;
+        case 'ClientEventOneOf1':
+          return ClientEventOneOf1.fromJson(value as Map<String, dynamic>) as ReturnType;
         case 'Community':
           return Community.fromJson(value as Map<String, dynamic>) as ReturnType;
         case 'CommunityList':
@@ -187,6 +233,8 @@ final _regMap = RegExp(r'^Map<String,(.*)>$');
           return PublicLocation.fromJson(value as Map<String, dynamic>) as ReturnType;
         case 'PublicPerson':
           return PublicPerson.fromJson(value as Map<String, dynamic>) as ReturnType;
+        case 'Ratio':
+          return Ratio.fromJson(value as Map<String, dynamic>) as ReturnType;
         case 'SessionCreate':
           return SessionCreate.fromJson(value as Map<String, dynamic>) as ReturnType;
         case 'SessionResponse':

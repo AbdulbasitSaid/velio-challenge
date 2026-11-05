@@ -8,13 +8,17 @@ import { requestId, type RequestIdVariables } from 'hono/request-id';
 import type { Config } from './config';
 import type { Db } from './db/client';
 import { ApiError, envelope, fromPostgresError } from './errors';
+import { createJobs, type Jobs } from './jobs/jobs';
 import { activityRoutes } from './modules/activities/routes';
+import { adminRoutes } from './modules/admin/routes';
 import { createAttendanceService } from './modules/attendance/service';
 import { attendanceRoutes } from './modules/attendance/routes';
 import { createBookingEngine } from './modules/bookings/engine';
 import { createBookingMetrics } from './modules/bookings/metrics';
 import { bookingRoutes } from './modules/bookings/routes';
 import { communityRoutes } from './modules/communities/routes';
+import { createEventMetrics } from './modules/events/metrics';
+import { eventRoutes } from './modules/events/routes';
 import { createCommunityService } from './modules/communities/service';
 import { healthRoutes } from './modules/health/routes';
 import { identityRoutes } from './modules/identity/routes';
@@ -43,6 +47,8 @@ export interface AppDeps {
   meterProvider?: MeterProvider;
   /** The WebSocket gateway and LISTEN bridge (S3). Absent in tests that don't need realtime. */
   realtime?: Realtime;
+  /** Scheduled checks (S8). The entry point starts them; tests call them directly. */
+  jobs?: Jobs;
 }
 
 export interface AppEnv extends Env {
@@ -132,6 +138,17 @@ export function createApp(deps: AppDeps) {
   app.route('/', planRoutes(createPlanService(deps.db, deps.config)));
   app.route('/', attendanceRoutes(createAttendanceService(deps.db)));
   app.route('/', communityRoutes(createCommunityService(deps.db)));
+  app.route('/', eventRoutes({ db: deps.db, limits, metrics: createEventMetrics(deps.meterProvider) }));
+  app.route(
+    '/',
+    adminRoutes({
+      db: deps.db,
+      token: deps.config.ADMIN_TOKEN,
+      limits,
+      jobs: deps.jobs ?? createJobs({ db: deps.db, logger: deps.logger, meterProvider: deps.meterProvider }),
+      latency: deps.realtime?.latency,
+    }),
+  );
   if (deps.realtime) app.route('/', deps.realtime.routes);
 
   app.openAPIRegistry.registerComponent('securitySchemes', 'cookieAuth', {
@@ -142,6 +159,11 @@ export function createApp(deps: AppDeps) {
   app.openAPIRegistry.registerComponent('securitySchemes', 'bearerAuth', {
     type: 'http',
     scheme: 'bearer',
+  });
+  app.openAPIRegistry.registerComponent('securitySchemes', 'adminAuth', {
+    type: 'http',
+    scheme: 'bearer',
+    description: 'The ADMIN_TOKEN secret (S8)',
   });
 
   app.notFound((c) => c.json(envelope(new ApiError('not_found'), c.var.requestId ?? ''), 404));

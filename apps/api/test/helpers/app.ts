@@ -22,6 +22,8 @@ export function testApp(db: Db, clock: () => Date = () => new Date(), env: Recor
     DATABASE_URL: 'postgres://unused/unused',
     DATABASE_LISTEN_URL: 'postgres://unused/unused',
     CONTACT_PEPPER: TEST_PEPPER,
+    // Everyone gets invite tools unless a test turns the holdout on (S8).
+    HOLDOUT_PERCENT: '0',
     ...env,
   });
   return createApp({ config, db, logger: createLogger('silent'), clock });

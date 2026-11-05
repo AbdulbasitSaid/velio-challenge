@@ -315,13 +315,16 @@ export function createBookingEngine(deps: BookingEngineDeps) {
     }
   }
 
-  /** Best-effort: a failure is logged and never changes the response. */
-  async function recordRejection(input: BookSpotInput, reason: string) {
+  /**
+   * Best-effort: a failure is logged and never changes the response. `booking_failed` is a server
+   * error, which booking success counts against (S8 FR-005); `booking_rejected` is a domain refusal.
+   */
+  async function recordRejection(input: BookSpotInput, reason: string, name = 'booking_rejected') {
     try {
       await db
         .insertInto('events')
         .values({
-          name: 'booking_rejected',
+          name,
           user_id: input.userId || null,
           // events.activity_id references activities, so an unknown ID can't be stored.
           activity_id: reason === 'not_found' ? null : input.activityId,
@@ -331,7 +334,7 @@ export function createBookingEngine(deps: BookingEngineDeps) {
         })
         .execute();
     } catch (err) {
-      logger.warn({ err, activity_id: input.activityId }, 'booking_rejected event not recorded');
+      logger.warn({ err, activity_id: input.activityId }, `${name} event not recorded`);
     }
   }
 
@@ -384,6 +387,7 @@ export function createBookingEngine(deps: BookingEngineDeps) {
             if (REJECTIONS.has(err.code)) await recordRejection(input, err.code);
           } else {
             span.setStatus({ code: SpanStatusCode.ERROR });
+            await recordRejection(input, 'error', 'booking_failed');
           }
           throw err;
         } finally {

@@ -1,5 +1,6 @@
 import type { Invite, InviteCreate, InviteView } from '@velio/contracts';
 import { sql, type Selectable } from 'kysely';
+import { createHoldout } from '../flags/holdout';
 import type { Config } from '../../config';
 import type { Db } from '../../db/client';
 import type { Invites } from '../../db/types';
@@ -81,6 +82,7 @@ export function planInviteStatus(rail: Rail, stats: InviteStats, started: boolea
 export function createInviteService(deps: InviteDeps) {
   const { db, config, metrics: m } = deps;
   const mapUrl = staticMapUrl(config);
+  const holdout = createHoldout(db, config.HOLDOUT_PERCENT);
 
   async function loadByCode(code: string) {
     return db
@@ -145,6 +147,8 @@ export function createInviteService(deps: InviteDeps) {
       .executeTakeFirst();
     if (!member) throw new ApiError('forbidden', 'Only people going can invite to this Plan.');
     if (plan.started) throw new ApiError('activity_started');
+    // The server enforces the holdout, not just the UI (S8 FR-003).
+    if ((await holdout.expose(user.id)) === 'holdout') throw new ApiError('invites_unavailable');
 
     const existingPublic = () =>
       db

@@ -138,7 +138,7 @@ const pauseRoute = (method: 'post' | 'delete') =>
   });
 
 /** Rightmost X-Forwarded-For entry: the one CloudFront added. Locally, the socket address. */
-function clientIp(c: Context<AppEnv>): string {
+export function clientIp(c: Context<AppEnv>): string {
   const forwarded = c.req.header('x-forwarded-for');
   if (forwarded) return forwarded.split(',').at(-1)!.trim();
   const server = c.env as { requestIP?: (r: Request) => { address: string } | null } | undefined;

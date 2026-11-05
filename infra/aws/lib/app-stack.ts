@@ -60,6 +60,8 @@ export class AppStack extends Stack {
     const secrets = [
       originVerify,
       generated('contact-pepper'),
+      // S8: bearer token for /api/admin/* and the web /admin page.
+      generated('admin-token'),
       generated('db-superuser-password'),
       generated('db-api-password'),
       generated('db-readonly-password'),

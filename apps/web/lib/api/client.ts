@@ -26,6 +26,8 @@ export interface ApiInit<S extends z.ZodType | undefined> {
   idempotencyKey?: string;
   headers?: Record<string, string>;
   signal?: AbortSignal;
+  /** Lets the request outlive the page (analytics sent while it hides, S8). */
+  keepalive?: boolean;
 }
 
 type Result<S> = S extends z.ZodType ? z.infer<S> : undefined;
@@ -60,6 +62,7 @@ export async function request<S extends z.ZodType | undefined = undefined>(
       credentials: 'same-origin',
       cache: 'no-store',
       signal: init.signal,
+      keepalive: init.keepalive,
     });
   } catch (err) {
     if ((err as Error).name === 'AbortError') throw err;

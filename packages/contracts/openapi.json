@@ -14,6 +14,11 @@
       "bearerAuth": {
         "type": "http",
         "scheme": "bearer"
+      },
+      "adminAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "The ADMIN_TOKEN secret (S8)"
       }
     },
     "schemas": {
@@ -116,6 +121,7 @@
           "activity_not_started",
           "location_locked",
           "capacity_below_bookings",
+          "invites_unavailable",
           "invalid_contact",
           "validation_failed",
           "unauthenticated",
@@ -1823,6 +1829,467 @@
           "hostOtherDates",
           "moreInCommunity"
         ]
+      },
+      "ClientEvent": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "enum": [
+                  "activity_viewed"
+                ]
+              },
+              "activityId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "platform": {
+                "type": "string",
+                "enum": [
+                  "web",
+                  "ios",
+                  "android"
+                ]
+              }
+            },
+            "required": [
+              "name",
+              "activityId"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "enum": [
+                  "web_vital"
+                ]
+              },
+              "metric": {
+                "type": "string",
+                "enum": [
+                  "FCP",
+                  "LCP",
+                  "TTFB",
+                  "CLS",
+                  "INP"
+                ]
+              },
+              "value": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 600000
+              },
+              "page": {
+                "type": "string",
+                "enum": [
+                  "activity",
+                  "invite",
+                  "community",
+                  "other"
+                ]
+              },
+              "connection": {
+                "type": "string",
+                "enum": [
+                  "slow-2g",
+                  "2g",
+                  "3g",
+                  "4g"
+                ]
+              }
+            },
+            "required": [
+              "name",
+              "metric",
+              "value",
+              "page"
+            ]
+          }
+        ]
+      },
+      "AdminMetrics": {
+        "type": "object",
+        "properties": {
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "days": {
+            "type": "integer"
+          },
+          "goals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminGoal"
+            }
+          },
+          "funnel": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "rail": {
+                  "type": "string",
+                  "enum": [
+                    "vouch",
+                    "public"
+                  ]
+                },
+                "invites": {
+                  "type": "integer"
+                },
+                "opens": {
+                  "type": "integer"
+                },
+                "claims": {
+                  "type": "integer"
+                },
+                "openToClaim": {
+                  "$ref": "#/components/schemas/Ratio"
+                }
+              },
+              "required": [
+                "rail",
+                "invites",
+                "opens",
+                "claims",
+                "openToClaim"
+              ]
+            }
+          },
+          "blendedOpenToClaim": {
+            "$ref": "#/components/schemas/Ratio"
+          },
+          "inviteRate": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "rail": {
+                  "type": "string",
+                  "enum": [
+                    "any",
+                    "vouch",
+                    "public"
+                  ]
+                },
+                "rate": {
+                  "$ref": "#/components/schemas/Ratio"
+                }
+              },
+              "required": [
+                "rail",
+                "rate"
+              ]
+            }
+          },
+          "kFactor": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "rail": {
+                  "type": "string",
+                  "enum": [
+                    "vouch",
+                    "public"
+                  ]
+                },
+                "newUsers": {
+                  "type": "integer"
+                },
+                "inviters": {
+                  "type": "integer"
+                },
+                "value": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "rail",
+                "newUsers",
+                "inviters",
+                "value"
+              ]
+            }
+          },
+          "plansHappened": {
+            "$ref": "#/components/schemas/Ratio"
+          },
+          "guardrail": {
+            "type": "object",
+            "properties": {
+              "invited": {
+                "$ref": "#/components/schemas/Ratio"
+              },
+              "organic": {
+                "$ref": "#/components/schemas/Ratio"
+              },
+              "ratio": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "triggered": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "invited",
+              "organic",
+              "ratio",
+              "triggered"
+            ]
+          },
+          "holdout": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "arm": {
+                  "type": "string",
+                  "enum": [
+                    "exposed",
+                    "holdout"
+                  ]
+                },
+                "users": {
+                  "type": "integer"
+                },
+                "bookers": {
+                  "type": "integer"
+                },
+                "newUsersPerBooker": {
+                  "$ref": "#/components/schemas/Ratio"
+                },
+                "plansHappened": {
+                  "$ref": "#/components/schemas/Ratio"
+                }
+              },
+              "required": [
+                "arm",
+                "users",
+                "bookers",
+                "newUsersPerBooker",
+                "plansHappened"
+              ]
+            }
+          },
+          "audit": {
+            "type": "object",
+            "properties": {
+              "ranAt": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "failures": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "ranAt",
+              "failures"
+            ]
+          }
+        },
+        "required": [
+          "generatedAt",
+          "days",
+          "goals",
+          "funnel",
+          "blendedOpenToClaim",
+          "inviteRate",
+          "kFactor",
+          "plansHappened",
+          "guardrail",
+          "holdout",
+          "audit"
+        ]
+      },
+      "AdminGoal": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": [
+              "no_oversell",
+              "booking_success",
+              "availability_live",
+              "bookers_invite",
+              "invites_convert_vouch",
+              "invites_convert_public"
+            ]
+          },
+          "label": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "count",
+              "ratio",
+              "seconds"
+            ]
+          },
+          "value": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "target": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "trigger": {
+            "type": "string"
+          },
+          "triggered": {
+            "type": "boolean"
+          },
+          "sample": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "unit",
+          "value",
+          "target",
+          "trigger",
+          "triggered",
+          "sample"
+        ]
+      },
+      "Ratio": {
+        "type": "object",
+        "properties": {
+          "numerator": {
+            "type": "integer"
+          },
+          "denominator": {
+            "type": "integer"
+          },
+          "value": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "numerator",
+          "denominator",
+          "value"
+        ]
+      },
+      "AdminActivityList": {
+        "type": "object",
+        "properties": {
+          "activities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminActivity"
+            }
+          }
+        },
+        "required": [
+          "activities"
+        ]
+      },
+      "AdminActivity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "communityName": {
+            "type": "string"
+          },
+          "startsAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "capacity": {
+            "type": "integer"
+          },
+          "spotsLeft": {
+            "type": "integer"
+          },
+          "bookingsPaused": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "communityName",
+          "startsAt",
+          "timezone",
+          "capacity",
+          "spotsLeft",
+          "bookingsPaused"
+        ]
+      },
+      "AdminAudit": {
+        "type": "object",
+        "properties": {
+          "ranAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "failures": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "activityId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "table": {
+                  "type": "string"
+                },
+                "firstBadSeq": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "activityId",
+                "table",
+                "firstBadSeq"
+              ]
+            }
+          }
+        },
+        "required": [
+          "ranAt",
+          "failures"
+        ]
       }
     },
     "parameters": {}
@@ -3423,6 +3890,361 @@
           },
           "404": {
             "description": "`not_found`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events": {
+      "post": {
+        "summary": "Client analytics: activity views and Web Vitals",
+        "description": "Only `activity_viewed` (stored as a funnel event) and `web_vital` (a metric sample, never stored) are accepted. At most 60 per device per minute.",
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          },
+          {}
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$",
+              "example": "d3b07384-d113-4ec6-a6a3-8a1f2c7b9e10"
+            },
+            "required": false,
+            "name": "x-device-id",
+            "in": "header"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "web",
+                "mobile"
+              ]
+            },
+            "required": false,
+            "name": "x-client",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClientEvent"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Received"
+          },
+          "400": {
+            "description": "`validation_failed`: unknown name or bad payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "`rate_limited`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/metrics": {
+      "get": {
+        "summary": "The PRD goals, funnel per rail, K-factor, guardrail and holdout split (admin)",
+        "security": [
+          {
+            "adminAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 90,
+              "default": 7
+            },
+            "required": false,
+            "name": "days",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Aggregates over the last `days`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminMetrics"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "`unauthenticated`: missing or wrong admin token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: admin is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "`rate_limited`: too many wrong tokens",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/activities": {
+      "get": {
+        "summary": "Upcoming activities, with the kill switch state (admin)",
+        "security": [
+          {
+            "adminAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Soonest first, at most 200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminActivityList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "`unauthenticated`: missing or wrong admin token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: admin is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "`rate_limited`: too many wrong tokens",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/activities/{id}/pause": {
+      "post": {
+        "summary": "Kill switch: stop new bookings and claims for an activity (admin)",
+        "security": [
+          {
+            "adminAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done; repeating it changes nothing"
+          },
+          "401": {
+            "description": "`unauthenticated`: missing or wrong admin token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: admin is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "`rate_limited`: too many wrong tokens",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/activities/{id}/resume": {
+      "post": {
+        "summary": "Lift the kill switch (admin)",
+        "security": [
+          {
+            "adminAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done; repeating it changes nothing"
+          },
+          "401": {
+            "description": "`unauthenticated`: missing or wrong admin token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: admin is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "`rate_limited`: too many wrong tokens",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/audit": {
+      "post": {
+        "summary": "Verify every attribution and invite hash chain now (admin)",
+        "security": [
+          {
+            "adminAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chains that failed verification; empty when intact",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminAudit"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "`unauthenticated`: missing or wrong admin token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: admin is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "`rate_limited`: too many wrong tokens",
             "content": {
               "application/json": {
                 "schema": {

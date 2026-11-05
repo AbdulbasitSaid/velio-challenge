@@ -119,6 +119,7 @@ const _$ErrorCodeEnumMap = {
   ErrorCode.activityNotStarted: 'activity_not_started',
   ErrorCode.locationLocked: 'location_locked',
   ErrorCode.capacityBelowBookings: 'capacity_below_bookings',
+  ErrorCode.invitesUnavailable: 'invites_unavailable',
   ErrorCode.invalidContact: 'invalid_contact',
   ErrorCode.validationFailed: 'validation_failed',
   ErrorCode.unauthenticated: 'unauthenticated',

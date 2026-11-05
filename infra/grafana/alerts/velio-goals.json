@@ -1,0 +1,198 @@
+{
+  "title": "velio-goals",
+  "interval": 60,
+  "rules": [
+    {
+      "uid": "velio-oversell",
+      "title": "Oversell detected",
+      "condition": "C",
+      "for": "0s",
+      "noDataState": "OK",
+      "execErrState": "Error",
+      "labels": {
+        "service": "velio",
+        "severity": "critical"
+      },
+      "annotations": {
+        "summary": "An activity has more confirmed bookings than capacity. Pause it from /admin (PRD R1)."
+      },
+      "data": [
+        {
+          "refId": "A",
+          "relativeTimeRange": {
+            "from": 3600,
+            "to": 0
+          },
+          "datasourceUid": "${PROM}",
+          "model": {
+            "refId": "A",
+            "expr": "max(oversell_activities)",
+            "instant": true,
+            "range": false
+          }
+        },
+        {
+          "refId": "C",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "C",
+            "type": "threshold",
+            "expression": "A",
+            "conditions": [
+              {
+                "evaluator": {
+                  "type": "gt",
+                  "params": [0]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "uid": "velio-booking-success",
+      "title": "Booking success below 99.5% over 1 h",
+      "condition": "C",
+      "for": "0s",
+      "noDataState": "OK",
+      "execErrState": "Error",
+      "labels": {
+        "service": "velio",
+        "severity": "critical"
+      },
+      "annotations": {
+        "summary": "Bookings on available spots are failing with server errors (PRD goal: ≥ 99.5%)."
+      },
+      "data": [
+        {
+          "refId": "A",
+          "relativeTimeRange": {
+            "from": 3600,
+            "to": 0
+          },
+          "datasourceUid": "${PROM}",
+          "model": {
+            "refId": "A",
+            "expr": "sum(increase(booking_attempts_total{outcome=\"success\"}[1h])) / (sum(increase(booking_attempts_total{outcome=\"success\"}[1h])) + (sum(increase(booking_attempts_total{outcome=\"error\"}[1h])) or vector(0)))",
+            "instant": true,
+            "range": false
+          }
+        },
+        {
+          "refId": "C",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "C",
+            "type": "threshold",
+            "expression": "A",
+            "conditions": [
+              {
+                "evaluator": {
+                  "type": "lt",
+                  "params": [0.995]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "uid": "velio-realtime-p95",
+      "title": "Live updates p95 above 2 s for 15 min",
+      "condition": "C",
+      "for": "15m",
+      "noDataState": "OK",
+      "execErrState": "Error",
+      "labels": {
+        "service": "velio",
+        "severity": "critical"
+      },
+      "annotations": {
+        "summary": "Commit-to-render p95 is above the PRD's 2 s (R3)."
+      },
+      "data": [
+        {
+          "refId": "A",
+          "relativeTimeRange": {
+            "from": 3600,
+            "to": 0
+          },
+          "datasourceUid": "${PROM}",
+          "model": {
+            "refId": "A",
+            "expr": "histogram_quantile(0.95, sum by (le) (rate(realtime_commit_to_ack_seconds_bucket[5m])))",
+            "instant": true,
+            "range": false
+          }
+        },
+        {
+          "refId": "C",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "C",
+            "type": "threshold",
+            "expression": "A",
+            "conditions": [
+              {
+                "evaluator": {
+                  "type": "gt",
+                  "params": [2]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "uid": "velio-audit",
+      "title": "Attribution hash chain failed",
+      "condition": "C",
+      "for": "0s",
+      "noDataState": "OK",
+      "execErrState": "Error",
+      "labels": {
+        "service": "velio",
+        "severity": "critical"
+      },
+      "annotations": {
+        "summary": "The nightly audit found an edited or deleted invite or attribution row (PRD R11). Run it from /admin."
+      },
+      "data": [
+        {
+          "refId": "A",
+          "relativeTimeRange": {
+            "from": 3600,
+            "to": 0
+          },
+          "datasourceUid": "${PROM}",
+          "model": {
+            "refId": "A",
+            "expr": "max(audit_chain_failures)",
+            "instant": true,
+            "range": false
+          }
+        },
+        {
+          "refId": "C",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "C",
+            "type": "threshold",
+            "expression": "A",
+            "conditions": [
+              {
+                "evaluator": {
+                  "type": "gt",
+                  "params": [0]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

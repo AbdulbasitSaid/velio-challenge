@@ -33,6 +33,10 @@ const Config = z
     S3_ENDPOINT: z.url().optional(),
     S3_ACCESS_KEY_ID: z.string().min(1).optional(),
     S3_SECRET_ACCESS_KEY: z.string().min(1).optional(),
+    /** PRD Holdout design (S8 FR-001): share of users, 0–100, who never get invite tools. */
+    HOLDOUT_PERCENT: z.coerce.number().int().min(0).max(100).default(10),
+    /** Bearer token for `/api/admin/*` (S8 FR-010). Unset → the admin routes answer 404. */
+    ADMIN_TOKEN: z.string().min(32).optional(),
   })
   .refine((c) => c.NODE_ENV !== 'production' || c.ORIGIN_VERIFY_SECRET !== undefined, {
     path: ['ORIGIN_VERIFY_SECRET'],

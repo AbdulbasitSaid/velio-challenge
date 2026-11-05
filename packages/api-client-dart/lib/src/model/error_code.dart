@@ -34,6 +34,8 @@ enum ErrorCode {
   locationLocked(r'location_locked'),
   @JsonValue(r'capacity_below_bookings')
   capacityBelowBookings(r'capacity_below_bookings'),
+  @JsonValue(r'invites_unavailable')
+  invitesUnavailable(r'invites_unavailable'),
   @JsonValue(r'invalid_contact')
   invalidContact(r'invalid_contact'),
   @JsonValue(r'validation_failed')

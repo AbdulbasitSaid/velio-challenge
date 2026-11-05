@@ -173,10 +173,11 @@ describe('CloudFront (FR-003, SEC-002)', () => {
 });
 
 describe('secrets (SEC-003)', () => {
-  test('seven secrets under velio/prod; all but grafana and google-maps are generated', () => {
+  test('eight secrets under velio/prod; all but grafana and google-maps are generated', () => {
     const secrets = Object.values(template.findResources('AWS::SecretsManager::Secret'));
     expect(secrets.map((s) => s.Properties.Name).sort()).toEqual(
       [
+        'admin-token',
         'contact-pepper',
         'db-api-password',
         'db-readonly-password',
