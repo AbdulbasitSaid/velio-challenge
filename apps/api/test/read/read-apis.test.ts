@@ -300,6 +300,7 @@ describe('query counts', () => {
       DATABASE_URL: t.url,
       DATABASE_LISTEN_URL: t.url,
       CONTACT_PEPPER: TEST_PEPPER,
+      HOLDOUT_PERCENT: '0',
     });
     const plans = createPlanService(counted, config);
     const attendance = createAttendanceService(counted);

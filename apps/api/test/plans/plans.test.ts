@@ -43,6 +43,7 @@ beforeAll(async () => {
     DATABASE_URL: t.url,
     DATABASE_LISTEN_URL: t.url,
     CONTACT_PEPPER: TEST_PEPPER,
+    HOLDOUT_PERCENT: '0',
     PUBLIC_BASE_URL: 'https://d1.cloudfront.net',
   });
   realtime = createRealtime({ db, logger, listenUrl: t.url });

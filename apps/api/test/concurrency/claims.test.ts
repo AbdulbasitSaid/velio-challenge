@@ -44,6 +44,8 @@ beforeAll(async () => {
     CONTACT_PEPPER: TEST_PEPPER,
     // The per-link limit is checked elsewhere; here it must not interfere with the race.
     LINK_CLAIMS_PER_MINUTE: '100000',
+    // Everyone gets invite tools: a random holdout user would get 403 creating the invite (S8).
+    HOLDOUT_PERCENT: '0',
   });
   const app = createApp({ config, db, logger: createLogger('silent'), clock: () => new Date() });
   server = Bun.serve({ port: 0, fetch: app.fetch });

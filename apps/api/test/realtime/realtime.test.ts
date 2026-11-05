@@ -63,6 +63,7 @@ beforeAll(async () => {
     DATABASE_URL: t.url,
     DATABASE_LISTEN_URL: t.url,
     CONTACT_PEPPER: TEST_PEPPER,
+    HOLDOUT_PERCENT: '0',
   });
   realtime = createRealtime({ db, logger, listenUrl: t.url, meterProvider, pingIntervalMs: PING_MS });
   const app = createApp({ config, db, logger, clock: () => new Date(), realtime });

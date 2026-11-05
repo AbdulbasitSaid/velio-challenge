@@ -48,6 +48,7 @@ beforeAll(async () => {
     DATABASE_URL: t.url,
     DATABASE_LISTEN_URL: t.url,
     CONTACT_PEPPER: TEST_PEPPER,
+    HOLDOUT_PERCENT: '0',
     PUBLIC_BASE_URL: BASE,
     // Small thresholds so V-RL-2 and V-RL-3 don't need hundreds of requests.
     LINK_CLAIMS_PER_MINUTE: '3',
