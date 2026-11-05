@@ -96,6 +96,7 @@ All checks below were run on 2026-11-05 from `apps/mobile` with Flutter 3.47.9.
 | V-REV-1 | Review of the forks' reports and the tree; grep of `view/`, `widgets/` and `ui/` for `try`, `catch`, `Timer(`, `Future.delayed`, preferences, validation and `.apply(` | Passed: none, apart from the throttle timer in `ui/spots_announcer.dart` (presentation, UX NFR-003). A follow-up line-by-line read of the four riskiest blocs (invite, activity, attendance, claim) against the old screens found no behaviour change beyond those listed below. Live watches are bound to the handler's `emit.onEach`, so they end when the bloc closes. Timers and session subscriptions are cancelled in `close()`. Idempotency keys are cleared on exactly the outcomes they were before. | FR-008, FR-009, FR-014, FR-016, NFR-004 |
 | V-INT-1 (parity) | iOS simulator (iPhone 17 Pro), local API: `flutter test integration_test/parity_test.dart --dart-define=API_BASE_URL=http://localhost:3001` | Passed: books from Explore, publishes as host with a photo, sees a second person's booking live, removes it | FR-019, AC-007, AC-008 |
 | V-INT-1 (smoke) | Same simulator: `flutter test integration_test/smoke_test.dart --dart-define=SMOKE_CODE=<seeded vouch> --dart-define=API_BASE_URL=http://localhost:3001` | Passed with exception. Code → invite → claim → You're in → Plan → My plans all pass. The last assertion waits for an activity titled "E2E App check", which exists on the deployed stack but not in local seed data (`seed-invites.ts` titles are "Seed … Sunset Kayaking"). | AC-007 |
+| V-INT-1 (smoke, deployed) | Owner asked on 2026-11-05. Test data made through the production API: host and booker sessions, an activity "E2E App check 1793838910" (Explore Kenya, 6 spots) booked by the booker, and vouch `Z879M9`. App uninstalled from the simulator for a clean install, then `flutter test integration_test/smoke_test.dart -d <iPhone 17 Pro, iOS 26> --dart-define=SMOKE_CODE=Z879M9` with the default API (`https://depimls1pcvv4.cloudfront.net`) | **Passed** (12 s): code → invite with the Live pill → claim as a new guest → You're in with a ref → Plan → My plans lists "E2E App check". The API shows the activity at 4 of 6 spots left with 2 members (booker and guest) | AC-007 |
 
 ### Defects found and fixed during verification
 
@@ -105,7 +106,7 @@ All checks below were run on 2026-11-05 from `apps/mobile` with Flutter 3.47.9.
 ### Checks not run
 
 - **V-MAN-1** (hands-on manual pass) wasn't done by hand. Its AC-008 steps were run by `parity_test` and `smoke_test` on the simulator instead.
-- **Smoke test against the deployed stack**, where "E2E App check" exists: not run, since the refactor isn't deployed.
+- **Deployment:** nothing to deploy. The refactor changes only `apps/mobile`, which isn't hosted, and the deployed API it talks to is unchanged.
 - **Haptics and screen-reader announcements on a device:** not checked (A.6). They are covered by code review and bloc state tests only.
 
 ### Deviations from the plan, all reported by the implementers and accepted
@@ -119,4 +120,4 @@ All checks below were run on 2026-11-05 from `apps/mobile` with Flutter 3.47.9.
 
 ### Final validation status
 
-**Passed with exceptions**: the smoke test's last assertion needs deployed data, and the manual pass was replaced by the two integration tests.
+**Passed with exceptions**: the smoke test passes against the deployed stack, and the manual pass and on-device haptics and screen-reader checks were replaced by the integration tests and code review.
