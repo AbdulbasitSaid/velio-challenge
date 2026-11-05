@@ -99,6 +99,7 @@ All checks below were run on 2026-11-05 from `apps/mobile` with Flutter 3.47.9.
 | V-INT-1 (smoke, deployed) | Owner asked on 2026-11-05. Test data made through the production API: host and booker sessions, an activity "E2E App check 1793838910" (Explore Kenya, 6 spots) booked by the booker, and vouch `Z879M9`. App uninstalled from the simulator for a clean install, then `flutter test integration_test/smoke_test.dart -d <iPhone 17 Pro, iOS 26> --dart-define=SMOKE_CODE=Z879M9` with the default API (`https://depimls1pcvv4.cloudfront.net`) | **Passed** (12 s): code → invite with the Live pill → claim as a new guest → You're in with a ref → Plan → My plans lists "E2E App check". The API shows the activity at 4 of 6 spots left with 2 members (booker and guest) | AC-007 |
 | V-INT-1 (smoke, deployed, Android) | Owner asked on 2026-11-05. A fresh vouch `J6965R` on a new "E2E App check" activity, made the same way. Then `flutter test integration_test/smoke_test.dart -d <Samsung Galaxy A53 SM-A536E, Android 16, USB> --dart-define=SMOKE_CODE=J6965R` against the deployed stack | **Passed** (19 s): the same steps as on iOS. The API shows 4 of 6 spots left with 2 members | AC-007 |
 | V-INT-1 (smoke, deployed, iOS rerun) | Owner asked on 2026-11-05, after the Android run. A fresh vouch `BAX6C8`, then the same command on the iPhone 17 Pro simulator (iOS 26), with the app kept from the first run (a returning install) | **Passed** (13 s). The API shows 4 of 6 spots left with 2 members | AC-007 |
+| V-MAN-1 (owner, on device) | The owner used the debug build on the Samsung Galaxy A53 after the Android smoke run and reported, on 2026-11-05: "works well" | Passed, as the owner reported it. It doesn't say whether vibrations and TalkBack announcements were checked one by one | AC-008 |
 
 ### Defects found and fixed during verification
 
@@ -107,7 +108,7 @@ All checks below were run on 2026-11-05 from `apps/mobile` with Flutter 3.47.9.
 
 ### Checks not run
 
-- **V-MAN-1** (hands-on manual pass) wasn't done by hand. Its AC-008 steps were run by `parity_test` and `smoke_test` on the simulator instead.
+- **V-MAN-1:** the owner did a hands-on check on the Android phone (see above); Claude ran no scripted manual pass. The AC-008 steps were also run by `parity_test` and `smoke_test`.
 - **Deployment:** nothing to deploy. The refactor changes only `apps/mobile`, which isn't hosted, and the deployed API it talks to is unchanged.
 - **Haptics and screen-reader announcements on a device:** not checked (A.6). They are covered by code review and bloc state tests only.
 
