@@ -11,9 +11,8 @@ import 'package:go_router/go_router.dart';
 import 'package:image/image.dart' as img;
 import 'package:integration_test/integration_test.dart';
 import 'package:uuid/uuid.dart';
-import 'package:velio/core/api.dart';
-import 'package:velio/core/providers.dart';
-import 'package:velio/features/attendance.dart';
+import 'package:velio/attendance/attendance.dart';
+import 'package:velio/domain/env.dart';
 import 'package:velio/main.dart' as app;
 import 'package:velio/ui/components.dart';
 
@@ -36,7 +35,7 @@ void main() {
 
   testWidgets('book as a booker, then host: publish, live attendance, remove', (t) async {
     final photo = img.encodePng(img.Image(width: 1600, height: 1000)..clear(img.ColorRgb8(30, 90, 60)));
-    await app.run(overrides: [photoPickerProvider.overrideWithValue(() async => photo)]);
+    await app.run(photoPicker: () async => photo);
     await waitFor(t, find.text('Got an invite code?'));
 
     // Booker: Explore → an activity with spots → sign in → Book → You're in.
@@ -119,6 +118,6 @@ void main() {
     await waitFor(t, find.text('Remove E2E Guest $stamp?'));
     await tapText(t, 'Remove E2E');
     await waitFor(t, find.text('E2E removed. Their spot is open again.'));
-    expect(find.byType(AttendanceScreen), findsOneWidget);
+    expect(find.byType(AttendancePage), findsOneWidget);
   });
 }

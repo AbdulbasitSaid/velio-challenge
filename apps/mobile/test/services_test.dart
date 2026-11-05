@@ -4,10 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
-import 'package:velio/core/api.dart';
-import 'package:velio/core/cache.dart';
-import 'package:velio/core/identity.dart';
-import 'package:velio/features/claim.dart';
+import 'package:velio/data/api.dart';
+import 'package:velio/data/attempt_keys.dart';
+import 'package:velio/data/cache.dart';
+import 'package:velio/data/identity.dart';
 import 'package:velio_api/velio_api.dart';
 
 import 'fixtures.dart';
@@ -115,7 +115,7 @@ void main() {
 
     test('errors map to the API code; no response is a network failure', () {
       final opts = RequestOptions(path: '/x');
-      final api = ApiException.from(
+      final api = apiException(
         DioException(
           requestOptions: opts,
           response: Response(
@@ -128,7 +128,7 @@ void main() {
         ),
       );
       expect((api.status, api.code, api.network), (409, 'sold_out', false));
-      final net = ApiException.from(DioException(requestOptions: opts, type: DioExceptionType.connectionError));
+      final net = apiException(DioException(requestOptions: opts, type: DioExceptionType.connectionError));
       expect(net.network, isTrue);
     });
   });

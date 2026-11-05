@@ -3,17 +3,18 @@
 // tests, so each pump also checks there is none.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:velio/activity/activity.dart';
+import 'package:velio/activity_form/activity_form.dart';
 import 'package:velio/app/router.dart';
-import 'package:velio/core/api.dart';
-import 'package:velio/core/host_form.dart';
-import 'package:velio/core/role.dart';
-import 'package:velio/features/activity.dart';
-import 'package:velio/features/activity_form.dart';
-import 'package:velio/features/attendance.dart';
-import 'package:velio/features/community.dart';
-import 'package:velio/features/host_list.dart';
-import 'package:velio/features/shell.dart';
-import 'package:velio/ui/picker.dart';
+import 'package:velio/attendance/attendance.dart';
+import 'package:velio/domain/api_exception.dart';
+import 'package:velio/domain/host_form.dart';
+import 'package:velio/domain/role.dart';
+import 'package:velio/explore/explore.dart';
+import 'package:velio/host_list/host_list.dart';
+import 'package:velio/location_picker/location_picker.dart';
+import 'package:velio/repositories/preferences_repository.dart';
+import 'package:velio/shell/shell.dart';
 import 'package:velio_api/velio_api.dart';
 
 import 'fixtures.dart';
@@ -48,11 +49,11 @@ void main() {
       await t.pumpAndSettle();
       expect(find.text('My activities'), findsOneWidget);
       expect(find.byType(NavigationBar), findsNothing);
-      expect(await loadRole(prefs), Role.host);
+      expect(await PreferencesRepository(prefs).loadRole(), Role.host);
       await t.tap(find.text('Booker').first);
       await t.pumpAndSettle();
       expect(find.text('Got an invite code?'), findsOneWidget);
-      expect(await loadRole(prefs), Role.booker);
+      expect(await PreferencesRepository(prefs).loadRole(), Role.booker);
     });
     screenTest('a next-step card opens the activity in the app', (t, {size = const Size(360, 800), scale = 1}) async {
       await signedIn();
@@ -70,13 +71,13 @@ void main() {
       await t.pumpAndSettle();
       await t.tap(find.text('Sunset Kayaking').last);
       await t.pumpAndSettle();
-      expect(find.byType(ActivityScreen, skipOffstage: false), findsNWidgets(2));
+      expect(find.byType(ActivityPage, skipOffstage: false), findsNWidgets(2));
     });
   });
 
   group('C1 community (V-C1-1)', () {
     screenTest('Explore: the first community with live cards', (t, {size = const Size(360, 800), scale = 1}) async {
-      await pumpScreen(t, const CommunityScreen(), size: size, scale: scale);
+      await pumpScreen(t, const ExplorePage(), size: size, scale: scale);
       expect(find.text('Explore Kenya'), findsOneWidget);
       expect(find.text('1 upcoming activity with spots'), findsOneWidget);
       expect(find.text('Sunset Kayaking'), findsNWidgets(2));
@@ -88,7 +89,7 @@ void main() {
       api.communityResult = CommunityPage.fromJson(communityPageJson(empty: true));
       await pumpScreen(
         t,
-        const CommunityScreen(slug: 'explore-kenya'),
+        const ExplorePage(slug: 'explore-kenya'),
         size: size,
         scale: scale,
       );
@@ -106,7 +107,7 @@ void main() {
       await signedIn();
       await pumpScreen(
         t,
-        const ActivityScreen(id: activityId),
+        const ActivityPage(id: activityId),
         size: size,
         scale: scale,
       );
@@ -122,7 +123,7 @@ void main() {
       api.bookError = const ApiException(status: 409, code: 'sold_out');
       await pumpScreen(
         t,
-        const ActivityScreen(id: activityId),
+        const ActivityPage(id: activityId),
         size: size,
         scale: scale,
       );
@@ -136,7 +137,7 @@ void main() {
       api.activityResult = _activity(viewer: _host);
       await pumpScreen(
         t,
-        const ActivityScreen(id: activityId),
+        const ActivityPage(id: activityId),
         size: size,
         scale: scale,
       );
@@ -154,7 +155,7 @@ void main() {
       );
       await pumpScreen(
         t,
-        const ActivityScreen(id: activityId),
+        const ActivityPage(id: activityId),
         size: size,
         scale: scale,
       );
@@ -165,7 +166,7 @@ void main() {
       api.activityResult = _activity(status: 'started');
       await pumpScreen(
         t,
-        const ActivityScreen(id: activityId),
+        const ActivityPage(id: activityId),
         size: size,
         scale: scale,
       );
@@ -175,7 +176,7 @@ void main() {
       api.activityResult = _activity(paused: true);
       await pumpScreen(
         t,
-        const ActivityScreen(id: '0190a6f2-1f2b-7c3d-8e4f-5a6b7c8d9e11'),
+        const ActivityPage(id: '0190a6f2-1f2b-7c3d-8e4f-5a6b7c8d9e11'),
         size: size,
         scale: scale,
       );
@@ -184,7 +185,7 @@ void main() {
       api.activityResult = _activity(spotsLeft: 0, status: 'sold_out');
       await pumpScreen(
         t,
-        const ActivityScreen(id: '0190a6f2-1f2b-7c3d-8e4f-5a6b7c8d9e12'),
+        const ActivityPage(id: '0190a6f2-1f2b-7c3d-8e4f-5a6b7c8d9e12'),
         size: size,
         scale: scale,
       );
@@ -195,7 +196,7 @@ void main() {
       online = false;
       await pumpScreen(
         t,
-        const ActivityScreen(id: activityId),
+        const ActivityPage(id: activityId),
         size: size,
         scale: scale,
       );
@@ -207,13 +208,13 @@ void main() {
 
   group('H3 My activities (V-H3-1)', () {
     screenTest('signed out asks to sign in', (t, {size = const Size(360, 800), scale = 1}) async {
-      await pumpScreen(t, const HostListScreen(), size: size, scale: scale);
+      await pumpScreen(t, const HostListPage(), size: size, scale: scale);
       expect(find.text('Host on Velio'), findsOneWidget);
       expect(find.text('Create'), findsNothing);
     });
     screenTest('upcoming and past', (t, {size = const Size(360, 800), scale = 1}) async {
       await signedIn();
-      await pumpScreen(t, const HostListScreen(), size: size, scale: scale);
+      await pumpScreen(t, const HostListPage(), size: size, scale: scale);
       expect(find.text('6 spots left'), findsOneWidget);
       expect(find.text('No bookings yet'), findsOneWidget);
       await tapText(t, 'Past');
@@ -222,7 +223,7 @@ void main() {
     screenTest('no activities yet', (t, {size = const Size(360, 800), scale = 1}) async {
       await signedIn();
       api.hostResult = HostActivityList.fromJson(hostListJson(empty: true));
-      await pumpScreen(t, const HostListScreen(), size: size, scale: scale);
+      await pumpScreen(t, const HostListPage(), size: size, scale: scale);
       expect(find.text('No activities yet'), findsOneWidget);
       expect(find.text('Create activity'), findsOneWidget);
     });
@@ -234,7 +235,7 @@ void main() {
       api.activityResult = _activity(viewer: _host);
       await pumpScreen(
         t,
-        const AttendanceScreen(id: activityId),
+        const AttendancePage(id: activityId),
         size: size,
         scale: scale,
       );
@@ -263,7 +264,7 @@ void main() {
       api.attendanceResult = Attendance.fromJson(attendanceJson(started: true));
       await pumpScreen(
         t,
-        const AttendanceScreen(id: activityId),
+        const AttendancePage(id: activityId),
         size: size,
         scale: scale,
       );
@@ -279,7 +280,7 @@ void main() {
       api.activityResult = _activity(viewer: _host);
       await pumpScreen(
         t,
-        const AttendanceScreen(id: activityId),
+        const AttendancePage(id: activityId),
         size: size,
         scale: scale,
       );
@@ -290,7 +291,7 @@ void main() {
       api.attendanceResult = Attendance.fromJson(attendanceJson(empty: true));
       await pumpScreen(
         t,
-        const AttendanceScreen(id: '0190a6f2-1f2b-7c3d-8e4f-5a6b7c8d9e11'),
+        const AttendancePage(id: '0190a6f2-1f2b-7c3d-8e4f-5a6b7c8d9e11'),
         size: size,
         scale: scale,
       );
@@ -305,7 +306,7 @@ void main() {
       scale = 1,
     }) async {
       await signedIn();
-      await pumpScreen(t, const ActivityFormScreen(), size: size, scale: scale);
+      await pumpScreen(t, const ActivityFormPage(), size: size, scale: scale);
       expect(find.text('Create an activity'), findsOneWidget);
       // No Places key and no Maps in tests: the pin is typed in.
       expect(find.text('Latitude'), findsOneWidget);
@@ -321,7 +322,7 @@ void main() {
       api.activityResult = _activity(viewer: _host);
       await pumpScreen(
         t,
-        const ActivityFormScreen(id: activityId),
+        const ActivityFormPage(id: activityId),
         size: size,
         scale: scale,
       );
@@ -334,7 +335,7 @@ void main() {
       await signedIn();
       await pumpScreen(
         t,
-        const ActivityFormScreen(id: activityId),
+        const ActivityFormPage(id: activityId),
         size: size,
         scale: scale,
       );

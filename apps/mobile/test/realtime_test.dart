@@ -5,7 +5,7 @@ import 'dart:math';
 
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:velio/core/realtime.dart';
+import 'package:velio/data/realtime.dart';
 
 class FakeSocket implements RealtimeSocket {
   FakeSocket(this.uri);

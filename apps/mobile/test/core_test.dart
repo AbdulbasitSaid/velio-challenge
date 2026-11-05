@@ -7,8 +7,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:velio/app/router.dart';
-import 'package:velio/core/format.dart';
-import 'package:velio/core/invite_logic.dart';
+import 'package:velio/domain/format.dart';
+import 'package:velio/domain/invite_logic.dart';
 import 'package:velio_api/velio_api.dart';
 
 import 'fixtures.dart';

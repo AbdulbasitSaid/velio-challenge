@@ -4,7 +4,6 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -12,14 +11,25 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
+import 'package:velio/app/config.dart';
 import 'package:velio/app/theme.dart';
-import 'package:velio/core/api.dart';
-import 'package:velio/core/cache.dart';
-import 'package:velio/core/identity.dart';
-import 'package:velio/core/online.dart';
-import 'package:velio/core/providers.dart';
-import 'package:velio/core/realtime.dart';
-import 'package:velio/features/claim.dart';
+import 'package:velio/app/view/app_scope.dart';
+import 'package:velio/data/api.dart';
+import 'package:velio/data/attempt_keys.dart';
+import 'package:velio/data/cache.dart';
+import 'package:velio/data/identity.dart';
+import 'package:velio/data/photo.dart';
+import 'package:velio/data/places.dart';
+import 'package:velio/data/realtime.dart';
+import 'package:velio/domain/role.dart';
+import 'package:velio/repositories/activity_repository.dart';
+import 'package:velio/repositories/connectivity_repository.dart';
+import 'package:velio/repositories/host_repository.dart';
+import 'package:velio/repositories/invite_repository.dart';
+import 'package:velio/repositories/live_repository.dart';
+import 'package:velio/repositories/plan_repository.dart';
+import 'package:velio/repositories/preferences_repository.dart';
+import 'package:velio/repositories/session_repository.dart';
 import 'package:velio_api/velio_api.dart';
 
 import 'fixtures.dart';
@@ -146,7 +156,34 @@ late Identity identity;
 late FakeApi api;
 late OfflineCache cache;
 late SharedPreferencesAsync prefs;
+late SessionRepository session;
 bool online = true;
+
+/// The fixed "now" of the widget tests.
+final testNow = DateTime.utc(2026, 11, 4, 12, 10);
+
+/// The repositories over the fakes, as main.dart builds them over the real services.
+AppScope testScope(Widget child, {Role role = Role.booker}) {
+  final keys = AttemptKeys(prefs);
+  return AppScope(
+    config: AppConfig(platform: 'android', clock: () => testNow),
+    sessionRepository: session,
+    preferencesRepository: PreferencesRepository(prefs),
+    connectivityRepository: ConnectivityRepository(online: Stream.value(online)),
+    liveRepository: LiveRepository(quietRealtime()),
+    inviteRepository: InviteRepository(api: api, cache: cache, keys: keys, platform: 'android', clock: () => testNow),
+    activityRepository: ActivityRepository(api: api, keys: keys),
+    planRepository: PlanRepository(api: api, cache: cache, clock: () => testNow),
+    hostRepository: HostRepository(
+      api: api,
+      photos: PhotoUploader(api),
+      places: PlacesClient(platform: 'android'),
+      pickPhoto: () async => null,
+    ),
+    role: role,
+    child: child,
+  );
+}
 
 Future<void> pumpScreen(
   WidgetTester tester,
@@ -168,18 +205,8 @@ Future<void> pumpScreen(
         errorBuilder: (_, _) => const SizedBox.shrink(),
       );
   await tester.pumpWidget(
-    ProviderScope(
-      overrides: [
-        identityProvider.overrideWithValue(identity),
-        apiProvider.overrideWithValue(api),
-        cacheProvider.overrideWithValue(cache),
-        realtimeProvider.overrideWithValue(quietRealtime()),
-        platformProvider.overrideWithValue('android'),
-        clockProvider.overrideWithValue(() => DateTime.utc(2026, 11, 4, 12, 10)),
-        onlineProvider.overrideWith((ref) => Stream.value(online)),
-        attemptKeysProvider.overrideWithValue(AttemptKeys(prefs)),
-      ],
-      child: MediaQuery(
+    testScope(
+      MediaQuery(
         data: MediaQueryData(size: size, textScaler: TextScaler.linear(scale), disableAnimations: true),
         child: MaterialApp.router(theme: velioTheme(), routerConfig: router),
       ),
@@ -227,6 +254,7 @@ void setUpHarness() {
     await identity.load();
     api = FakeApi(identity);
     cache = OfflineCache(prefs);
+    session = SessionRepository(identity: identity, api: api, cache: cache);
     online = true;
   });
 }

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:velio_tokens/velio_tokens.dart';
 
-import '../core/format.dart';
+import '../domain/format.dart';
 import 'art.dart';
 
 /// A progress ring that stands still when the system asks for reduced motion (UX NFR-002).

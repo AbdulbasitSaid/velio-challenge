@@ -196,7 +196,7 @@ class AttendanceRow extends StatelessWidget {
                 child: Row(
                   children: [
                     Expanded(
-                      child: _MarkButton(
+                      child: MarkButton(
                         'Attended',
                         selected: mark == Mark.attended,
                         onTap: onMark == null ? null : () => onMark!(Mark.attended),
@@ -204,7 +204,7 @@ class AttendanceRow extends StatelessWidget {
                     ),
                     const SizedBox(width: VelioSpace.s2),
                     Expanded(
-                      child: _MarkButton(
+                      child: MarkButton(
                         'No-show',
                         selected: mark == Mark.noShow,
                         danger: true,
@@ -221,8 +221,8 @@ class AttendanceRow extends StatelessWidget {
   );
 }
 
-class _MarkButton extends StatelessWidget {
-  const _MarkButton(this.label, {required this.selected, this.danger = false, this.onTap});
+class MarkButton extends StatelessWidget {
+  const MarkButton(this.label, {super.key, required this.selected, this.danger = false, this.onTap});
   final String label;
   final bool selected;
   final bool danger;

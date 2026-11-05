@@ -4,16 +4,16 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:velio/core/api.dart';
-import 'package:velio/features/claim.dart';
-import 'package:velio/features/code_entry.dart';
-import 'package:velio/features/errors.dart';
-import 'package:velio/features/invite.dart';
-import 'package:velio/features/my_plans.dart';
-import 'package:velio/features/plan.dart';
-import 'package:velio/features/profile.dart';
-import 'package:velio/features/signin.dart';
+import 'package:velio/claim/claim.dart';
+import 'package:velio/code_entry/code_entry.dart';
+import 'package:velio/domain/api_exception.dart';
+import 'package:velio/invite/invite.dart';
+import 'package:velio/my_plans/my_plans.dart';
+import 'package:velio/plan/plan.dart';
+import 'package:velio/profile/profile.dart';
+import 'package:velio/sign_in/sign_in.dart';
 import 'package:velio/ui/components.dart';
+import 'package:velio/ui/error_screen.dart';
 import 'package:velio_api/velio_api.dart';
 
 import 'fixtures.dart';
@@ -56,7 +56,7 @@ void main() {
 
   group('G8 code entry (V-CODE-1)', () {
     screenTest('empty, then a typed code enables Open', (t, {size = const Size(360, 800), scale = 1}) async {
-      await pumpScreen(t, const CodeEntryScreen(), size: size, scale: scale);
+      await pumpScreen(t, const CodeEntryPage(), size: size, scale: scale);
       expect(find.text('Got an invite code?'), findsOneWidget);
       await t.enterText(find.byType(TextField), 'k7-pq2n');
       await t.pump();
@@ -64,7 +64,7 @@ void main() {
     });
     screenTest('unknown code inline, code kept', (t, {size = const Size(360, 800), scale = 1}) async {
       api.inviteError = const ApiException(status: 404, code: 'invalid_code');
-      await pumpScreen(t, const CodeEntryScreen(), size: size, scale: scale);
+      await pumpScreen(t, const CodeEntryPage(), size: size, scale: scale);
       await t.enterText(find.byType(TextField), 'K7PQ2M');
       await t.pump();
       await tapText(t, 'Open invite');
@@ -74,7 +74,7 @@ void main() {
     screenTest('rate limited', (t, {size = const Size(360, 800), scale = 1}) async {
       await pumpScreen(
         t,
-        const CodeEntryScreen(initialError: 'limited'),
+        const CodeEntryPage(initialError: 'limited'),
         size: size,
         scale: scale,
       );
@@ -87,7 +87,7 @@ void main() {
     screenTest('G1 vouch, with the open beacon', (t, {size = const Size(360, 800), scale = 1}) async {
       await pumpScreen(
         t,
-        const InviteScreenPage(code: 'K7PQ2N'),
+        const InvitePage(code: 'K7PQ2N'),
         size: size,
         scale: scale,
       );
@@ -103,7 +103,7 @@ void main() {
       api.inviteResult = inviteView(rail: 'public');
       await pumpScreen(
         t,
-        const InviteScreenPage(code: 'K7PQ2N'),
+        const InvitePage(code: 'K7PQ2N'),
         size: size,
         scale: scale,
       );
@@ -114,7 +114,7 @@ void main() {
       api.inviteResult = inviteView(activity: activityJson(spotsLeft: 0));
       await pumpScreen(
         t,
-        const InviteScreenPage(code: 'K7PQ2N'),
+        const InvitePage(code: 'K7PQ2N'),
         size: size,
         scale: scale,
       );
@@ -126,7 +126,7 @@ void main() {
       api.inviteResult = inviteView(status: 'expired');
       await pumpScreen(
         t,
-        const InviteScreenPage(code: 'K7PQ2N'),
+        const InvitePage(code: 'K7PQ2N'),
         size: size,
         scale: scale,
       );
@@ -136,7 +136,7 @@ void main() {
       api.inviteResult = inviteView(status: 'claimed');
       await pumpScreen(
         t,
-        const InviteScreenPage(code: 'K7PQ2N'),
+        const InvitePage(code: 'K7PQ2N'),
         size: size,
         scale: scale,
       );
@@ -147,7 +147,7 @@ void main() {
       api.inviteResult = inviteView(rail: 'public', status: 'paused', pausedReason: 'auto');
       await pumpScreen(
         t,
-        const InviteScreenPage(code: 'K7PQ2N'),
+        const InvitePage(code: 'K7PQ2N'),
         size: size,
         scale: scale,
       );
@@ -162,7 +162,7 @@ void main() {
       api.inviteError = const ApiException(message: 'network');
       await pumpScreen(
         t,
-        const InviteScreenPage(code: 'K7PQ2N'),
+        const InvitePage(code: 'K7PQ2N'),
         size: size,
         scale: scale,
       );
@@ -179,7 +179,7 @@ void main() {
     screenTest('new guest: two fields and the disclosure', (t, {size = const Size(360, 800), scale = 1}) async {
       await pumpScreen(
         t,
-        const ClaimScreen(code: 'K7PQ2N'),
+        const ClaimPage(code: 'K7PQ2N'),
         size: size,
         scale: scale,
       );
@@ -191,7 +191,7 @@ void main() {
       await signedIn();
       await pumpScreen(
         t,
-        const ClaimScreen(code: 'K7PQ2N'),
+        const ClaimPage(code: 'K7PQ2N'),
         size: size,
         scale: scale,
       );
@@ -201,7 +201,7 @@ void main() {
     });
     testWidgets('a failed claim offers Try again with the same key; nothing is queued', (t) async {
       await signedIn();
-      await pumpScreen(t, const ClaimScreen(code: 'K7PQ2N'));
+      await pumpScreen(t, const ClaimPage(code: 'K7PQ2N'));
       await tapText(t, 'Confirm my spot');
       expect(find.text('We couldn’t confirm your spot. Nothing was booked.'), findsOneWidget);
       await tapText(t, 'Try again');
@@ -211,14 +211,14 @@ void main() {
     testWidgets('sold out on claim: banner, no retry', (t) async {
       await signedIn();
       api.claimError = const ApiException(status: 409, code: 'sold_out');
-      await pumpScreen(t, const ClaimScreen(code: 'K7PQ2N'));
+      await pumpScreen(t, const ClaimPage(code: 'K7PQ2N'));
       await tapText(t, 'Confirm my spot');
       expect(find.text('Someone just took the last spot.'), findsOneWidget);
       expect(find.text('Try again'), findsNothing);
     });
     testWidgets('offline: Reconnect to claim, disabled', (t) async {
       online = false;
-      await pumpScreen(t, const ClaimScreen(code: 'K7PQ2N'));
+      await pumpScreen(t, const ClaimPage(code: 'K7PQ2N'));
       expect(find.text('Reconnect to claim'), findsOneWidget);
       await t.tap(find.text('Reconnect to claim'));
       await t.pump();
@@ -231,7 +231,7 @@ void main() {
       await signedIn();
       await pumpScreen(
         t,
-        const YoureInScreen(planId: planId),
+        const YoureInPage(planId: planId),
         size: size,
         scale: scale,
       );
@@ -245,7 +245,7 @@ void main() {
       await signedIn();
       await pumpScreen(
         t,
-        const PlanScreen(planId: planId),
+        const PlanPage(planId: planId),
         size: size,
         scale: scale,
       );
@@ -261,7 +261,7 @@ void main() {
       api.planResult = PlanView.fromJson(planJson(bookingStatus: 'removed'));
       await pumpScreen(
         t,
-        const PlanScreen(planId: planId),
+        const PlanPage(planId: planId),
         size: size,
         scale: scale,
       );
@@ -270,7 +270,7 @@ void main() {
     });
     testWidgets('invite sheet: choose, then vouch form', (t) async {
       await signedIn();
-      await pumpScreen(t, const PlanScreen(planId: planId));
+      await pumpScreen(t, const PlanPage(planId: planId));
       await tapText(t, 'Invite a friend');
       expect(find.text('Vouch for a friend'), findsOneWidget);
       await tapText(t, 'Vouch for a friend');
@@ -289,25 +289,25 @@ void main() {
         ],
         past: const [],
       );
-      await pumpScreen(t, const MyPlansScreen(), size: size, scale: scale);
+      await pumpScreen(t, const MyPlansPage(), size: size, scale: scale);
       expect(find.text('VLO-48213'), findsOneWidget);
       expect(find.text('Removed by host'), findsOneWidget);
     });
     screenTest('empty', (t, {size = const Size(360, 800), scale = 1}) async {
       await signedIn();
       api.plansResult = MyPlans(upcoming: const [], past: const []);
-      await pumpScreen(t, const MyPlansScreen(), size: size, scale: scale);
+      await pumpScreen(t, const MyPlansPage(), size: size, scale: scale);
       expect(find.text('No plans yet'), findsOneWidget);
     });
     screenTest('signed out on a new phone', (t, {size = const Size(360, 800), scale = 1}) async {
-      await pumpScreen(t, const MyPlansScreen(), size: size, scale: scale);
+      await pumpScreen(t, const MyPlansPage(), size: size, scale: scale);
       expect(find.text('Continue with your phone or email'), findsOneWidget);
     });
     screenTest('offline from the saved list', (t, {size = const Size(360, 800), scale = 1}) async {
       await signedIn();
       await cache.saveMyPlans(MyPlans(upcoming: [myPlan()], past: const []), DateTime.utc(2026, 11, 4, 11, 45));
       api.plansError = const ApiException(message: 'network');
-      await pumpScreen(t, const MyPlansScreen(), size: size, scale: scale);
+      await pumpScreen(t, const MyPlansPage(), size: size, scale: scale);
       expect(find.text('You’re offline · Last updated 25 min ago'), findsOneWidget);
       expect(find.text('Showing your saved plans.'), findsOneWidget);
       expect(find.text('Sunset Kayaking'), findsOneWidget);
@@ -323,7 +323,7 @@ void main() {
       });
       await pumpScreen(
         t,
-        const ProfileScreen(userId: 'u1'),
+        const ProfilePage(userId: 'u1'),
         size: size,
         scale: scale,
       );
@@ -331,7 +331,7 @@ void main() {
       expect(find.text('Tunde isn’t hosting anything right now.'), findsOneWidget);
     });
     screenTest('X1 sign in, empty submit', (t, {size = const Size(360, 800), scale = 1}) async {
-      await pumpScreen(t, const SignInScreen(), size: size, scale: scale);
+      await pumpScreen(t, const SignInPage(), size: size, scale: scale);
       await tapText(t, 'Continue');
       expect(find.text('Enter your name.'), findsOneWidget);
     });

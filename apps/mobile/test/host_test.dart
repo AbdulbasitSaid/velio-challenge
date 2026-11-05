@@ -10,14 +10,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
-import 'package:velio/core/api.dart';
-import 'package:velio/core/attendance.dart';
-import 'package:velio/core/booking.dart';
-import 'package:velio/core/host_form.dart';
-import 'package:velio/core/identity.dart';
-import 'package:velio/core/photo.dart';
-import 'package:velio/core/role.dart';
-import 'package:velio/features/host_list.dart';
+import 'package:velio/data/api.dart';
+import 'package:velio/data/identity.dart';
+import 'package:velio/data/photo.dart';
+import 'package:velio/domain/attendance.dart';
+import 'package:velio/domain/booking.dart';
+import 'package:velio/domain/host_form.dart';
+import 'package:velio/domain/role.dart';
+import 'package:velio/host_list/host_list.dart';
+import 'package:velio/repositories/preferences_repository.dart';
 import 'package:velio/ui/components.dart';
 import 'package:velio_api/velio_api.dart';
 
@@ -264,9 +265,9 @@ void main() {
 
   test('role is remembered (V-NAV-1)', () async {
     SharedPreferencesAsyncPlatform.instance = InMemorySharedPreferencesAsync.empty();
-    final prefs = SharedPreferencesAsync();
-    expect(await loadRole(prefs), Role.booker);
-    await saveRole(prefs, Role.host);
-    expect(await loadRole(prefs), Role.host);
+    final prefs = PreferencesRepository(SharedPreferencesAsync());
+    expect(await prefs.loadRole(), Role.booker);
+    await prefs.saveRole(Role.host);
+    expect(await prefs.loadRole(), Role.host);
   });
 }

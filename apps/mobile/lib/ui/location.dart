@@ -2,12 +2,12 @@
 // one marker, and directions. Without a Maps key, offline, or if the map fails, the address and
 // directions still show and nothing else is affected (PRD A7, S7 FR-018).
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:velio_tokens/velio_tokens.dart';
 
-import '../core/providers.dart';
+import '../app/config.dart';
 import 'art.dart';
 import 'components.dart';
 
@@ -28,22 +28,23 @@ class Place {
   final String? meetingPoint;
 }
 
-class LocationBlock extends ConsumerWidget {
+class LocationBlock extends StatelessWidget {
   const LocationBlock({super.key, required this.place, this.offline = false, this.aspectRatio = 4 / 3});
   final Place place;
   final bool offline;
   final double aspectRatio;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final maps = ref.watch(mapsEnabledProvider);
+  Widget build(BuildContext context) {
+    final config = context.read<AppConfig>();
+    final maps = config.mapsEnabled;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionHeading('Where'),
         const SizedBox(height: VelioSpace.s3),
         if (offline)
-          _MapNote(aspectRatio: aspectRatio, text: 'Map unavailable offline')
+          MapNote(aspectRatio: aspectRatio, text: 'Map unavailable offline')
         else if (maps)
           ClipRRect(
             borderRadius: BorderRadius.circular(VelioRadius.card),
@@ -119,7 +120,7 @@ class LocationBlock extends ConsumerWidget {
             icon: 'directions',
             variant: ButtonVariant.secondary,
             small: true,
-            onPressed: () => openDirections(context, place, ios: ref.read(platformProvider) == 'ios'),
+            onPressed: () => openDirections(context, place, ios: config.platform == 'ios'),
           ),
         ),
       ],
@@ -127,8 +128,8 @@ class LocationBlock extends ConsumerWidget {
   }
 }
 
-class _MapNote extends StatelessWidget {
-  const _MapNote({required this.aspectRatio, required this.text});
+class MapNote extends StatelessWidget {
+  const MapNote({super.key, required this.aspectRatio, required this.text});
   final double aspectRatio;
   final String text;
 
