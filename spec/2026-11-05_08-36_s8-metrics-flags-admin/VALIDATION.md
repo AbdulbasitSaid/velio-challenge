@@ -72,11 +72,22 @@ All run 2026-11-05 on macOS (Apple silicon), Bun 1.4.4, Flutter via fvm, with th
 | M1      | `bun run grafana:push` twice (2026-11-05), then each dashboard opened in Chrome. Metric names checked first through the data-source proxy (`/api/v1/label/__name__/values`)                                                                                                                                                                                                                                                                                                                                                                  | Pass with findings: folder, 3 dashboards and 4 rules created; the second push changed nothing (same UIDs, 4 rules). The panels render real data. Stat tiles showed the query text as a caption; fixed with `textMode: value` and re-pushed. **Findings:** F1, the default notification policy routes to a contact point named `empty`, so alerts notify nobody; F2, `booking_duration_seconds`, `booking_row_wait_seconds` and `http_server_duration_seconds` have no explicit buckets (S1/S2), so OTel's defaults (0, 5, 10 …) put every request in the first bucket and every p95 reads about 4.75 s; F3, local and production telemetry go to this stack with no label to tell them apart. All three fixed and re-pushed the same day (PLANNING change log); after the fix, local series arrive as `deployment_environment="development"` (checked through the proxy), the 4 rules route to `velio-email`, and a re-push keeps that routing | FR-017, FR-018, AC-009                          |
 | Review  | Metric labels: `name`, `metric`, `page`, `connection` (closed lists), no IDs; jobs log counts, not activity IDs; no new runtime dependencies (`next/web-vitals` is part of Next)                                                                                                                                                                                                                                                                                                                                                             | Pass                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | NFR-002, SEC-004, NFR-004                       |
 
+### M2: deployed check (2026-11-05, after the owner authorized deployment)
+
+The owner's push of `c1d0edf` deployed S8 through the Deploy workflow (run 41997319134, success, 08:48 UTC). An earlier run (41993192972) had failed because the instance role could not read `velio/prod/admin-token`; the CDK stack was updated before the successful run.
+
+| Check  | Command or procedure | Result | Covers |
+| ------ | -------------------- | ------ | ------ |
+| M2a | `curl` through `depimls1pcvv4.cloudfront.net`: `/api/healthz`, `/api/readyz`, `/admin`, `/api/admin/metrics` with no token, `POST /api/events` with `{}` | Pass: 200, 200, 200 (token form renders, seen in Chrome), 401 (admin is enabled; it would be 404 without `ADMIN_TOKEN`), 400 | AC-010, SEC-001 |
+| M2b | `GET /api/admin/metrics?days=7` and `GET /api/admin/activities` with the `velio/prod/admin-token` secret, through CloudFront, 5 runs | Pass: 200 with real figures (31 bookings at 100% success, oversell 0, vouch 9/14 and public 3/9 open-to-claim, K-factor 1.17 vouch and 0.25 public, plans happened 2/2); activities 200 | AC-010, FR-008, FR-010 |
+| M2c | Same request, timed with `curl -w` from the owner's network (5 runs) | Pass: 0.51–0.55 s total, including the CloudFront round trip | NFR-003 |
+| M2d | Grafana Cloud through the data-source proxy: `oversell_activities` and the Goals panel query `max(oversell_activities{deployment_environment!="development"})` | Pass: a `production`-labelled series exists with value 0; the panel query returns 0 | AC-010, FR-016, F3 fix |
+| M2e | Production `le` values on `http_server_duration_seconds_bucket` | Pass: 0.01 … 10 (`LATENCY_BUCKETS_S`), so the F2 fix is live. The 30-minute p95 read 3.5 s: about 7 requests over 3 s, all in the 2 minutes after the 08:48 restart (mostly `GET /api/me` and one `/api/healthz`, warm-up). Later probes answered in 0.5–0.8 s | F2 fix |
+
 ### Checks not run
 
-- **M2 deployed check** (AC-010): deployment needs its own authorization (PLANNING §7, task 9).
-- **NFR-003** (metrics under 1 s): not timed. No measurement was taken.
-- `/admin` was not opened in a browser; it was checked through component tests and the production build only.
+- `/admin` with the production token was not driven in the browser. The token form was seen rendering through CloudFront, but typing the production token into the page is left to the owner. The same data was read from the API (M2b), and the component tests cover rendering (T9).
+- The Goals dashboard was not opened in Chrome: the extension has no permission on the Grafana domain. Its query was run through the proxy instead (M2d).
 
 ### Deviations
 
@@ -84,4 +95,4 @@ See the PLANNING change log (2026-11-05): row-level views, the booking-success d
 
 ### Final validation status
 
-**Passed with exceptions.** M2 (deployed) is pending. After the F1–F3 fixes, root `bun test` passed in full (299 pass, 0 fail, including the 200-connection concurrency tests that had refused connections in earlier local runs), with lint, typecheck and format clean.
+**Passed with exceptions.** M2 (deployed) passed on 2026-11-05, except that `/admin` with the production token was not driven in a browser (see Checks not run). After the F1–F3 fixes, root `bun test` passed in full (299 pass, 0 fail, including the 200-connection concurrency tests that had refused connections in earlier local runs), with lint, typecheck and format clean.

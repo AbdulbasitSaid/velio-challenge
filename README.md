@@ -1,252 +1,307 @@
 # Velio Group Bookings
 
-Hosts list activities with fixed spots, bookers reserve and invite friends into a shared Plan, and guests claim spots from a link or code. Product intent: [`Velio Group Bookings PRD.md`](Velio%20Group%20Bookings%20PRD.md). Development rules: [`CLAUDE.md`](CLAUDE.md). Status: [`ROADMAP.md`](ROADMAP.md).
+Group bookings with live availability and viral invites:
 
-Built so far: the S1 foundation ([spec](spec/2026-11-03_09-29_s1-foundations/)), which covers the workspace, database schema, lightweight identity, contracts, telemetry base and CI; and the S2 booking core ([spec](spec/2026-11-03_22-30_s2-booking-core/)), which covers the activity create and edit API, direct booking, host removal and capacity changes, all of which cannot oversell. It has no invite, realtime or UI behaviour yet.
+- A **host** lists an activity with a fixed number of spots.
+- **Bookers** reserve a spot and bring friends into a shared Plan.
+- **Invited guests** claim their spot from a link or code on their phone.
 
-## Setup
+Spots update live on every screen, the system never sells more spots than exist, and every invite records whether it was a **vouch** or a **public share**.
 
-You need [Bun](https://bun.com) 1.4.4 and Docker. From a fresh clone:
+This is the submission for the Senior Fullstack Engineer assessment.
+
+## Submission map
+
+| The brief asks for | Where it is |
+| --- | --- |
+| `PLANS.md`: scope challenges and the technical, product and tracking plans | [`PLANS.md`](PLANS.md), condensed from the [PRD](Velio%20Group%20Bookings%20PRD.md) and the [MVP plan](spec/2026-11-03_07-42_group-bookings-mvp-plan/PLANNING.md), both written before any code |
+| `OWNERSHIP.md`: the improvement plan | [`OWNERSHIP.md`](OWNERSHIP.md) |
+| `docker-compose.yml` | [`infra/docker-compose.yml`](infra/docker-compose.yml): Postgres, MinIO (S3), OpenTelemetry Collector. No Redis, by design ([Plan vs. reality](#3-plan-vs-reality)) |
+| `backend/` | [`apps/api`](apps/api): Bun + Hono + TypeScript, PostgreSQL |
+| `web/` | [`apps/web`](apps/web): Next.js + TypeScript |
+| `mobile/` | [`apps/mobile`](apps/mobile): Flutter |
+| What I'd do with more time | [`NEXT.md`](NEXT.md) |
+| How each piece was planned, built and checked | [`spec/`](spec/): one directory per delivery step, each with `PLANNING.md`, `REQUIREMENTS.md` and `VALIDATION.md` (what was actually run, with results). [`ROADMAP.md`](ROADMAP.md) shows phases and status; [`CHANGELOG.md`](CHANGELOG.md) shows what shipped. |
+
+**How it was built.** Plans came first: the PRD and the MVP plan were committed on 3 Nov at 08:34 and 10:43, and the first code at 16:23. Every delivery step after that (S1–S8) had a spec reviewed before implementation. Each spec's `VALIDATION.md` records the checks that actually ran, including failures and exceptions. The rules for that workflow are in [`CLAUDE.md`](CLAUDE.md).
+
+## 1. Quick start
+
+You need [Bun](https://bun.com) 1.4.4 and Docker. For the mobile app, you also need Flutter 3.47.9 (pinned in `apps/mobile/.fvmrc`).
+
+**Database, storage and API:**
 
 ```sh
-bun install && docker compose -f infra/docker-compose.yml up -d
-bun run db:migrate && bun test
+bun install
+docker compose -f infra/docker-compose.yml up -d   # Postgres, MinIO, OpenTelemetry Collector
+bun run db:migrate                                 # migrates `velio` and `velio_test`, seeds three communities
+bun test                                           # API tests against the real Postgres, including the concurrency test
 ```
 
-`db:migrate` migrates two databases: `velio` (development) and `velio_test` (the template each test file clones).
+Copy `.env.example` to `.env`, then set two values:
 
-To run the API, copy `.env.example` to `.env`, set `CONTACT_PEPPER` (`openssl rand -base64 48`), then:
+- `CONTACT_PEPPER`: run `openssl rand -base64 48`.
+- `ADMIN_TOKEN`: the same command, for the admin page.
+
+Everything else has a working local default. Then start the API and web in two terminals:
 
 ```sh
-bun run dev        # http://localhost:3001/api/healthz
-bun run web:dev    # http://localhost:3000 (Next.js; proxies /api/* to :3001, the socket connects to :3001)
+bun run dev        # API on http://localhost:3001 (check: /api/healthz)
+bun run web:dev    # web on http://localhost:3000 (proxies /api to :3001)
 ```
 
-## Layout
+**Cache.** There's no Redis to start. Realtime fan-out uses Postgres `LISTEN/NOTIFY`, and rate limits live in a Postgres table ([why](#3-plan-vs-reality)).
 
-| Path                     | What                                                                        |
-| ------------------------ | --------------------------------------------------------------------------- |
-| `apps/api`               | Bun + Hono API. Routes live under `/api`.                                   |
-| `apps/api/migrations`    | Forward-only SQL migrations, run by dbmate.                                 |
-| `apps/api/src/db/types.ts` | Kysely types, generated from the migrated database. Do not edit.          |
-| `apps/web`               | Next.js web app (App Router, run on Node): pages, design-system components, API and realtime clients. Vitest tests in `test/`. |
-| `apps/mobile`            | Flutter app for iOS and Android (S7, S7b): code entry, invite, claim, Plan, My plans, offline cache, native map, App Links, plus the web's booker and host flows (communities, booking, Host / Booker toggle, create and edit, live attendance). Not a Bun workspace member. |
-| `packages/contracts`     | Zod schemas shared by API and clients, and the generated `openapi.json`.    |
-| `packages/api-client-dart` | Dart client `velio_api`, generated from `openapi.json`. Do not edit `lib/`. |
-| `packages/design-tokens` | The approved `tokens.json` and its generated outputs: `css/theme.css` (Tailwind 4 theme) and `dart/` (the `velio_tokens` Flutter package). Shared avatar hash fixtures. |
-| `load`                   | k6 load tests: `seed.ts` and `check.ts` (Bun), `scenarios/` (k6). Results go to `load/results/` (git-ignored). |
-| `infra`                  | Local Docker Compose (Postgres, MinIO, OpenTelemetry Collector), and the production Compose and collector configs. |
-| `infra/aws`              | CDK app for the AWS stack (`VelioApp`), its tests, and the instance scripts (`scripts/`). |
-| `.github/workflows/ci.yml` | Format, lint, types, migrations, codegen drift, tests, OpenAPI drift.     |
-| `.github/workflows/deploy.yml` | Builds the images and deploys `master` after CI passes.               |
+**Mobile:**
 
-## Scripts
-
-| Command                     | Does                                                                     |
-| --------------------------- | ------------------------------------------------------------------------ |
-| `bun run db:migrate`        | Applies pending migrations to `velio` and `velio_test`.                  |
-| `bun run db:codegen`        | Regenerates `apps/api/src/db/types.ts`. Add `--verify` to check only.    |
-| `bun run contracts:openapi` | Regenerates `packages/contracts/openapi.json` from the mounted routes.   |
-| `bun run contracts:dart`    | Regenerates the Dart client from `openapi.json` (Docker and Flutter). CI fails on drift. |
-| `bun test`                  | Unit and integration tests, against the Compose Postgres.                |
-| `bun run typecheck`         | `tsc --noEmit` for every workspace.                                      |
-| `bun run lint` · `bun run format` · `bun run format:check` | ESLint and Prettier.                      |
-| `bun run dev`               | API with reload.                                                         |
-| `bun run web:dev` · `web:build` · `web:test` | Next.js dev server, production build, Vitest.            |
-| `bun apps/api/scripts/seed-invites.ts` | Local only: one invite per invite-page state (S6), printed as links. Needs `bun run dev` and `web:dev`. |
-| `bun run tokens:build`      | Regenerates the token outputs from `packages/design-tokens/tokens.json`. CI fails on drift. |
-| `bun run load:smoke`        | k6 `last_spot_race` smoke against the local API (needs `bun run dev` running). |
-| `bun run load:viewers`      | k6 `viewers` smoke: 250 sockets watch a `last_spot_race` (needs `bun run dev` running). |
-| `bun run grafana:push`      | Pushes the dashboards and alert rules in `infra/grafana/` to Grafana Cloud. See [Dashboards and alerts](#dashboards-and-alerts). |
-| `bun run aws:synth` · `aws:diff` · `aws:deploy` · `aws:destroy` | CDK for the `VelioApp` stack in eu-west-2. Each needs `-c alertEmail=…`. |
-
-After changing a migration or a route, run `db:codegen` or `contracts:openapi` (then `contracts:dart`) and commit the result; CI fails on drift.
-
-## Mobile app
-
-Flutter 3.47.9 (pinned in `.fvmrc`; `fvm` or a matching `flutter` on PATH). iOS 15+ and Android 8 (API 26)+. Design and checks: [`spec/2026-11-04_12-50_s7-flutter-app/`](spec/2026-11-04_12-50_s7-flutter-app/).
-
-```bash
+```sh
 cd apps/mobile
 flutter pub get
-flutter test                                  # unit and widget tests (360 px and 200% text)
-flutter run                                   # against the deployed stack
-flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3001   # Android emulator → local Compose
-flutter run --dart-define=API_BASE_URL=http://localhost:3001  # iOS simulator → local Compose
-flutter test integration_test --dart-define=SMOKE_CODE=<claimable vouch code>   # books a spot
-flutter test integration_test/parity_test.dart --dart-define=API_BASE_URL=http://localhost:3001   # local only: books, publishes, removes
+flutter test                                                                   # unit and widget tests
+flutter run --dart-define=API_BASE_URL=http://localhost:3001                   # iOS simulator → local API
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3001                    # Android emulator → local API
 ```
 
-- **Maps:** without keys the app shows the address and directions instead of a map. To show native maps, put `MAPS_ANDROID_KEY=…` in `apps/mobile/android/secrets.properties` and `MAPS_IOS_KEY = …` in `apps/mobile/ios/Flutter/Secrets.xcconfig` (both git-ignored), and add `--dart-define=MAPS=true` (exactly `true`: `MAPS=1` leaves maps off).
-- **Places search (host create form):** add `--dart-define=PLACES_KEY=…` (a key with Places API (New), ideally restricted to the app; on Android also `--dart-define=ANDROID_CERT_SHA1=…` for the restriction). Without it, hosts drop a pin or type the coordinates.
-- **App Links (Android):** links to `https://<host>/i/<code>` open the app when the host's `/.well-known/assetlinks.json` lists the package and the SHA-256 of the keystore that signed the build (`ANDROID_PACKAGE`, `ANDROID_CERT_SHA256` on the web container). Builds are signed with the local debug keystore. iOS opens the web page; the app is reached by code entry (no Apple Developer account).
-- The app isn't distributed: run it from here on a simulator, emulator or cabled phone.
+**Trying it:**
 
-## Environment
+1. Open the web app and choose "Continue as" (a name and an email; there's no password, by design).
+2. Switch to **Host**, create an activity, then book it as a second person in another browser profile.
+3. From the Plan, create a vouch invite or a public link, and claim it in the Flutter app with the code.
 
-All variables are documented in [`.env.example`](.env.example). The API refuses to start, naming the variable, if one is missing or invalid.
+`bun apps/api/scripts/seed-invites.ts` prints one invite link per invite-page state: claimable, last spot, sold out, claimed and expired.
 
-| Variable                      | Notes                                                                   |
-| ----------------------------- | ----------------------------------------------------------------------- |
-| `DATABASE_URL`                | Runtime connection as `velio_api`.                                      |
-| `DATABASE_LISTEN_URL`         | Direct connection for realtime `LISTEN`. Never through a pooler.        |
-| `CONTACT_PEPPER`              | Secret keying contact hashes. Changing it orphans every existing user.  |
-| `ORIGIN_VERIFY_SECRET`        | CloudFront's `X-Origin-Verify` value. Required in production only.      |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | Local collector: `http://localhost:4318`. Empty disables export.        |
-| `LOG_LEVEL`                   | pino level.                                                             |
-| `SESSION_IDLE_DAYS`, `SESSION_ABSOLUTE_DAYS` | Session lifetimes, default 30 and 90.                    |
-| `PUBLIC_BASE_URL` | Origin of invite links (`<origin>/i/<code>`). Required in production; defaults to `http://localhost:3000`. |
-| `LINK_CLAIMS_PER_MINUTE`, `AUTO_PAUSE_MIN_OPENS` | Public-link abuse limits (PRD R7), default 60 and 200. |
-| `HOLDOUT_PERCENT` | Share of users who never get invite tools (PRD holdout), default 10. Tests use 0. |
-| `ADMIN_TOKEN` | Bearer token for `/api/admin/*` and the web `/admin` page, at least 32 characters. Unset: admin answers 404. |
+**Load smoke tests** (with `bun run dev` running):
 
-## Database
+- `bun run load:smoke`: the k6 last-spot race.
+- `bun run load:viewers`: 250 live sockets during a race.
 
-- Roles: `velio_owner` owns the schema (migrations switch to it), `velio_api` is the runtime role, `velio_readonly` is for metrics views. Locally they have no passwords: the Compose Postgres uses trust auth on `127.0.0.1` only.
-- Insert-only tables (`invites`, `invite_claims`, `attributions`, `trust_edges`, `attendance_marks`, `booking_removals`) reject `UPDATE` and `DELETE` twice: `velio_api` lacks the grants, and a trigger rejects them for every role.
-- `invites` and `attributions` carry a hash chain per activity. A `BEFORE INSERT` trigger sets `chain_seq`, `prev_hash` and `row_hash` under the activity row lock, whatever the caller sent. `SELECT * FROM audit_chain('<activity id>')` (or `audit_all_chains()`) recomputes both chains and returns the first broken `chain_seq` per table; a clean chain returns no rows.
-- Trigger errors use SQLSTATE class `VL`: `VL001` location locked, `VL002` insert-only, `VL003` immutable column, `VL004` invalid time zone.
+## 2. Architecture and decisions
 
-## Booking engine
+```mermaid
+flowchart LR
+    W[Web: Next.js, SSR] -- REST + WebSocket --> API[API: Bun + Hono]
+    M[Flutter app] -- REST + WebSocket --> API
+    API -- SQL --> PG[(PostgreSQL)]
+    PG -- NOTIFY on commit --> API
+    W -- signed upload --> S3[(S3 / MinIO: photos)]
+    API -- OTLP --> OT[OpenTelemetry → Grafana Cloud]
+```
 
-`apps/api/src/modules/bookings/engine.ts` is the only code that writes `activities.spots_left`. A booking takes its spot with one conditional `UPDATE … WHERE spots_left > 0`, inside the transaction that creates the Plan and the booking, so the last spot can be taken only once. The `CHECK` constraint is the backstop. Retries send the same `Idempotency-Key` header and get the original booking back with `200`. Every committed change to `spots_left` bumps `activities.version` and sends `pg_notify('activity_spots', …)`.
+| Path | What |
+| --- | --- |
+| `apps/api` | The API: one module per domain (`bookings`, `invites`, `realtime`, `metrics`, …). SQL migrations are in `apps/api/migrations` and are forward-only. |
+| `apps/web` | Next.js (App Router, run on Node): host, booker, invite and claim, admin. Server rendering keeps the invite page fast on 3G and gives link previews. |
+| `apps/mobile` | Flutter on `flutter_bloc`: code entry, invite and claim, Plan, My plans, offline cache, haptics, App Links. It also has the web's booker and host flows. |
+| `packages/contracts` | Zod schemas, the single source of the API contract. They generate `openapi.json`, which generates the Dart client (`packages/api-client-dart`). CI fails on drift, so the three apps can't disagree about a field. |
+| `packages/design-tokens` | One `tokens.json` for Tailwind on web and a Dart package in Flutter, so both clients look like one product. |
+| `infra/` | Local Compose, production Compose, collector configs, the AWS CDK stack and the Grafana dashboards. |
 
-- `bun test` includes `apps/api/test/concurrency/last-spot.test.ts`: 200 parallel HTTP bookers for 1, 5 and 14 spots, exactly N succeed. It also covers same-key retries, removal and capacity races.
-- `bun run load:smoke` runs the same race through k6 (25 VUs per activity, the `grafana/k6` image under the Compose `load` profile), then checks the database for oversold activities. Seeded data stays in the development database, named `Load <runId> …`.
-- The kill switch is `activities.bookings_paused`. Until S8 adds the admin endpoint, set it in SQL.
+**Principles:**
 
-## Invites and claims
+- **The database decides.** Capacity, single-use vouches and first-claim attribution are enforced by Postgres constraints and conditional writes, never by an application-side check.
+- **One write path.** A claim is a booking, through the same transaction.
 
-- `POST /api/plans/:id/invites` creates a vouch (one named person, single use; the contact is stored only as a keyed hash) or returns the member's public link. `GET /api/invites/:code` is the public invite page's data; `POST /api/invites/:code/opens` is the beacon the page sends after rendering.
-- `POST /api/invites/:code/claims` is a booking through the same engine as a direct booking (`Idempotency-Key` required). A guest without a session sends `displayName` and `contact`; a new guest is created inside the claim transaction with generation = inviter's + 1, and gets the attribution row and a session. Two parallel claims of one vouch give one booking.
-- More than 10 unknown codes from one device (`X-Device-Id`, else the client IP) in an hour lock that device out of every code until the hour ends. Public links take at most `LINK_CLAIMS_PER_MINUTE` claim attempts a minute and pause themselves after `AUTO_PAUSE_MIN_OPENS` opens in an hour with under 2% claimed; the creator or host resumes them with `DELETE /api/invites/:code/pause`.
-- Read APIs for the clients: `GET /api/plans/:id`, `/api/me/plans`, `/api/host/activities`, `/api/host/activities/:id/attendance` (and `POST /api/host/bookings/:id/attendance` to mark), `/api/communities`, `/api/communities/:slug`, `/api/users/:id/profile` and `/api/activities/:id/next-steps`.
+### Concurrency: never oversell
 
-## Realtime
+[`apps/api/src/modules/bookings/engine.ts`](apps/api/src/modules/bookings/engine.ts) is the only code that writes `spots_left`. A booking runs in one transaction:
 
-`GET /api/activities/:id` is the public snapshot (spots left, `version`, members as "Tunde A."). `GET /api/ws?platform=web|ios|android` upgrades to a WebSocket. Clients subscribe to `activity:<id>` (anyone), `plan:<id>` (Plan members) or `host:<activityId>` (the host), and receive `spots`, `plan`, `attendance` and `resync` messages. The protocol and the client rules (subscribe before fetching the snapshot, ignore older versions, poll every 10 s while disconnected) are in `packages/contracts/src/realtime.ts`.
+1. Take the spot with one conditional `UPDATE activities SET spots_left = spots_left - 1, version = version + 1 WHERE id = $1 AND spots_left > 0 AND starts_at > now() AND NOT bookings_paused`. Zero rows means the API reads the row to name the reason (`sold_out`, `activity_started`, `bookings_paused`) and rolls back.
+2. In the same transaction, insert the booking. A partial unique index on `(activity_id, user_id)` turns a double booking into `already_booked`.
+3. For a claim, insert the claim (single use for vouches), the attribution and the funnel events.
+4. Call `pg_notify` and commit.
 
-- Each API process holds one `LISTEN` connection (`apps/api/src/modules/realtime/listener.ts`) on `activity_spots`, `plan_changed` and `attendance_changed`. If it drops, the listener reconnects and sends `resync` to every subscribed topic. `/api/readyz` returns 503 while it isn't listening.
-- Clients send `{type:"rendered", activityId, version}` after painting; `realtime_commit_to_ack_seconds` is the PRD's live-update latency, measured on the server clock.
-- Try it from a browser console on a running API: `ws = new WebSocket('ws://localhost:3001/api/ws?platform=web'); ws.onmessage = (e) => console.log(e.data); ws.onopen = () => ws.send(JSON.stringify({type: 'subscribe', topics: ['activity:<id>']}))`.
+A `CHECK (spots_left BETWEEN 0 AND capacity)` is the backstop. Retries carry an `Idempotency-Key` and get the original booking back.
 
-## Metrics and admin
+- **Why this over the alternatives.** The update takes the row lock, so everything for that activity is serialized, including the attribution hash chain. The transaction is short, and there's no window between reading and writing.
+  - `SELECT … FOR UPDATE`: the same lock with an extra round trip.
+  - `SERIALIZABLE` with retries: retries pile up under exactly this contention.
+  - A Redis counter: two sources of truth that can disagree after a crash.
+- **Proof:** [`apps/api/test/concurrency/last-spot.test.ts`](apps/api/test/concurrency/last-spot.test.ts) and [`claims.test.ts`](apps/api/test/concurrency/claims.test.ts). The first fires 200 truly parallel HTTP bookings, each with its own session, at activities with 1, 5 and 14 spots, against real Postgres. Exactly N succeed, the rest get `sold_out`, and confirmed bookings equal capacity. It also covers same-key retries, host removal and capacity edits racing bookings, and two people claiming one vouch at once. It runs in CI on every push. The k6 `last_spot_race` repeats the race over HTTP.
 
-- **Holdout (`group_invites`):** a stable hash of the user ID puts `HOLDOUT_PERCENT` of users in the holdout. The first time someone reaches invite tools (their Plan before the start, or creating an invite), their arm is stored in `exposures`. Holdout users get `canInvite: false` and `403 invites_unavailable`; web and the app already hide invite tools when `canInvite` is false.
-- **Events:** the server writes the funnel events (`booking_succeeded`, `booking_rejected`, `booking_failed`, `invite_created`, `invite_opened`, `invite_claimed`) in the same transaction as the fact. The web sends `activity_viewed` and Web Vitals to `POST /api/events` (60 a minute per device); vitals become the `web_vitals_seconds` and `web_vitals_cls` histograms and are never stored.
-- **Views:** `v_oversell`, `v_booking_success`, `v_invite_rate`, `v_open_to_claim_by_rail`, `v_k_factor_by_rail`, `v_plans_happened`, `v_guardrail` and `v_holdout` (`apps/api/migrations/20261105090000_metrics_views.sql`). One row per fact, with the timestamp a reporting window applies to; `velio_readonly` can query them.
-- **Admin:** open `/admin` on the web and enter `ADMIN_TOKEN` (kept for the tab only). It shows the PRD goals with targets and triggers, the funnel and K-factor per rail, the plans-happen guardrail and the holdout split, runs the attribution audit, and pauses or resumes bookings for any upcoming activity (the kill switch; existing bookings stay). The same data is at `GET /api/admin/metrics?days=7` with `Authorization: Bearer <token>`. In production the token is the generated `velio/prod/admin-token` secret: `aws secretsmanager get-secret-value --region eu-west-2 --secret-id velio/prod/admin-token --query SecretString --output text`.
-- **Jobs:** the API checks for oversold activities every 5 minutes (gauge `oversell_activities`) and audits every hash chain nightly at 02:00 UTC (gauge `audit_chain_failures`).
+### Realtime: from booking to every open client
 
-## Telemetry
+1. The booking transaction calls `pg_notify('activity_spots', {spotsLeft, version, committedAt})`. Postgres delivers it **only if the transaction commits**, in commit order. A rolled-back booking never reaches a screen.
+2. Each API process holds one `LISTEN` connection ([`modules/realtime/listener.ts`](apps/api/src/modules/realtime/listener.ts)) and republishes to Bun WebSocket topics: `activity:<id>` for anyone, plus `plan:<id>` and `host:<activityId>` hints for Plans and live attendance.
+3. Clients subscribe first, then fetch the snapshot, and ignore any event whose version isn't newer. While disconnected they poll every 10 s. If the listener drops, it reconnects and tells every client to resync, and `/api/readyz` reports unavailable meanwhile.
+4. Clients acknowledge each render, and the server measures commit-to-render latency on its own clock. This is the PRD's "feels live" metric. The protocol is in [`packages/contracts/src/realtime.ts`](packages/contracts/src/realtime.ts).
 
-The API exports traces and metrics over OTLP to the local collector, which prints them (`docker compose -f infra/docker-compose.yml logs -f otel-collector`). Logs are JSON on stdout with `trace_id` and `request_id`. Contacts, tokens, cookies, notes and invite codes are redacted.
+### Attribution that can't be rewritten
 
-To also send to Grafana Cloud from your machine, set `OTEL_COLLECTOR_EXTRA_CONFIG=/etc/otelcol/grafana.yaml`, `GRAFANA_OTLP_ENDPOINT` and `GRAFANA_OTLP_AUTH` (see `infra/otel-collector.grafana.yaml`) and restart the collector. Production wiring: see [Grafana Cloud](#grafana-cloud).
+- **No edits, enforced twice.** `invites`, `invite_claims`, `attributions`, `trust_edges`, `attendance_marks` and `booking_removals` are insert-only. The API's database role has no `UPDATE` or `DELETE` grant, and a trigger rejects changes for every role, including the owner.
+- **Hash chain.** `invites` and `attributions` are hash-chained per activity by a trigger under the activity row lock. `SELECT * FROM audit_chain('<activity>')` finds the first edited or missing row. It runs nightly and from the admin page.
+- **First claim wins forever.** A unique `invitee_id` fixes a guest's inviter and generation at their first claim. Later vouches are separate trust edges.
+- **Generation is immutable.** `users.invite_generation` (inviter's + 1, organic users are 0) is set at creation and can't change.
 
-## Production (AWS)
+## 3. Plan vs. reality
 
-One `t4g.small` instance in eu-west-2 runs Docker Compose (Postgres, the API, the OpenTelemetry Collector) behind CloudFront on its `cloudfront.net` hostname. The instance accepts only CloudFront on port 3001, and the API rejects requests without CloudFront's `X-Origin-Verify` header. It has no SSH; use SSM. Design and checks: [`spec/2026-11-03_16-15_s10-aws-app-stack/`](spec/2026-11-03_16-15_s10-aws-app-stack/).
+Every deviation was agreed with the product owner and recorded where it happened; the full table is in [`PLANS.md`](PLANS.md#changes-of-course). The main ones:
 
-### First-time setup
+- **Bun instead of Node.** Faster setup, a built-in test runner and native WebSocket topics. Hono runs unchanged on Node, so switching back is a small change.
+- **No Redis.**
+  - Postgres `NOTIFY` is delivered only on commit, so no event is published for a booking that rolled back and none is lost between commit and publish. Redis pub/sub publishes after commit, and a crash between the two loses the event.
+  - Rate limits sit in a Postgres table.
+  - One less service to run.
+  - Redis is the documented switch if notifying commits reach the hundreds per second.
+- **Layout.** `apps/api`, `apps/web` and `apps/mobile` instead of `backend/`, `web/` and `mobile/`, because shared contracts and tokens live in `packages/`. Compose lives in `infra/`.
+- **More than the brief:**
+  - the Flutter app has the full booker and host flows, not only the guest flow (owner's call: mobile users shouldn't be sent to the web);
+  - Google Maps locations and a community map;
+  - a deployment on AWS behind CloudFront, so deep links and real phones could be tested on HTTPS.
+- **Privacy tightened.** A vouch's contact is stored only as a keyed hash, never raw, because invites go out from the booker's own phone.
+- **Not finished:** the hardening step (S9). Its spec is written; see [Trade-offs](#4-trade-offs).
 
-You need an AWS CLI session (`aws login`) with administrator rights, and the [Session Manager plugin](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-install-plugin.html) for shell access.
+## 4. Trade-offs
+
+**What I prioritized,** in the PRD's order of risk:
+
+1. Correctness: never oversell, idempotent retries.
+2. Live counts.
+3. Trustworthy attribution.
+4. Then the clients and their states, so no screen is a dead end and sold-out is kind.
+5. Then tracking, so every goal in the scope is a number with a target and a trigger.
+
+**Shortcuts, and why they're acceptable for now:**
+
+| Shortcut | Why it's OK for a prototype | Before production |
+| --- | --- | --- |
+| "Continue as": name plus email or phone, no verification | Full auth is out of scope; guests mustn't hit a sign-up wall at the claim moment | Verified email or phone sign-in |
+| One EC2 instance with Postgres in Compose | Lowest cost; same containers move later | Fargate + RDS Multi-AZ |
+| CloudFront → origin over HTTP, locked by a secret header and CloudFront's prefix list | No paid domain | CloudFront VPC origin or TLS to the instance |
+| Load tested at 5% of the target (25 VUs per activity, 250 sockets), not 10× | The time went to correctness and clients | The S9 full suite from a spot runner (spec written) |
+| No browser E2E, no accessibility audit | Component tests cover states (226 web, 293 Flutter); flows were checked by hand on the deployed stack | Playwright with axe in CI; VoiceOver and TalkBack checks |
+| iOS opens invites on the web page, not in the app | No Apple Developer account; Android App Links are verified | Universal Links, TestFlight |
+| Jobs (oversell check, nightly audit) run in the API process | One instance | A scheduler that survives restarts |
+
+**Taking this to production:** the ranked list is in [`NEXT.md`](NEXT.md). The first steps are real authentication and the encrypted origin hop, then the 10× load run, then the staged rollout from the plan: internal, one community, then general availability with the 10% holdout.
+
+## 5. Where to see the tracking
+
+**The admin page.** Run the app locally, open `/admin` on the web app and enter your `ADMIN_TOKEN`. It shows:
+
+- the five scope goals, each with its target, trigger and whether it has fired;
+- the funnel per rail (invites → opens → claims);
+- invite rate, K-factor per rail, the plans-happen guardrail and the holdout split;
+- a button to run the attribution audit, and the per-activity kill switch.
+
+The same JSON is at `GET /api/admin/metrics?days=7` with `Authorization: Bearer <ADMIN_TOKEN>`.
+
+**SQL views**, one per product goal, in [`apps/api/migrations/20261105090000_metrics_views.sql`](apps/api/migrations/20261105090000_metrics_views.sql). Each row is one fact. To query them:
+
+```sh
+docker compose -f infra/docker-compose.yml exec postgres psql -U postgres -d velio
+```
+
+```sql
+-- Share of exposed bookers who invite within 24 h, by rail (target 30%)
+SELECT avg((invited_vouch OR invited_public)::int) AS any_rail,
+       avg(invited_vouch::int) AS vouch, avg(invited_public::int) AS public
+  FROM v_invite_rate WHERE arm = 'exposed';
+
+-- Open-to-claim per rail (target 25% on vouch)
+SELECT rail, sum(claims)::float / nullif(sum(opens), 0) AS open_to_claim
+  FROM v_open_to_claim_by_rail GROUP BY rail;
+
+-- K-factor per rail: new users brought in ÷ users who invited
+SELECT rail, sum(new_users)::float / nullif(count(DISTINCT inviter_id), 0) AS k_factor
+  FROM v_k_factor_by_rail GROUP BY rail;
+
+-- Oversold activities (must be empty), and the plans-happen guardrail
+SELECT * FROM v_oversell;
+SELECT avg(happened::int) FROM v_plans_happened;
+```
+
+**Funnel events.** The server writes `booking_succeeded`, `booking_rejected` (with reason), `booking_failed`, `invite_created`, `invite_opened` and `invite_claimed` to `events`, in the same transaction as the fact itself, so the funnel can't disagree with the data. The web adds `activity_viewed` and Web Vitals. An open is the first *rendered* invite page per device, so link-preview bots don't count.
+
+**Holdout.** [`apps/api/src/modules/flags/`](apps/api/src/modules/flags/) assigns `HOLDOUT_PERCENT` (default 10%) of users to a holdout by a stable hash of the user ID. The arm is logged in `exposures` at first exposure. The API refuses invite tools to the holdout (`canInvite: false`, `403 invites_unavailable`), so no client can leak the feature. `v_holdout` compares the arms on new users per booker and Plans that happen. The design is in [`PLANS.md`](PLANS.md#holdout-design).
+
+**Technical metrics** are exported over OpenTelemetry to Grafana Cloud. No entity IDs are used as labels, and no personal data is exported:
+
+- booking attempts by outcome and booking latency;
+- `realtime_commit_to_ack_seconds` (the live-update SLO);
+- `oversell_activities` and `audit_chain_failures`.
+
+Three dashboards and four alert rules (oversell, booking success, live p95, broken chain) live as JSON in [`infra/grafana/`](infra/grafana/), with a push script. Locally, the collector prints them: `docker compose -f infra/docker-compose.yml logs -f otel-collector`.
+
+**SLOs: where the prototype stands**, measured, not assumed:
+
+| Goal | Target | Measured |
+| --- | --- | --- |
+| Never oversell | 0 | 0. The concurrency test passes in CI (200 parallel bookers). The k6 smoke booked exactly 1/5/14 on 1/5/14 spots. The production oversell gauge reads 0. |
+| Bookings succeed | ≥ 99.5% | 100% on the deployed stack (31 bookings, 0 server errors) and in the k6 smoke |
+| Live updates | p95 ≤ 2 s | 47 ms p95 with 250 sockets during a race (local k6 `viewers`). Not yet measured at 5,000 sockets. |
+| Bookers invite / invites convert / K-factor | 30% / 25% vouch | Computed live on the admin page. There's no real user traffic yet, so today's figures come from test use and aren't evidence either way. |
+
+The load figures are smoke-scale (5% of the target). The full 10× run is the first item in [`NEXT.md`](NEXT.md).
+
+---
+
+## Reference
+
+### Scripts
+
+| Command | Does |
+| --- | --- |
+| `bun run db:migrate` | Applies pending migrations to `velio` and `velio_test` |
+| `bun run db:codegen` | Regenerates `apps/api/src/db/types.ts` (`--verify` to check only) |
+| `bun run contracts:openapi` · `contracts:dart` | Regenerates `openapi.json` and the Dart client; CI fails on drift |
+| `bun test` | API unit and integration tests against the Compose Postgres |
+| `bun run typecheck` · `lint` · `format` · `format:check` | TypeScript, ESLint, Prettier |
+| `bun run dev` · `web:dev` · `web:build` · `web:test` | API with reload; Next.js dev, build, Vitest |
+| `bun run tokens:build` | Regenerates design-token outputs |
+| `bun run load:smoke` · `load:viewers` | k6 smoke runs against the local API |
+| `bun run grafana:push` | Pushes dashboards and alert rules to Grafana Cloud |
+| `bun run aws:synth` · `aws:diff` · `aws:deploy` · `aws:destroy` | CDK for the `VelioApp` stack (each needs `-c alertEmail=…`) |
+
+After changing a migration or a route, run `db:codegen` or `contracts:openapi` (then `contracts:dart`) and commit the result.
+
+### Environment
+
+Every variable is documented in [`.env.example`](.env.example). The API refuses to start, naming the variable, if one is missing or invalid.
+
+- `CONTACT_PEPPER` keys contact hashes; changing it orphans every user.
+- `DATABASE_LISTEN_URL` must be a direct connection, never a pooler.
+- `HOLDOUT_PERCENT` defaults to 10 (tests use 0).
+- `ADMIN_TOKEN` empty means admin answers 404.
+
+### Database
+
+- **Roles:** `velio_owner` owns the schema, `velio_api` is the runtime role, and `velio_readonly` reads the metrics views.
+- **Trigger errors** use SQLSTATE class `VL`: `VL001` location locked, `VL002` insert-only, `VL003` immutable column, `VL004` invalid time zone.
+
+### Invites, limits and the kill switch
+
+- **Vouch invites** are single use, addressed to one named person, and store the contact only as a keyed hash.
+- **Public links** allow 60 claim attempts a minute. They pause themselves after 200 opens in an hour with under 2% claimed; the creator or host can resume them.
+- **Code guessing:** more than 10 unknown codes from one device in an hour locks it out of every code until the hour ends.
+- **Kill switch:** the admin page pauses bookings and claims per activity.
+
+### Mobile app
+
+iOS 15+ and Android 8+. The app isn't distributed; run it on a simulator, an emulator or a cabled phone.
+
+- **Maps:** native maps need keys (`apps/mobile/android/secrets.properties`, `apps/mobile/ios/Flutter/Secrets.xcconfig`, both git-ignored) and `--dart-define=MAPS=true`. Without them, the app shows the address and a directions link.
+- **Places search:** set `--dart-define=PLACES_KEY=…`.
+- **App Links:** they open the app on Android when the web serves `assetlinks.json` for the signing key. iOS uses code entry.
+- **Integration tests:** `flutter test integration_test --dart-define=SMOKE_CODE=<code>` books a spot.
+
+Design and checks: [`spec/2026-11-04_12-50_s7-flutter-app/`](spec/2026-11-04_12-50_s7-flutter-app/), [`spec/2026-11-04_23-59_s7b-flutter-web-parity/`](spec/2026-11-04_23-59_s7b-flutter-web-parity/).
+
+### Production (AWS)
+
+One `t4g.small` in eu-west-2 runs Docker Compose (Postgres, API, web, OpenTelemetry Collector) behind CloudFront.
+
+- **Access:** the instance accepts only CloudFront, the API rejects requests without CloudFront's secret header, and there's no SSH (SSM only).
+- **Deploys:** every push to `master` that passes CI builds arm64 images, deploys through SSM, migrates, restarts, checks health through CloudFront, and rolls back if the new release never becomes healthy.
+- **Backups:** a nightly `pg_dump` to S3, kept 14 days, plus daily EBS snapshots. The restore mechanism was tested on 4 Nov.
+
+The full runbook (first-time setup, quotas, Grafana Cloud, dashboards push, shell access, restore, AMI updates, teardown) is in [`infra/aws/README.md`](infra/aws/README.md); the design and checks are in [`spec/2026-11-03_16-15_s10-aws-app-stack/`](spec/2026-11-03_16-15_s10-aws-app-stack/). First-time deploy:
 
 ```sh
 export AWS_REGION=eu-west-2
-bun run --cwd infra/aws cdk bootstrap aws://$(aws sts get-caller-identity --query Account --output text)/eu-west-2   # once per account
+bun run --cwd infra/aws cdk bootstrap aws://$(aws sts get-caller-identity --query Account --output text)/eu-west-2
 bun run aws:deploy -c alertEmail=you@example.com
 ```
 
-The alarm email is passed on every deploy and never committed (the repository is public). Confirm the subscription email AWS sends. `cdk.out/` holds the synthesised template, including the email, and is git-ignored.
+Then set the repository variable `AWS_DEPLOY_ROLE_ARN` to the stack's `DeployRoleArn` output, push to `master`, and make the two GHCR packages public.
 
-Then, once:
-
-1. Set the repository variable `AWS_DEPLOY_ROLE_ARN` to the stack's `DeployRoleArn` output (GitHub → Settings → Secrets and variables → Actions → Variables).
-2. Push to `master`. When CI passes, the Deploy workflow pushes `ghcr.io/abdulbasitsaid/velio-api` and `velio-migrate` for the first time.
-3. Make both packages public (GitHub → your profile → Packages → package → Package settings → Change visibility). The instance pulls without credentials. Rerun the Deploy workflow if it failed on the pull.
-
-`velio:createGithubOidcProvider` in `infra/aws/cdk.json` is `false` because this account already has GitHub's OIDC provider. Set it to `true` in an account without one.
-
-### AWS quotas
-
-The security group admits CloudFront on two ports through the `com.amazonaws.global.cloudfront.origin-facing` prefix list, which counts as about 55 rules each time it is used. The default of 60 rules per security group fits one, so eu-west-2 needs the quota raised to 120 before the stack has both (once per account):
-
-```sh
-aws service-quotas request-service-quota-increase --region eu-west-2 \
-  --service-code vpc --quota-code L-0EA8095F --desired-value 120
-```
-
-### Deploys and rollback
-
-Every push to `master` that passes CI deploys: the images are built for arm64, the bundle (Compose file, collector configs, `deploy.sh`, `backup.sh`) is uploaded to the deploy bucket, and `deploy.sh <sha> <photos bucket>` runs on the instance through SSM (the bucket is the stack's `PhotosBucket` output). It writes `/opt/velio/.env` (root only) from Secrets Manager, migrates, then restarts the API. If the new API never becomes healthy, it starts the previous release again and the workflow fails. The workflow ends by checking `/api/healthz` and `/api/readyz` through CloudFront.
-
-To roll back, run the Deploy workflow by hand (Actions → Deploy → Run workflow, on `master`) with the earlier commit's SHA.
-
-### Grafana Cloud
-
-Until the `velio/prod/grafana` secret is filled in, the collector exports nothing and deploys still succeed. To turn export on:
-
-1. Sign up at [grafana.com](https://grafana.com) (free tier) and create a stack in an EU region (London if offered).
-2. In the stack: Connections → OpenTelemetry (OTLP). Note the OTLP endpoint and instance ID, and create an access-policy token with only `metrics:write`, `logs:write` and `traces:write`.
-3. Store them, then redeploy (rerun the Deploy workflow):
-
-```sh
-aws secretsmanager put-secret-value --region eu-west-2 --secret-id velio/prod/grafana \
-  --secret-string '{"endpoint":"https://otlp-gateway-<zone>.grafana.net/otlp","instanceId":"<id>","token":"<token>"}'
-```
-
-Traces are tail-sampled: every error, everything over 1 s, and 10% of the rest. API logs carry `trace_id`, so a log line links to its trace.
-
-### Dashboards and alerts
-
-Three dashboards (Goals; Booking and realtime; Host and database) and four alert rules (oversell, booking success under 99.5% over 1 h, live-update p95 over 2 s for 15 min, a broken hash chain) live as JSON in `infra/grafana/`. To push them:
-
-1. In the stack: Administration → Users and access → Service accounts → Add service account, role Admin (the alert provisioning API needs it). Add a token with a short expiry.
-2. Put `GRAFANA_URL=https://<stack>.grafana.net` and `GRAFANA_SA_TOKEN=glsa_…` in the root `.env` (git-ignored).
-3. `GRAFANA_ALERT_EMAIL=you@example.com bun run grafana:push` (or put `GRAFANA_ALERT_EMAIL` in `.env`). It is idempotent: dashboards are matched by UID, the `velio-goals` rule group is replaced as a whole, and the `velio-email` contact point is updated. Everything lands in the Velio folder. Without `GRAFANA_ALERT_EMAIL`, an existing `velio-email` contact point is kept.
-
-The Velio rules notify `velio-email` directly; the stack's own notification policy isn't changed. Dashboards and alerts show production only: the API tags its telemetry with `deployment.environment` from `NODE_ENV`, and the collectors tag everything they forward (`development` locally, `production` on EC2).
-
-### Shell access
-
-```sh
-aws ssm start-session --region eu-west-2 --target <InstanceId output>
-sudo -i
-cd /opt/velio && cat current     # the live commit
-docker compose -p velio ps
-docker logs --tail 100 velio-api-1
-```
-
-### Backups and restore
-
-`velio-backup.timer` dumps the database at 02:00 UTC to the backups bucket (`pg_dump -Fc`, kept 14 days). The instance's volume is also snapshotted daily at 03:00 UTC, keeping 7. To dump now: `sudo /opt/velio/backup.sh`.
-
-To restore a dump, on the instance:
-
-```sh
-source /opt/velio/stack.env
-aws s3 ls "s3://$BACKUP_BUCKET/"                                 # pick a file
-aws s3 cp "s3://$BACKUP_BUCKET/<file>.dump" /tmp/velio.dump
-docker cp /tmp/velio.dump velio-postgres-1:/tmp/velio.dump
-docker exec velio-postgres-1 createdb -U postgres velio_restore
-docker exec velio-postgres-1 pg_restore -U postgres -d velio_restore --no-owner /tmp/velio.dump
-```
-
-Check `velio_restore`. To make it live, stop the API (`docker stop velio-api-1`), rename the databases (`ALTER DATABASE velio RENAME TO velio_old; ALTER DATABASE velio_restore RENAME TO velio;`), then rerun the Deploy workflow. The rerun restores ownership, grants and role passwords through migrations.
-
-### Updating the AMI
-
-The AMI ID is pinned in `infra/aws/bin/app.ts`. To move to a newer Amazon Linux 2023 release, look up `/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64` in SSM Parameter Store. Changing it replaces the instance and its root volume: take a fresh backup first, restore it afterwards, then redeploy.
-
-### Teardown
-
-```sh
-bun run aws:destroy -c alertEmail=you@example.com
-```
-
-This keeps the backups bucket and the instance's root volume, which hold the data. Delete them by hand when you no longer need them. The secrets enter a 7–30 day recovery window that reserves their names. Before redeploying sooner, delete each one with `aws secretsmanager delete-secret --force-delete-without-recovery --secret-id velio/prod/<name>`.
-
-## Repository
-
-Protect `main` so the CI workflow must pass before merging.
+To roll back, run the Deploy workflow by hand with an earlier SHA.

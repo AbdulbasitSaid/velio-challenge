@@ -22,6 +22,9 @@ This file is the authoritative source of development rules for this project. If 
 | --- | --- |
 | `CLAUDE.md` | Development rules (this file). |
 | `Velio Group Bookings PRD.md` | Product requirements: what to build and why. |
+| `PLANS.md` | Assessment submission: scope challenges and the technical, product and tracking plans, condensed from the PRD and MVP plan, plus changes of course. |
+| `OWNERSHIP.md` | Assessment submission: the improvement plan for the 30-day scenario. |
+| `NEXT.md` | Work cut for time, ranked. |
 | `ROADMAP.md` | High-level direction, milestones and status. |
 | `CHANGELOG.md` | History of completed, meaningful changes. Maintained with the `changelog` skill. |
 | `spec/` | One timestamped directory per non-trivial task. |

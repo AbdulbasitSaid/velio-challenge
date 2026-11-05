@@ -2,7 +2,7 @@
 
 - **Spec ID:** 2026-11-05_08-36_s8-metrics-flags-admin
 - **Created:** 2026-11-05 08:36 (local)
-- **Status:** Implemented locally and Grafana pushed (2026-11-05). Deployment (needs its own authorization) is outstanding.
+- **Status:** Implemented (2026-11-05): deployed and verified through CloudFront and Grafana Cloud (VALIDATION, M2).
 - **Parents:** `spec/2026-11-03_07-42_group-bookings-mvp-plan/` (§4.8, §4.9, §4.12, §7 row S8). Builds on S2 (booking engine), S3 (realtime acks), S4 (invites, opens, attribution, audit functions), S5/S6 (web) and S10 (AWS stack, Grafana Cloud export).
 
 Claims are tagged **[Verified]** (checked, with a reference), **[Assumption]** or **[Proposal]**.
