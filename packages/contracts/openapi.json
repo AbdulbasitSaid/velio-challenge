@@ -1308,6 +1308,9 @@
           "title": {
             "type": "string"
           },
+          "summary": {
+            "type": "string"
+          },
           "startsAt": {
             "type": "string",
             "format": "date-time"
@@ -1400,6 +1403,7 @@
         "required": [
           "id",
           "title",
+          "summary",
           "startsAt",
           "timezone",
           "priceMinor",
@@ -1443,6 +1447,9 @@
             "format": "uuid"
           },
           "title": {
+            "type": "string"
+          },
+          "summary": {
             "type": "string"
           },
           "startsAt": {
@@ -1546,6 +1553,7 @@
         "required": [
           "id",
           "title",
+          "summary",
           "startsAt",
           "timezone",
           "priceMinor",

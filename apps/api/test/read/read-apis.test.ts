@@ -213,6 +213,7 @@ describe('communities, profiles, next-steps', () => {
     const open = await createActivity(request, h, {
       communitySlug: 'the-medina-collective',
       startsAt: new Date(Date.now() + 5 * 86_400_000).toISOString(),
+      description: `  Spice   route\n\nwalk. ${'word '.repeat(40)}`,
     });
     const soldOut = await createActivity(request, h, {
       communitySlug: 'the-medina-collective',
@@ -232,6 +233,8 @@ describe('communities, profiles, next-steps', () => {
     ]);
     expect(page.activities[0]!.location).toMatchObject({ lat: expect.any(Number), lng: expect.any(Number) });
     expect(page.activities[0]!.members.preview[0]!.shortName).toBe('Tunde A.');
+    // Explore map preview FR-001, FR-002
+    expect(page.activities[1]!.summary).toBe(`Spice route walk. ${'word '.repeat(23)}word…`);
     expect(JSON.stringify(page)).not.toContain('Adeyemi');
     expect((await get('/api/communities/nowhere')).status).toBe(404);
   });

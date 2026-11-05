@@ -146,6 +146,8 @@ export const ActivityCard = z
   .object({
     id: z.uuid(),
     title: z.string(),
+    /** The description's start: whitespace collapsed, cut at a word to at most 140 characters plus `…`; `''` without one. */
+    summary: z.string(),
     startsAt: z.iso.datetime({ offset: true }),
     timezone: z.string(),
     priceMinor: z.number().int(),

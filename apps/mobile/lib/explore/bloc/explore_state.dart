@@ -17,6 +17,7 @@ final class ExploreState extends Equatable {
     this.realtime,
     this.error,
     this.showMap = false,
+    this.selectedId,
   });
 
   final ExploreStatus status;
@@ -30,6 +31,9 @@ final class ExploreState extends Equatable {
   final LoadError? error;
   final bool showMap;
 
+  /// The map's chosen pin and preview card; see [selected].
+  final String? selectedId;
+
   int spotsOf(ActivityCard a) => counts[a.id]?.spotsLeft ?? a.spotsLeft;
   bool changed(ActivityCard a) => counts[a.id]?.changed ?? false;
   bool get reconnecting => realtime == RealtimeStatus.reconnecting;
@@ -40,6 +44,13 @@ final class ExploreState extends Equatable {
       if (a.status != ActivityCardStatusEnum.started && spotsOf(a) > 0) a,
   ];
 
+  /// The map's selection: the chosen card while it's still open, else the first open one (it sold
+  /// out or started live), or null with nothing open.
+  ActivityCard? get selected {
+    final cards = open;
+    return cards.where((a) => a.id == selectedId).firstOrNull ?? cards.firstOrNull;
+  }
+
   ExploreState copyWith({
     ExploreStatus? status,
     CommunityPage? page,
@@ -48,6 +59,7 @@ final class ExploreState extends Equatable {
     LoadError? error,
     bool clearError = false,
     bool? showMap,
+    String? selectedId,
   }) => ExploreState(
     status: status ?? this.status,
     page: page ?? this.page,
@@ -55,8 +67,9 @@ final class ExploreState extends Equatable {
     realtime: realtime ?? this.realtime,
     error: clearError ? null : error ?? this.error,
     showMap: showMap ?? this.showMap,
+    selectedId: selectedId ?? this.selectedId,
   );
 
   @override
-  List<Object?> get props => [status, page, counts, realtime, error, showMap];
+  List<Object?> get props => [status, page, counts, realtime, error, showMap, selectedId];
 }

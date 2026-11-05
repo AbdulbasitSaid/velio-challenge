@@ -16,6 +16,28 @@ export function directionsUrl(lat: number, lng: number, placeId: string | null):
   return url.toString();
 }
 
+export const SUMMARY_MAX = 140;
+
+/** How much of a description card queries read: enough for the summary after whitespace collapses. */
+export const SUMMARY_READ = 400;
+
+/**
+ * A card's `summary` (explore map preview FR-001): whitespace collapsed, then cut at the last word
+ * break within {@link SUMMARY_MAX} characters, trailing punctuation dropped, and `…` added. `more`
+ * says the text was already cut short by the query, so it ends with `…` even when it fits.
+ */
+export function summarise(text: string, more = false): string {
+  const flat = text.replace(/\s+/g, ' ').trim();
+  if (flat.length <= SUMMARY_MAX && !more) return flat;
+  let head = flat.slice(0, SUMMARY_MAX);
+  if (flat.length > SUMMARY_MAX) {
+    const space = flat.lastIndexOf(' ', SUMMARY_MAX);
+    if (space > 0) head = flat.slice(0, space);
+  }
+  head = head.replace(/[\s.,;:!?\-\u2013\u2014]+$/u, '');
+  return head ? `${head}…` : '';
+}
+
 /**
  * The public snapshot (S3 FR-001). One query for the activity row, so `spotsLeft`, `version`,
  * `capacity` and `status` always agree (FR-002); one for members; one more for a signed-in viewer.
@@ -141,6 +163,8 @@ export async function buildCards(db: Db, ids: string[]): Promise<ActivityCard[]>
     .select([
       'a.id',
       'a.title',
+      sql<string>`left(a.description, ${sql.lit(SUMMARY_READ)})`.as('description_head'),
+      sql<boolean>`char_length(a.description) > ${sql.lit(SUMMARY_READ)}`.as('description_more'),
       'a.starts_at',
       'a.timezone',
       'a.price_minor',
@@ -192,6 +216,7 @@ export async function buildCards(db: Db, ids: string[]): Promise<ActivityCard[]>
       {
         id: r.id,
         title: r.title,
+        summary: summarise(r.description_head, r.description_more),
         startsAt: r.starts_at.toISOString(),
         timezone: r.timezone,
         priceMinor: Number(r.price_minor),

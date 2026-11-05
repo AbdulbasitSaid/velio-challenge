@@ -11,6 +11,8 @@ abstract class _$ActivityCardCWProxy {
 
   ActivityCard title(String title);
 
+  ActivityCard summary(String summary);
+
   ActivityCard startsAt(DateTime startsAt);
 
   ActivityCard timezone(String timezone);
@@ -46,6 +48,7 @@ abstract class _$ActivityCardCWProxy {
   ActivityCard call({
     String id,
     String title,
+    String summary,
     DateTime startsAt,
     String timezone,
     int priceMinor,
@@ -73,6 +76,9 @@ class _$ActivityCardCWProxyImpl implements _$ActivityCardCWProxy {
 
   @override
   ActivityCard title(String title) => call(title: title);
+
+  @override
+  ActivityCard summary(String summary) => call(summary: summary);
 
   @override
   ActivityCard startsAt(DateTime startsAt) => call(startsAt: startsAt);
@@ -124,6 +130,7 @@ class _$ActivityCardCWProxyImpl implements _$ActivityCardCWProxy {
   ActivityCard call({
     Object? id = const $CopyWithPlaceholder(),
     Object? title = const $CopyWithPlaceholder(),
+    Object? summary = const $CopyWithPlaceholder(),
     Object? startsAt = const $CopyWithPlaceholder(),
     Object? timezone = const $CopyWithPlaceholder(),
     Object? priceMinor = const $CopyWithPlaceholder(),
@@ -146,6 +153,10 @@ class _$ActivityCardCWProxyImpl implements _$ActivityCardCWProxy {
           ? _value.title
           // ignore: cast_nullable_to_non_nullable
           : title as String,
+      summary: summary == const $CopyWithPlaceholder() || summary == null
+          ? _value.summary
+          // ignore: cast_nullable_to_non_nullable
+          : summary as String,
       startsAt: startsAt == const $CopyWithPlaceholder() || startsAt == null
           ? _value.startsAt
           // ignore: cast_nullable_to_non_nullable
@@ -217,6 +228,7 @@ ActivityCard _$ActivityCardFromJson(Map<String, dynamic> json) =>
         requiredKeys: const [
           'id',
           'title',
+          'summary',
           'startsAt',
           'timezone',
           'priceMinor',
@@ -234,6 +246,7 @@ ActivityCard _$ActivityCardFromJson(Map<String, dynamic> json) =>
       final val = ActivityCard(
         id: $checkedConvert('id', (v) => v as String),
         title: $checkedConvert('title', (v) => v as String),
+        summary: $checkedConvert('summary', (v) => v as String),
         startsAt: $checkedConvert(
           'startsAt',
           (v) => DateTime.parse(v as String),
@@ -269,6 +282,7 @@ Map<String, dynamic> _$ActivityCardToJson(ActivityCard instance) =>
     <String, dynamic>{
       'id': instance.id,
       'title': instance.title,
+      'summary': instance.summary,
       'startsAt': instance.startsAt.toIso8601String(),
       'timezone': instance.timezone,
       'priceMinor': instance.priceMinor,

@@ -11,6 +11,8 @@ abstract class _$HostActivityItemCWProxy {
 
   HostActivityItem title(String title);
 
+  HostActivityItem summary(String summary);
+
   HostActivityItem startsAt(DateTime startsAt);
 
   HostActivityItem timezone(String timezone);
@@ -52,6 +54,7 @@ abstract class _$HostActivityItemCWProxy {
   HostActivityItem call({
     String id,
     String title,
+    String summary,
     DateTime startsAt,
     String timezone,
     int priceMinor,
@@ -82,6 +85,9 @@ class _$HostActivityItemCWProxyImpl implements _$HostActivityItemCWProxy {
 
   @override
   HostActivityItem title(String title) => call(title: title);
+
+  @override
+  HostActivityItem summary(String summary) => call(summary: summary);
 
   @override
   HostActivityItem startsAt(DateTime startsAt) => call(startsAt: startsAt);
@@ -147,6 +153,7 @@ class _$HostActivityItemCWProxyImpl implements _$HostActivityItemCWProxy {
   HostActivityItem call({
     Object? id = const $CopyWithPlaceholder(),
     Object? title = const $CopyWithPlaceholder(),
+    Object? summary = const $CopyWithPlaceholder(),
     Object? startsAt = const $CopyWithPlaceholder(),
     Object? timezone = const $CopyWithPlaceholder(),
     Object? priceMinor = const $CopyWithPlaceholder(),
@@ -172,6 +179,10 @@ class _$HostActivityItemCWProxyImpl implements _$HostActivityItemCWProxy {
           ? _value.title
           // ignore: cast_nullable_to_non_nullable
           : title as String,
+      summary: summary == const $CopyWithPlaceholder() || summary == null
+          ? _value.summary
+          // ignore: cast_nullable_to_non_nullable
+          : summary as String,
       startsAt: startsAt == const $CopyWithPlaceholder() || startsAt == null
           ? _value.startsAt
           // ignore: cast_nullable_to_non_nullable
@@ -259,6 +270,7 @@ HostActivityItem _$HostActivityItemFromJson(
     requiredKeys: const [
       'id',
       'title',
+      'summary',
       'startsAt',
       'timezone',
       'priceMinor',
@@ -279,6 +291,7 @@ HostActivityItem _$HostActivityItemFromJson(
   final val = HostActivityItem(
     id: $checkedConvert('id', (v) => v as String),
     title: $checkedConvert('title', (v) => v as String),
+    summary: $checkedConvert('summary', (v) => v as String),
     startsAt: $checkedConvert('startsAt', (v) => DateTime.parse(v as String)),
     timezone: $checkedConvert('timezone', (v) => v as String),
     priceMinor: $checkedConvert('priceMinor', (v) => (v as num).toInt()),
@@ -314,6 +327,7 @@ Map<String, dynamic> _$HostActivityItemToJson(HostActivityItem instance) =>
     <String, dynamic>{
       'id': instance.id,
       'title': instance.title,
+      'summary': instance.summary,
       'startsAt': instance.startsAt.toIso8601String(),
       'timezone': instance.timezone,
       'priceMinor': instance.priceMinor,

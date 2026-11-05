@@ -27,6 +27,8 @@ class ActivityCard {
 
     required  this.title,
 
+    required  this.summary,
+
     required  this.startsAt,
 
     required  this.timezone,
@@ -73,6 +75,18 @@ class ActivityCard {
 
 
   final String title;
+
+
+
+  @JsonKey(
+    
+    name: r'summary',
+    required: true,
+    includeIfNull: false,
+  )
+
+
+  final String summary;
 
 
 
@@ -226,6 +240,7 @@ class ActivityCard {
     bool operator ==(Object other) => identical(this, other) || other is ActivityCard &&
       other.id == id &&
       other.title == title &&
+      other.summary == summary &&
       other.startsAt == startsAt &&
       other.timezone == timezone &&
       other.priceMinor == priceMinor &&
@@ -243,6 +258,7 @@ class ActivityCard {
     int get hashCode =>
         id.hashCode +
         title.hashCode +
+        summary.hashCode +
         startsAt.hashCode +
         timezone.hashCode +
         priceMinor.hashCode +

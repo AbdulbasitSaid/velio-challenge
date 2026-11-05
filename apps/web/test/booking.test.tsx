@@ -254,6 +254,7 @@ function communityPage(over: Partial<CommunityPage['activities'][number]>[] = [{
     activities: over.map((o, i) => ({
       id: `0190a6f2-1f2b-7c3d-8e4f-5a6b7c8d9e1${i}`,
       title: a.title,
+      summary: '',
       startsAt: a.startsAt,
       timezone: a.timezone,
       priceMinor: a.priceMinor,

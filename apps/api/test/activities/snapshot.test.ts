@@ -4,7 +4,7 @@ import { PostgresJSDialect } from 'kysely-postgres-js';
 import postgres from 'postgres';
 import { PublicActivity } from '@velio/contracts';
 import type { DB } from '../../src/db/types';
-import { buildSnapshot, directionsUrl } from '../../src/modules/activities/snapshot';
+import { buildSnapshot, directionsUrl, summarise } from '../../src/modules/activities/snapshot';
 import { testApp } from '../helpers/app';
 import {
   book,
@@ -175,4 +175,28 @@ test('directionsUrl without a place ID', () => {
   expect(directionsUrl(1.5, -2.25, null)).toBe(
     'https://www.google.com/maps/dir/?api=1&destination=1.5%2C-2.25',
   );
+});
+
+// Explore map preview FR-001, AC-002
+describe('summarise', () => {
+  test('empty and short descriptions pass through, whitespace collapsed', () => {
+    expect(summarise('')).toBe('');
+    expect(summarise('   ')).toBe('');
+    expect(summarise('  Two hours\n\non the   lake. ')).toBe('Two hours on the lake.');
+  });
+
+  test('long text is cut at a word within 140 characters, trailing punctuation dropped', () => {
+    const text = `${'abcd '.repeat(27)}tail, ${'more '.repeat(20)}`;
+    const out = summarise(text);
+    expect(out).toBe(`${'abcd '.repeat(27)}tail…`);
+    expect(out.length).toBeLessThanOrEqual(141);
+  });
+
+  test('a single long word is hard-cut at 140', () => {
+    expect(summarise('x'.repeat(300))).toBe(`${'x'.repeat(140)}…`);
+  });
+
+  test('text already cut by the query ends with an ellipsis', () => {
+    expect(summarise('Short head.', true)).toBe('Short head…');
+  });
 });

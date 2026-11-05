@@ -1,5 +1,5 @@
 // ExploreBloc (V-BLOC-1): the first community or a named one, no communities, failures, live counts
-// with the version gate per activity, the refresh, and the List / Map toggle.
+// with the version gate per activity, the refresh, the List / Map toggle and the map selection.
 import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
@@ -167,4 +167,41 @@ void main() {
     act: (b) => b.add(const ExploreViewToggled(true)),
     expect: () => [loaded.copyWith(showMap: true)],
   );
+
+  group('map selection (explore map preview FR-005, FR-006, FR-008)', () {
+    const otherId = '0190a6f2-1f2b-7c3d-8e4f-5a6b7c8d9e11';
+    final twoOpen = ExploreState(
+      status: ExploreStatus.success,
+      page: CommunityPage.fromJson({
+        ...communityPageJson(),
+        'activities': [cardJson(), cardJson(id: otherId, spotsLeft: 2)],
+      }),
+      counts: {
+        activityId: const LiveCount(spotsLeft: 6, version: 3),
+        otherId: const LiveCount(spotsLeft: 2, version: 3),
+      },
+    );
+
+    test('defaults to the first open card, and to null with none open', () {
+      expect(twoOpen.selected?.id, activityId);
+      expect(
+        loaded.copyWith(counts: {...counts, activityId: const LiveCount(spotsLeft: 0, version: 4)}).selected,
+        isNull,
+      );
+    });
+
+    blocTest<ExploreBloc, ExploreState>(
+      'a pin or card selects its activity; it falls back when that one sells out',
+      build: build,
+      seed: () => twoOpen,
+      act: (b) => b
+        ..add(const ExploreMapSelected(otherId))
+        ..add(const ExploreLiveUpdated(LiveSpotsChanged(otherId, 0, 4))),
+      expect: () => [
+        twoOpen.copyWith(selectedId: otherId),
+        isA<ExploreState>().having((s) => s.selected?.id, 'selected', activityId),
+      ],
+      verify: (b) => expect(b.state.selectedId, otherId),
+    );
+  });
 }

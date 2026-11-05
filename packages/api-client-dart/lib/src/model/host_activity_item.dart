@@ -27,6 +27,8 @@ class HostActivityItem {
 
     required  this.title,
 
+    required  this.summary,
+
     required  this.startsAt,
 
     required  this.timezone,
@@ -79,6 +81,18 @@ class HostActivityItem {
 
 
   final String title;
+
+
+
+  @JsonKey(
+    
+    name: r'summary',
+    required: true,
+    includeIfNull: false,
+  )
+
+
+  final String summary;
 
 
 
@@ -268,6 +282,7 @@ class HostActivityItem {
     bool operator ==(Object other) => identical(this, other) || other is HostActivityItem &&
       other.id == id &&
       other.title == title &&
+      other.summary == summary &&
       other.startsAt == startsAt &&
       other.timezone == timezone &&
       other.priceMinor == priceMinor &&
@@ -288,6 +303,7 @@ class HostActivityItem {
     int get hashCode =>
         id.hashCode +
         title.hashCode +
+        summary.hashCode +
         startsAt.hashCode +
         timezone.hashCode +
         priceMinor.hashCode +

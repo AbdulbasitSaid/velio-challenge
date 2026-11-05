@@ -357,6 +357,7 @@ const item = (over: Partial<HostActivityItem> = {}): HostActivityItem => {
   return {
     id: ID,
     title: a.title,
+    summary: '',
     startsAt: a.startsAt,
     timezone: a.timezone,
     priceMinor: a.priceMinor,

@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:velio/claim/claim.dart';
 import 'package:velio/code_entry/code_entry.dart';
 import 'package:velio/domain/api_exception.dart';
+import 'package:velio/explore/widgets/map_preview_card.dart';
 import 'package:velio/invite/invite.dart';
 import 'package:velio/my_plans/my_plans.dart';
 import 'package:velio/plan/plan.dart';
@@ -42,6 +43,51 @@ void main() {
       for (final s in ['6 spots left', '5 spots left', 'Last 2 spots', 'Last spot', 'Sold out', 'Reconnecting…']) {
         expect(find.text(s), findsOneWidget);
       }
+    });
+
+    // Explore map preview FR-004, FR-007, AC-004
+    testWidgets('map preview card: title, meta, summary, price, spots; tap opens', (t) async {
+      var taps = 0;
+      await pumpScreen(
+        t,
+        Scaffold(
+          body: Center(
+            child: SizedBox(
+              width: 320,
+              child: MapPreviewCard(
+                title: 'Sunset Kayaking',
+                meta: 'Sun 14 Dec, 17:30 · Lake Naivasha Boat Club',
+                summary: 'Two hours on Lake Naivasha as the sun drops.',
+                price: 'KES 3,500',
+                spots: 2,
+                selected: true,
+                onTap: () => taps++,
+              ),
+            ),
+          ),
+        ),
+      );
+      for (final s in [
+        'Sunset Kayaking',
+        'Sun 14 Dec, 17:30 · Lake Naivasha Boat Club',
+        'Two hours on Lake Naivasha as the sun drops.',
+        'KES 3,500',
+        'Last 2 spots',
+      ]) {
+        expect(find.text(s), findsOneWidget);
+      }
+      await t.tap(find.byType(MapPreviewCard));
+      expect(taps, 1);
+    });
+
+    testWidgets('map preview card: no summary line when empty', (t) async {
+      await pumpScreen(
+        t,
+        const Scaffold(
+          body: MapPreviewCard(title: 'Hike', meta: 'Sat · Ngong Hills', summary: '', price: 'Free', spots: 6),
+        ),
+      );
+      expect(find.byType(Text), findsNWidgets(4));
     });
     test('who is going', () {
       expect(goingLabel(const [], 0), 'Be the first to book');

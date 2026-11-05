@@ -357,7 +357,9 @@ describe('B4 Plan (V-PLAN-1)', () => {
         activity={activity()}
         viewerId={ME}
         nextSteps={{
-          hostOtherDates: [{ ...activity(), id: KOFI, location: { venueName: 'Boat Club', lat: 0, lng: 0 } }],
+          hostOtherDates: [
+            { ...activity(), id: KOFI, summary: '', location: { venueName: 'Boat Club', lat: 0, lng: 0 } },
+          ],
           moreInCommunity: [],
         }}
       />,
@@ -373,6 +375,7 @@ describe('B4 Plan (V-PLAN-1)', () => {
 describe('B6 My plans (V-MY-1)', () => {
   const card = (over: Partial<MyPlansData['upcoming'][number]['activity']> = {}) => ({
     ...activity(),
+    summary: '',
     location: { venueName: 'Boat Club', lat: 0, lng: 0 },
     ...over,
   });

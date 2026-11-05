@@ -18,6 +18,7 @@ Map<String, dynamic> activityJson({
   'id': activityId,
   'title': 'Sunset Kayaking',
   'description': 'Two hours on Lake Naivasha as the sun drops.',
+  'summary': 'Two hours on Lake Naivasha as the sun drops.',
   'photoUrl': null,
   'startsAt': '2026-12-14T14:30:00.000Z',
   'timezone': 'Africa/Nairobi',

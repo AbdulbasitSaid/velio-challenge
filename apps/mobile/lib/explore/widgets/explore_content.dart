@@ -77,7 +77,7 @@ class ExploreContent extends StatelessWidget {
               ),
             ),
           if (showMap) ...[
-            ExploreMap(state: state),
+            ExploreMap(state: state, stale: stale),
             Text(mapHint, style: VelioText.caption.copyWith(color: VelioColors.muted)),
           ] else
             for (final a in page.activities)

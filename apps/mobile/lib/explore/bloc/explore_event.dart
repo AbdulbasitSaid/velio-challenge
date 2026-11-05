@@ -34,3 +34,12 @@ final class ExploreViewToggled extends ExploreEvent {
   @override
   List<Object?> get props => [showMap];
 }
+
+/// A pin tapped or a preview card swiped to on the map.
+final class ExploreMapSelected extends ExploreEvent {
+  const ExploreMapSelected(this.activityId);
+  final String activityId;
+
+  @override
+  List<Object?> get props => [activityId];
+}

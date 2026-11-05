@@ -25,6 +25,7 @@ class ExploreBloc extends Bloc<ExploreEvent, ExploreState> {
     on<ExploreLiveSubscriptionRequested>(_onLiveSubscriptionRequested);
     on<ExploreLiveUpdated>(_onLiveUpdated);
     on<ExploreViewToggled>((event, emit) => emit(state.copyWith(showMap: event.showMap)));
+    on<ExploreMapSelected>((event, emit) => emit(state.copyWith(selectedId: event.activityId)));
   }
 
   final ActivityRepository _activities;
