@@ -383,12 +383,14 @@
   max-width: 100%;
   background: var(--forest);
 }
-.vl-activity-photo svg {
+.vl-activity-photo svg,
+.vl-activity-photo img {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   display: block;
+  object-fit: cover;
 }
 .vl-activity-photo .vl-spots {
   position: absolute;
@@ -568,10 +570,12 @@
   flex: none;
   overflow: hidden;
 }
-.vl-next-thumb svg {
+.vl-next-thumb svg,
+.vl-next-thumb img {
   width: 100%;
   height: 100%;
   display: block;
+  object-fit: cover;
 }
 .vl-next-text {
   flex: 1;
@@ -609,10 +613,12 @@
   overflow: hidden;
   background: var(--forest);
 }
-.vl-plan-thumb svg {
+.vl-plan-thumb svg,
+.vl-plan-thumb img {
   width: 100%;
   height: 100%;
   display: block;
+  object-fit: cover;
 }
 .vl-plan-main {
   display: flex;
