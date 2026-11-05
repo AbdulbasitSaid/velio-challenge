@@ -26,7 +26,7 @@
           "datasourceUid": "${PROM}",
           "model": {
             "refId": "A",
-            "expr": "max(oversell_activities)",
+            "expr": "max(oversell_activities{deployment_environment!=\"development\"})",
             "instant": true,
             "range": false
           }
@@ -74,7 +74,7 @@
           "datasourceUid": "${PROM}",
           "model": {
             "refId": "A",
-            "expr": "sum(increase(booking_attempts_total{outcome=\"success\"}[1h])) / (sum(increase(booking_attempts_total{outcome=\"success\"}[1h])) + (sum(increase(booking_attempts_total{outcome=\"error\"}[1h])) or vector(0)))",
+            "expr": "sum(increase(booking_attempts_total{deployment_environment!=\"development\", outcome=\"success\"}[1h])) / (sum(increase(booking_attempts_total{deployment_environment!=\"development\", outcome=\"success\"}[1h])) + (sum(increase(booking_attempts_total{deployment_environment!=\"development\", outcome=\"error\"}[1h])) or vector(0)))",
             "instant": true,
             "range": false
           }
@@ -122,7 +122,7 @@
           "datasourceUid": "${PROM}",
           "model": {
             "refId": "A",
-            "expr": "histogram_quantile(0.95, sum by (le) (rate(realtime_commit_to_ack_seconds_bucket[5m])))",
+            "expr": "histogram_quantile(0.95, sum by (le) (rate(realtime_commit_to_ack_seconds_bucket{deployment_environment!=\"development\"}[5m])))",
             "instant": true,
             "range": false
           }
@@ -170,7 +170,7 @@
           "datasourceUid": "${PROM}",
           "model": {
             "refId": "A",
-            "expr": "max(audit_chain_failures)",
+            "expr": "max(audit_chain_failures{deployment_environment!=\"development\"})",
             "instant": true,
             "range": false
           }

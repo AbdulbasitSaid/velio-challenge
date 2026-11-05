@@ -1,7 +1,7 @@
 {
   "uid": "velio-goals",
   "title": "Velio · Goals",
-  "description": "The PRD's technical goals and their alert signals (S8 FR-017). Product goals are on /admin.",
+  "description": "The PRD's technical goals and their alert signals (S8 FR-017). Product goals are on /admin. Production only: local data carries deployment_environment=\"development\".",
   "tags": ["velio"],
   "timezone": "utc",
   "schemaVersion": 39,
@@ -35,7 +35,7 @@
             "type": "prometheus",
             "uid": "${PROM}"
           },
-          "expr": "max(oversell_activities)",
+          "expr": "max(oversell_activities{deployment_environment!=\"development\"})",
           "legendFormat": "__auto",
           "range": true
         }
@@ -70,7 +70,7 @@
         },
         "colorMode": "background",
         "graphMode": "none",
-        "textMode": "value_and_name"
+        "textMode": "value"
       },
       "description": "From the 5-minute oversell check. Alert: > 0, immediately."
     },
@@ -95,7 +95,7 @@
             "type": "prometheus",
             "uid": "${PROM}"
           },
-          "expr": "sum(increase(booking_attempts_total{outcome=\"success\"}[1h])) / (sum(increase(booking_attempts_total{outcome=\"success\"}[1h])) + (sum(increase(booking_attempts_total{outcome=\"error\"}[1h])) or vector(0)))",
+          "expr": "sum(increase(booking_attempts_total{deployment_environment!=\"development\", outcome=\"success\"}[1h])) / (sum(increase(booking_attempts_total{deployment_environment!=\"development\", outcome=\"success\"}[1h])) + (sum(increase(booking_attempts_total{deployment_environment!=\"development\", outcome=\"error\"}[1h])) or vector(0)))",
           "legendFormat": "__auto",
           "range": true
         }
@@ -131,7 +131,7 @@
         },
         "colorMode": "background",
         "graphMode": "none",
-        "textMode": "value_and_name"
+        "textMode": "value"
       },
       "description": "Successes ÷ (successes + server errors). Typed refusals such as sold out are not failures. Alert: below 99.5% over 1 h."
     },
@@ -156,7 +156,7 @@
             "type": "prometheus",
             "uid": "${PROM}"
           },
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(realtime_commit_to_ack_seconds_bucket[5m])))",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(realtime_commit_to_ack_seconds_bucket{deployment_environment!=\"development\"}[5m])))",
           "legendFormat": "__auto",
           "range": true
         }
@@ -192,7 +192,7 @@
         },
         "colorMode": "background",
         "graphMode": "none",
-        "textMode": "value_and_name"
+        "textMode": "value"
       },
       "description": "Database commit to client render acknowledgement. Alert: above 2 s for 15 min."
     },
@@ -217,7 +217,7 @@
             "type": "prometheus",
             "uid": "${PROM}"
           },
-          "expr": "max(audit_chain_failures)",
+          "expr": "max(audit_chain_failures{deployment_environment!=\"development\"})",
           "legendFormat": "__auto",
           "range": true
         }
@@ -252,7 +252,7 @@
         },
         "colorMode": "background",
         "graphMode": "none",
-        "textMode": "value_and_name"
+        "textMode": "value"
       },
       "description": "From the nightly attribution audit."
     },
@@ -277,7 +277,7 @@
             "type": "prometheus",
             "uid": "${PROM}"
           },
-          "expr": "sum by (outcome) (rate(booking_attempts_total[5m]))",
+          "expr": "sum by (outcome) (rate(booking_attempts_total{deployment_environment!=\"development\"}[5m]))",
           "legendFormat": "{{outcome}}",
           "range": true
         }
@@ -324,7 +324,7 @@
             "type": "prometheus",
             "uid": "${PROM}"
           },
-          "expr": "histogram_quantile(0.95, sum by (le, platform) (rate(realtime_commit_to_ack_seconds_bucket[5m])))",
+          "expr": "histogram_quantile(0.95, sum by (le, platform) (rate(realtime_commit_to_ack_seconds_bucket{deployment_environment!=\"development\"}[5m])))",
           "legendFormat": "{{platform}}",
           "range": true
         }
@@ -371,7 +371,7 @@
             "type": "prometheus",
             "uid": "${PROM}"
           },
-          "expr": "histogram_quantile(0.75, sum by (le, page) (rate(web_vitals_seconds_bucket{metric=\"LCP\"}[30m])))",
+          "expr": "histogram_quantile(0.75, sum by (le, page) (rate(web_vitals_seconds_bucket{deployment_environment!=\"development\", metric=\"LCP\"}[30m])))",
           "legendFormat": "LCP {{page}}",
           "range": true
         },
@@ -381,7 +381,7 @@
             "type": "prometheus",
             "uid": "${PROM}"
           },
-          "expr": "histogram_quantile(0.75, sum by (le, page) (rate(web_vitals_seconds_bucket{metric=\"FCP\"}[30m])))",
+          "expr": "histogram_quantile(0.75, sum by (le, page) (rate(web_vitals_seconds_bucket{deployment_environment!=\"development\", metric=\"FCP\"}[30m])))",
           "legendFormat": "FCP {{page}}",
           "range": true
         }

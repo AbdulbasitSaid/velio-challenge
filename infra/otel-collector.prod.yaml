@@ -76,6 +76,13 @@ processors:
     limit_mib: 300
     spike_limit_mib: 60
   batch: {}
+  # S8: every signal says where it came from, so Grafana can tell local from production
+  # (label `deployment_environment`). Local and production export to the same stack.
+  attributes/env:
+    actions:
+      - key: deployment.environment
+        value: production
+        action: upsert
   # MVP plan §4.12: keep every error, everything slower than 1 s, and 10% of the rest.
   tail_sampling:
     decision_wait: 10s
@@ -101,13 +108,13 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [memory_limiter, tail_sampling, batch]
+      processors: [memory_limiter, tail_sampling, attributes/env, batch]
       exporters: [nop]
     metrics:
       receivers: [otlp, hostmetrics, postgresql]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter, attributes/env, batch]
       exporters: [nop]
     logs:
       receivers: [file_log/api]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter, attributes/env, batch]
       exporters: [nop]

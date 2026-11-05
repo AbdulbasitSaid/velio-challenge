@@ -204,9 +204,9 @@ Three dashboards (Goals; Booking and realtime; Host and database) and four alert
 
 1. In the stack: Administration → Users and access → Service accounts → Add service account, role Admin (the alert provisioning API needs it). Add a token with a short expiry.
 2. Put `GRAFANA_URL=https://<stack>.grafana.net` and `GRAFANA_SA_TOKEN=glsa_…` in the root `.env` (git-ignored).
-3. `bun run grafana:push`. It is idempotent: dashboards are matched by UID, and the `velio-goals` rule group is replaced as a whole. Everything lands in the Velio folder.
+3. `GRAFANA_ALERT_EMAIL=you@example.com bun run grafana:push` (or put `GRAFANA_ALERT_EMAIL` in `.env`). It is idempotent: dashboards are matched by UID, the `velio-goals` rule group is replaced as a whole, and the `velio-email` contact point is updated. Everything lands in the Velio folder. Without `GRAFANA_ALERT_EMAIL`, an existing `velio-email` contact point is kept.
 
-Alerts go to the stack's default notification policy; check its contact point has your email address.
+The Velio rules notify `velio-email` directly; the stack's own notification policy isn't changed. Dashboards and alerts show production only: the API tags its telemetry with `deployment.environment` from `NODE_ENV`, and the collectors tag everything they forward (`development` locally, `production` on EC2).
 
 ### Shell access
 

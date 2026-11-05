@@ -1,15 +1,19 @@
 // Pushes the dashboards and alert rules in infra/grafana to Grafana Cloud (S8 FR-018). Idempotent:
 // dashboards are matched by UID and overwritten, and the alert rule group is replaced as a whole.
 // Needs GRAFANA_URL (https://<stack>.grafana.net) and GRAFANA_SA_TOKEN (a service-account token with
-// dashboard and alerting write access), from the environment or the git-ignored root .env.
+// dashboard and alerting write access), from the environment or the git-ignored root .env. With
+// GRAFANA_ALERT_EMAIL, the Velio rules notify that address through their own contact point; the
+// stack's notification policy is left alone.
 import { readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const FOLDER = { uid: 'velio', title: 'Velio' };
+const CONTACT = 'velio-email';
 const dir = import.meta.dir;
 
 const url = process.env.GRAFANA_URL?.replace(/\/+$/, '');
 const token = process.env.GRAFANA_SA_TOKEN;
+const alertEmail = process.env.GRAFANA_ALERT_EMAIL;
 if (!url || !token) {
   console.error('Set GRAFANA_URL and GRAFANA_SA_TOKEN (README "Grafana dashboards and alerts").');
   process.exit(1);
@@ -58,8 +62,28 @@ async function ensureFolder() {
   console.log(`Created folder ${FOLDER.title}`);
 }
 
+/** Upserts the Velio email contact point; returns its name, or undefined if there is none to use. */
+async function contactPoint(): Promise<string | undefined> {
+  const found = (await (
+    await ok(await api('GET', `/api/v1/provisioning/contact-points?name=${CONTACT}`), 'list contact points')
+  ).json()) as { uid: string }[];
+  if (!alertEmail) return found.length > 0 ? CONTACT : undefined;
+  const body = { uid: CONTACT, name: CONTACT, type: 'email', settings: { addresses: alertEmail } };
+  if (found.length > 0) {
+    await ok(
+      await api('PUT', `/api/v1/provisioning/contact-points/${found[0]!.uid}`, body),
+      'update contact point',
+    );
+  } else {
+    await ok(await api('POST', '/api/v1/provisioning/contact-points', body), 'create contact point');
+  }
+  console.log(`Contact point: ${CONTACT}`);
+  return CONTACT;
+}
+
 const prom = await prometheusUid();
 await ensureFolder();
+const receiver = await contactPoint();
 
 for (const file of (await readdir(join(dir, 'dashboards'))).filter((f) => f.endsWith('.json')).sort()) {
   const dashboard = withSource(await Bun.file(join(dir, 'dashboards', file)).text(), prom) as {
@@ -77,7 +101,11 @@ for (const file of (await readdir(join(dir, 'alerts'))).filter((f) => f.endsWith
     title: string;
     rules: { folderUID?: string; ruleGroup?: string }[];
   };
-  for (const rule of group.rules) Object.assign(rule, { folderUID: FOLDER.uid, ruleGroup: group.title });
+  for (const rule of group.rules) {
+    Object.assign(rule, { folderUID: FOLDER.uid, ruleGroup: group.title });
+    // Simplified routing: these rules go straight to the Velio contact point.
+    if (receiver) Object.assign(rule, { notification_settings: { receiver } });
+  }
   await ok(
     await api(
       'PUT',
@@ -89,5 +117,5 @@ for (const file of (await readdir(join(dir, 'alerts'))).filter((f) => f.endsWith
     ),
     `alert rules ${file}`,
   );
-  console.log(`Alert rules: ${group.title} (${group.rules.length})`);
+  console.log(`Alert rules: ${group.title} (${group.rules.length})${receiver ? ` → ${receiver}` : ''}`);
 }

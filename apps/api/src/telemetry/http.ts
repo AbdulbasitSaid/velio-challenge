@@ -4,6 +4,7 @@ import type { MiddlewareHandler } from 'hono';
 import { createMiddleware } from 'hono/factory';
 import { routePath } from 'hono/route';
 import type { AppEnv } from '../app';
+import { LATENCY_BUCKETS_S } from './buckets';
 import { redactPath } from './logger';
 
 /** Hono reports unmatched requests under the catch-all pattern; label them as one series. */
@@ -39,6 +40,7 @@ export function accessMiddleware() {
   const histogram = metrics.getMeter('velio-http').createHistogram('http_server_duration_seconds', {
     description: 'HTTP server request duration',
     unit: 's',
+    advice: { explicitBucketBoundaries: LATENCY_BUCKETS_S },
   });
   return createMiddleware<AppEnv>(async (c, next) => {
     const start = performance.now();

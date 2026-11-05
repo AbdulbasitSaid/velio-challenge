@@ -17,14 +17,22 @@ export interface Telemetry {
  * With no endpoint, the OTel API stays a no-op: no spans or metrics are recorded or sent.
  * No auto-instrumentation: it relies on Node module hooks that are unreliable on Bun (MVP plan §4.12).
  */
-export function startTelemetry(endpoint: string | undefined, serviceName = 'velio-api'): Telemetry {
+export function startTelemetry(
+  endpoint: string | undefined,
+  serviceName = 'velio-api',
+  /** `deployment.environment`, so Grafana tells local from production (S8 F3). */
+  environment = 'development',
+): Telemetry {
   // The context manager is needed for trace_id in logs even when nothing is exported.
   context.setGlobalContextManager(new AsyncLocalStorageContextManager().enable());
   propagation.setGlobalPropagator(new W3CTraceContextPropagator());
   if (!endpoint) return { shutdown: async () => {} };
 
   const base = endpoint.replace(/\/$/, '');
-  const resource = resourceFromAttributes({ [ATTR_SERVICE_NAME]: serviceName });
+  const resource = resourceFromAttributes({
+    [ATTR_SERVICE_NAME]: serviceName,
+    'deployment.environment': environment,
+  });
 
   const tracerProvider = new TracerProvider({
     resource,

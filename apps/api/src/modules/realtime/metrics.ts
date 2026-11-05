@@ -1,4 +1,5 @@
 import { metrics, type MeterProvider } from '@opentelemetry/api';
+import { LATENCY_BUCKETS_S } from '../../telemetry/buckets';
 import type { RealtimePlatform } from '@velio/contracts';
 
 export type EventType = 'spots' | 'plan' | 'attendance' | 'resync';
@@ -7,7 +8,6 @@ export type EventType = 'spots' | 'plan' | 'attendance' | 'resync';
  * Seconds, dense around the PRD's 2 s target. The SDK's default boundaries (0, 5, 10, …) would put
  * every sample in the first bucket and make p95 unreadable.
  */
-export const LATENCY_BUCKETS_S = [0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 3, 5, 10];
 
 /**
  * Realtime instruments (S3 NFR-003, MVP plan §4.12). Labels are only `platform` or `type`; never

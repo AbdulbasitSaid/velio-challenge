@@ -17,6 +17,13 @@ processors:
     check_interval: 1s
     limit_mib: 256
   batch: {}
+  # S8: every signal says where it came from, so Grafana can tell local from production
+  # (label `deployment_environment`). Local and production export to the same stack.
+  attributes/env:
+    actions:
+      - key: deployment.environment
+        value: development
+        action: upsert
 
 exporters:
   debug:
@@ -27,9 +34,9 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter, attributes/env, batch]
       exporters: [debug]
     metrics:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter, attributes/env, batch]
       exporters: [debug]

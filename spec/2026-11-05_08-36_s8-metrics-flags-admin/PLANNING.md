@@ -2,7 +2,7 @@
 
 - **Spec ID:** 2026-11-05_08-36_s8-metrics-flags-admin
 - **Created:** 2026-11-05 08:36 (local)
-- **Status:** Implemented locally (2026-11-05). The Grafana push (needs the owner's token) and deployment (needs its own authorization) are outstanding.
+- **Status:** Implemented locally and Grafana pushed (2026-11-05). Deployment (needs its own authorization) is outstanding.
 - **Parents:** `spec/2026-11-03_07-42_group-bookings-mvp-plan/` (§4.8, §4.9, §4.12, §7 row S8). Builds on S2 (booking engine), S3 (realtime acks), S4 (invites, opens, attribution, audit functions), S5/S6 (web) and S10 (AWS stack, Grafana Cloud export).
 
 Claims are tagged **[Verified]** (checked, with a reference), **[Assumption]** or **[Proposal]**.
@@ -179,3 +179,8 @@ PRD: Problem and goals, Success metrics and tracking (funnel events, holdout des
   - Wrong admin tokens: at most 10 per IP per minute, then `429` (SEC-001's figure, an engineering choice).
   - `activity_viewed` is also sent from the invite page (the funnel's first step for invited people).
   - Existing tests adjusted: the engine's rollback tests now expect one `booking_failed` row (written after the rollback, by design), and the CDK test counts eight secrets (`admin-token`).
+- 2026-11-05: Grafana push run (M1). Three findings, each fixed with the owner's approval the same day:
+  - **F1, alerts notified nobody:** the stack's default policy routes to a contact point named `empty`. `push.ts` now upserts a `velio-email` contact point from `GRAFANA_ALERT_EMAIL` and routes only the Velio rules to it (simplified routing); the stack's policy is untouched. The address stays out of the repo.
+  - **F2, every p95 read ~4.75 s:** `booking_duration_seconds`, `booking_row_wait_seconds` (S2) and `http_server_duration_seconds` (S1) had no explicit buckets, so OTel's defaults (0, 5, 10 …) put every request in the first bucket. They now use `LATENCY_BUCKETS_S` (moved to `apps/api/src/telemetry/buckets.ts`) or, for the row wait, `DB_WAIT_BUCKETS_S`. Takes effect on deploy.
+  - **F3, local and production mixed:** both export to the same stack. The API sets `deployment.environment` from `NODE_ENV` (Grafana Cloud promotes it to the `deployment_environment` label, checked), and both collectors upsert it (`development` locally, `production` on EC2) so host and Postgres metrics carry it too. Dashboards and alerts select `deployment_environment!="development"`, which keeps production's untagged data until the deploy.
+

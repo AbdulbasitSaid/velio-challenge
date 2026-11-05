@@ -1,4 +1,5 @@
 import { metrics, type MeterProvider } from '@opentelemetry/api';
+import { DB_WAIT_BUCKETS_S, LATENCY_BUCKETS_S } from '../../telemetry/buckets';
 
 /** `path` label: direct bookings now; S4 adds `claim`. */
 export type BookingPath = 'direct' | 'claim';
@@ -11,10 +12,12 @@ export function createBookingMetrics(provider: MeterProvider = metrics.getMeterP
     duration: meter.createHistogram('booking_duration_seconds', {
       description: 'Booking engine duration, checks to commit',
       unit: 's',
+      advice: { explicitBucketBoundaries: LATENCY_BUCKETS_S },
     }),
     rowWait: meter.createHistogram('booking_row_wait_seconds', {
       description: 'Time in the conditional spot UPDATE, including the activity row lock wait',
       unit: 's',
+      advice: { explicitBucketBoundaries: DB_WAIT_BUCKETS_S },
     }),
     removals: meter.createCounter('booking_removals_total', { description: 'Host removals by outcome' }),
     oversell: meter.createCounter('oversell_detected_total', {

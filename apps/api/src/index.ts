@@ -18,7 +18,7 @@ try {
 }
 
 // Telemetry first: metric instruments bind to the provider that is global when they are created.
-const telemetry = startTelemetry(config.OTEL_EXPORTER_OTLP_ENDPOINT);
+const telemetry = startTelemetry(config.OTEL_EXPORTER_OTLP_ENDPOINT, 'velio-api', config.NODE_ENV);
 const logger = createLogger(config.LOG_LEVEL);
 const db = createDb(config.DATABASE_URL);
 const realtime = createRealtime({ db, logger, listenUrl: config.DATABASE_LISTEN_URL });

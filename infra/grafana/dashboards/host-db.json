@@ -1,7 +1,7 @@
 {
   "uid": "velio-host-db",
   "title": "Velio · Host and database",
-  "description": "Whether one instance is the ceiling, and where time goes (MVP plan §4.12).",
+  "description": "Whether one instance is the ceiling, and where time goes (MVP plan §4.12). Production only: local data carries deployment_environment=\"development\".",
   "tags": ["velio"],
   "timezone": "utc",
   "schemaVersion": 39,
@@ -35,7 +35,7 @@
             "type": "prometheus",
             "uid": "${PROM}"
           },
-          "expr": "histogram_quantile(0.95, sum by (le, route) (rate(http_server_duration_seconds_bucket[5m])))",
+          "expr": "histogram_quantile(0.95, sum by (le, route) (rate(http_server_duration_seconds_bucket{deployment_environment!=\"development\"}[5m])))",
           "legendFormat": "{{route}}",
           "range": true
         }
@@ -82,7 +82,7 @@
             "type": "prometheus",
             "uid": "${PROM}"
           },
-          "expr": "max(db_pool_in_use)",
+          "expr": "max(db_pool_in_use{deployment_environment!=\"development\"})",
           "legendFormat": "in use",
           "range": true
         }
@@ -128,7 +128,7 @@
             "type": "prometheus",
             "uid": "${PROM}"
           },
-          "expr": "1 - (sum(rate(system_cpu_time_seconds_total{state=\"idle\"}[5m])) / sum(rate(system_cpu_time_seconds_total[5m])))",
+          "expr": "1 - (sum(rate(system_cpu_time_seconds_total{deployment_environment!=\"development\", state=\"idle\"}[5m])) / sum(rate(system_cpu_time_seconds_total{deployment_environment!=\"development\"}[5m])))",
           "legendFormat": "cpu",
           "range": true
         }
@@ -175,7 +175,7 @@
             "type": "prometheus",
             "uid": "${PROM}"
           },
-          "expr": "sum(system_memory_usage_bytes{state=\"used\"})",
+          "expr": "sum(system_memory_usage_bytes{deployment_environment!=\"development\", state=\"used\"})",
           "legendFormat": "used",
           "range": true
         }
@@ -222,7 +222,7 @@
             "type": "prometheus",
             "uid": "${PROM}"
           },
-          "expr": "sum(postgresql_backends)",
+          "expr": "sum(postgresql_backends{deployment_environment!=\"development\"})",
           "legendFormat": "backends",
           "range": true
         }
@@ -268,7 +268,7 @@
             "type": "prometheus",
             "uid": "${PROM}"
           },
-          "expr": "sum by (scope) (rate(rate_limited_total[5m]))",
+          "expr": "sum by (scope) (rate(rate_limited_total{deployment_environment!=\"development\"}[5m]))",
           "legendFormat": "limited {{scope}}",
           "range": true
         },
@@ -278,7 +278,7 @@
             "type": "prometheus",
             "uid": "${PROM}"
           },
-          "expr": "sum(rate(invite_auto_paused_total[5m]))",
+          "expr": "sum(rate(invite_auto_paused_total{deployment_environment!=\"development\"}[5m]))",
           "legendFormat": "auto-paused links",
           "range": true
         },
@@ -288,7 +288,7 @@
             "type": "prometheus",
             "uid": "${PROM}"
           },
-          "expr": "sum by (name) (rate(client_events_total[5m]))",
+          "expr": "sum by (name) (rate(client_events_total{deployment_environment!=\"development\"}[5m]))",
           "legendFormat": "client {{name}}",
           "range": true
         }
